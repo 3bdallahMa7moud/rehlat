@@ -27,10 +27,10 @@ export function Badge({ tone = 'neutral', children, className }: { tone?: 'neutr
 }
 
 export function Avatar({ name, color, size = 'md' }: { name: string; color: string; size?: 'sm' | 'md' | 'lg' }) {
-  const dimensions = size === 'lg' ? 'h-14 w-14 text-lg' : size === 'sm' ? 'h-8 w-8 text-xs' : 'h-10 w-10 text-sm'
+  const dimensions = size === 'lg' ? 'h-13 w-13 text-base' : size === 'sm' ? 'h-8 w-8 text-xs' : 'h-10 w-10 text-sm'
   return (
     <span
-      className={cx('grid shrink-0 place-items-center rounded-lg font-black text-white shadow-sm', dimensions)}
+      className={cx('grid shrink-0 place-items-center rounded-lg font-bold text-white shadow-sm', dimensions)}
       style={{ background: color }}
       aria-hidden="true"
     >
@@ -44,7 +44,7 @@ export function EmptyState({ icon, title, body, action }: { icon?: ReactNode; ti
     <div className="empty-state">
       {icon ? <div className="text-[var(--accent)]">{icon}</div> : null}
       <div>
-        <h3 className="text-lg font-black text-[var(--ink)]">{title}</h3>
+        <h3 className="text-base font-bold text-[var(--ink)]">{title}</h3>
         <p className="mt-1 max-w-md text-sm text-[var(--ink-2)]">{body}</p>
       </div>
       {action}
@@ -67,8 +67,8 @@ export function KpiBand({
     <div className={cx('kpi-band', flush && 'flush', className)} style={{ gridTemplateColumns: `repeat(${columns ?? items.length}, minmax(0, 1fr))` }}>
       {items.map((item, index) => (
         <div key={`${item.label}-${index}`} className={cx('kpi-item', item.tone && item.tone !== 'neutral' && `tone-${item.tone}`)}>
-          <div className="kpi-value">
-            {item.value}
+          <div className="kpi-value-row">
+            <div className="kpi-value">{item.value}</div>
             {item.unit ? <span className="kpi-unit">{item.unit}</span> : null}
           </div>
           <div className="kpi-label">{item.label}</div>
@@ -94,8 +94,8 @@ export function PageHeader({
     <div className="top-header">
       <div className="min-w-0">
         {eyebrow ? <p className="eyebrow mb-1">{eyebrow}</p> : null}
-        <h1 className="text-[1.75rem] font-black leading-tight text-[var(--ink)] md:text-[2rem]">{title}</h1>
-        {description ? <p className="mt-2 max-w-2xl text-sm text-[var(--ink-2)] md:text-base">{description}</p> : null}
+        <h1 className="text-[1.65rem] font-bold leading-tight text-[var(--ink)] md:text-[1.9rem]">{title}</h1>
+        {description ? <p className="mt-1.5 max-w-2xl text-sm text-[var(--ink-2)] md:text-base">{description}</p> : null}
       </div>
       {actions ? <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
@@ -116,6 +116,141 @@ export function ProgressBar({ value, good, label }: { value: number; good?: bool
   return (
     <div aria-label={label} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value)} className="progress-track">
       <i className={good ? 'good' : ''} style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+    </div>
+  )
+}
+
+export function OtpPinInput({
+  value,
+  onChange,
+  length = 4,
+  error = false,
+  autoFocus = false,
+  disabled = false,
+  label = 'PIN',
+  id = 'otp-pin',
+}: {
+  value: string
+  onChange: (value: string) => void
+  length?: number
+  error?: boolean
+  autoFocus?: boolean
+  disabled?: boolean
+  label?: string
+  id?: string
+}) {
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([])
+  const digits = Array.from({ length }, (_, i) => value[i] || '')
+
+  useEffect(() => {
+    if (autoFocus && inputsRef.current[0]) {
+      inputsRef.current[0].focus()
+    }
+  }, [autoFocus])
+
+  const handleDigitChange = (index: number, digit: string) => {
+    const cleanDigit = digit.replace(/\D/g, '').slice(-1)
+    const newDigits = [...digits]
+    newDigits[index] = cleanDigit
+    const newPin = newDigits.join('').slice(0, length)
+    onChange(newPin)
+
+    if (cleanDigit && index < length - 1) {
+      inputsRef.current[index + 1]?.focus()
+    }
+  }
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (!digits[index] && index > 0) {
+        inputsRef.current[index - 1]?.focus()
+        const newDigits = [...digits]
+        newDigits[index - 1] = ''
+        onChange(newDigits.join(''))
+      } else {
+        const newDigits = [...digits]
+        newDigits[index] = ''
+        onChange(newDigits.join(''))
+      }
+    } else if (e.key === 'ArrowLeft') {
+      if (index > 0) inputsRef.current[index - 1]?.focus()
+    } else if (e.key === 'ArrowRight') {
+      if (index < length - 1) inputsRef.current[index + 1]?.focus()
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, length)
+    if (pastedData) {
+      onChange(pastedData)
+      const focusIndex = Math.min(pastedData.length, length - 1)
+      inputsRef.current[focusIndex]?.focus()
+    }
+  }
+
+  return (
+    <div className="field">
+      <span className="text-center text-xs font-semibold text-[var(--ink-2)]">{label}</span>
+      <div className={cx('otp-group', error && 'otp-shake')} role="group" aria-label={label} id={id}>
+        {Array.from({ length }, (_, index) => (
+          <input
+            key={index}
+            ref={(el) => {
+              inputsRef.current[index] = el
+            }}
+            type="password"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={1}
+            autoComplete="one-time-code"
+            disabled={disabled}
+            value={digits[index]}
+            onChange={(e) => handleDigitChange(index, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(index, e)}
+            onPaste={handlePaste}
+            className={cx(
+              'otp-box',
+              digits[index] && 'filled',
+              error && 'error',
+            )}
+            aria-label={`Digit ${index + 1} of ${length}`}
+            aria-invalid={error}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export function CustomChartTooltip({
+  active,
+  payload,
+  label,
+  valueSuffix = '',
+}: {
+  active?: boolean
+  payload?: Array<{ name?: string; value?: number | string; color?: string; dataKey?: string }>
+  label?: string
+  valueSuffix?: string
+}) {
+  if (!active || !payload || !payload.length) return null
+  return (
+    <div className="chart-tooltip">
+      {label ? <div className="chart-tooltip-label">{label}</div> : null}
+      <div className="chart-tooltip-items">
+        {payload.map((item, i) => (
+          <div key={i} className="chart-tooltip-item">
+            <span className="chart-tooltip-key" style={{ color: item.color || 'var(--ink-2)' }}>
+              {item.name || item.dataKey}:
+            </span>
+            <span className="chart-tooltip-val num">
+              {item.value}
+              {valueSuffix}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -163,7 +298,7 @@ export function Modal({
     <div className="dialog-backdrop" onMouseDown={(event) => event.currentTarget === event.target && onClose()}>
       <div ref={dialogRef} className="dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? `${titleId}-desc` : undefined}>
         <div className="border-b border-[var(--line)] p-5">
-          <h2 id={titleId} className="text-lg font-black">{title}</h2>
+          <h2 id={titleId} className="text-lg font-bold">{title}</h2>
           {description ? <p id={`${titleId}-desc`} className="mt-1 text-sm text-[var(--ink-2)]">{description}</p> : null}
         </div>
         <div className="p-5">{children}</div>

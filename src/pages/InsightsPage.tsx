@@ -11,14 +11,14 @@ function InsightList({ title, icon, items, empty }: { title: string; icon: React
     <div className="panel p-4">
       <div className="mb-3 flex items-center gap-2">
         <span className="text-[var(--accent)]">{icon}</span>
-        <h3 className="font-black">{title}</h3>
+        <h3 className="font-bold text-base">{title}</h3>
       </div>
       {items.length ? (
         <ul className="list-panel text-sm text-[var(--ink-2)]">
           {items.map((item) => <li key={item} className="list-row">{item}</li>)}
         </ul>
       ) : (
-        <p className="rounded-md bg-[var(--surface-2)] p-3 text-sm text-[var(--ink-3)]">{empty}</p>
+        <p className="rounded-md bg-[var(--surface-2)] p-3 text-xs text-[var(--ink-3)]">{empty}</p>
       )}
     </div>
   )
@@ -58,14 +58,14 @@ export function InsightsPage() {
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.45fr)] lg:items-stretch">
               <div>
                 <Badge tone="gold">{text(language, 'الخلاصة الرئيسية', 'Main insight')}</Badge>
-                <h2 className="mt-4 max-w-3xl text-2xl font-black leading-snug md:text-3xl">{insight.headline}</h2>
+                <h2 className="mt-3 max-w-3xl text-xl font-bold leading-snug md:text-2xl">{insight.headline}</h2>
               </div>
               <div className="panel-soft flex flex-col justify-center p-4">
                 <div className="mb-2 flex items-center gap-2 text-[var(--accent)]">
-                  <Lightbulb size={19} />
-                  <h3 className="font-black">{text(language, 'اقتراح الأسبوع', 'Recommendation')}</h3>
+                  <Lightbulb size={18} />
+                  <h3 className="font-bold text-sm">{text(language, 'اقتراح الأسبوع', 'Recommendation')}</h3>
                 </div>
-                <p className="text-sm font-bold leading-7 text-[var(--ink-2)]">{mainAdvice}</p>
+                <p className="text-xs font-semibold leading-6 text-[var(--ink-2)]">{mainAdvice}</p>
               </div>
             </div>
           </section>
@@ -73,13 +73,13 @@ export function InsightsPage() {
           <section className="grid gap-5 lg:grid-cols-2">
             <InsightList
               title={text(language, 'نقاط القوة', 'Strengths')}
-              icon={<CheckCircle2 size={20} />}
+              icon={<CheckCircle2 size={18} />}
               items={insight.strengths}
               empty={text(language, 'لم تظهر نقاط قوة واضحة بعد.', 'No clear strengths yet.')}
             />
             <InsightList
               title={text(language, 'ما يحتاج انتباهك', 'Needs attention')}
-              icon={<AlertTriangle size={20} />}
+              icon={<AlertTriangle size={18} />}
               items={insight.weaknesses}
               empty={text(language, 'لا توجد مشكلة واضحة في البيانات الحالية.', 'No clear issue in the current data.')}
             />
@@ -89,8 +89,8 @@ export function InsightsPage() {
             <section className="panel p-5">
               <div className="section-title">
                 <div>
-                  <h2 className="text-xl font-black">{text(language, 'تحليل المجموعة', 'Group analysis')}</h2>
-                  <p className="text-sm text-[var(--ink-2)]">{text(language, 'ملخص إداري سريع لأبرز مؤشرات المشاركين.', 'A quick admin summary of participant signals.')}</p>
+                  <h2 className="text-lg font-bold">{text(language, 'تحليل المجموعة', 'Group analysis')}</h2>
+                  <p className="text-xs text-[var(--ink-2)]">{text(language, 'ملخص إداري سريع لأبرز مؤشرات المشاركين.', 'A quick admin summary of participant signals.')}</p>
                 </div>
                 <Badge tone="gold">{text(language, 'مشرف', 'Admin')}</Badge>
               </div>
@@ -108,11 +108,11 @@ export function InsightsPage() {
                   <tbody>
                     {groupRows.map((row) => (
                       <tr key={row.participant.id}>
-                        <td data-label={text(language, 'المشارك', 'Participant')} className="font-black">{language === 'ar' ? row.participant.name : row.participant.nameEn}</td>
+                        <td data-label={text(language, 'المشارك', 'Participant')} className="font-bold">{language === 'ar' ? row.participant.name : row.participant.nameEn}</td>
                         <td data-label={text(language, 'أيام ناجحة', 'Success days')} className="num">{row.stats.successDays}</td>
                         <td data-label={text(language, 'نسبة الشهر', 'Month rate')} className="num">{row.stats.rate.toFixed(0)}%</td>
                         <td data-label={text(language, 'وقت العمل', 'Work time')} className="num">{formatCompactDuration(row.stats.ms, language)}</td>
-                        <td data-label={text(language, 'أول ملاحظة', 'First observation')} className="max-w-md text-[var(--ink-2)]">{row.insight?.weaknesses[0] ?? row.insight?.strengths[0] ?? text(language, 'لا توجد بيانات', 'No data')}</td>
+                        <td data-label={text(language, 'أول ملاحظة', 'First observation')} className="max-w-md text-xs text-[var(--ink-2)]">{row.insight?.weaknesses[0] ?? row.insight?.strengths[0] ?? text(language, 'لا توجد بيانات', 'No data')}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -121,7 +121,7 @@ export function InsightsPage() {
             </section>
           ) : null}
 
-          <p className="text-sm font-bold text-[var(--ink-3)]">
+          <p className="text-xs font-medium text-[var(--ink-3)]">
             {text(language, `تم الحساب من بيانات مسجلة حتى ${todayKey()}.`, `Computed from recorded data through ${todayKey()}.`)}
           </p>
         </div>
@@ -129,3 +129,4 @@ export function InsightsPage() {
     </>
   )
 }
+

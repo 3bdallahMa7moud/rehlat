@@ -1,7 +1,7 @@
 import { Area, AreaChart, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { BarChart3, CalendarCheck, Clock3 } from 'lucide-react'
 import { useApp } from '../app/useApp'
-import { Badge, EmptyState, KpiBand, PageHeader, ProgressBar } from '../components/ui'
+import { Badge, CustomChartTooltip, EmptyState, KpiBand, PageHeader, ProgressBar } from '../components/ui'
 import { formatCompactDuration, formatDay } from '../utils/date'
 import { progressSeries } from '../utils/stats'
 import { text, unitLabel } from '../utils/text'
@@ -30,8 +30,8 @@ export function ProgressPage() {
         <section className="panel p-5">
           <div className="section-title">
             <div>
-              <h2 className="text-xl font-black">{text(language, 'اتجاه الإنجاز', 'Completion trend')}</h2>
-              <p className="text-sm text-[var(--ink-2)]">{text(language, 'الخط المتقطع يوضح هدف 90%.', 'The dashed line marks the 90% target.')}</p>
+              <h2 className="text-lg font-bold">{text(language, 'اتجاه الإنجاز', 'Completion trend')}</h2>
+              <p className="text-xs text-[var(--ink-2)]">{text(language, 'الخط المتقطع يوضح هدف 90%.', 'The dashed line marks the 90% target.')}</p>
             </div>
             <Badge tone="gold">{state.settings.dailyTarget}%</Badge>
           </div>
@@ -50,9 +50,9 @@ export function ProgressPage() {
                 <LineChart data={chartData} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
                   <XAxis dataKey="label" tick={{ fill: 'var(--ink-3)', fontSize: 10 }} interval="preserveStartEnd" axisLine={false} tickLine={false} minTickGap={12} />
                   <YAxis domain={[0, 100]} tick={{ fill: 'var(--ink-3)', fontSize: 10 }} width={28} axisLine={false} tickLine={false} tickCount={5} />
-                  <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--ink)' }} />
+                  <Tooltip content={<CustomChartTooltip valueSuffix="%" />} />
                   <ReferenceLine y={state.settings.dailyTarget} stroke="var(--good)" strokeDasharray="4 5" />
-                  <Line type="monotone" dataKey="completion" name={text(language, 'الإنجاز', 'Completion')} stroke="var(--accent)" strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="completion" name={text(language, 'الإنجاز', 'Completion')} stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -68,8 +68,8 @@ export function ProgressPage() {
         <section className="grid gap-5 xl:grid-cols-[1fr_0.8fr]">
           <div className="panel p-5">
             <div className="section-title">
-              <h2 className="text-xl font-black">{text(language, 'اتجاه وقت العمل', 'Work-time trend')}</h2>
-              <Clock3 size={20} className="text-[var(--accent)]" />
+              <h2 className="text-lg font-bold">{text(language, 'اتجاه وقت العمل', 'Work-time trend')}</h2>
+              <Clock3 size={18} className="text-[var(--accent)]" />
             </div>
             {hasData ? (
               <div className="chart-box">
@@ -77,7 +77,7 @@ export function ProgressPage() {
                   <AreaChart data={chartData} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
                     <XAxis dataKey="label" tick={{ fill: 'var(--ink-3)', fontSize: 10 }} interval="preserveStartEnd" axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: 'var(--ink-3)', fontSize: 10 }} width={30} axisLine={false} tickLine={false} tickCount={4} />
-                    <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--ink)' }} />
+                    <Tooltip content={<CustomChartTooltip valueSuffix={` ${text(language, 'دقيقة', 'min')}`} />} />
                     <Area type="monotone" dataKey="workMinutes" name={text(language, 'دقائق العمل', 'Work minutes')} stroke="var(--accent)" fill="var(--accent-bg)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -93,18 +93,18 @@ export function ProgressPage() {
 
           <div className="panel p-5">
             <div className="section-title">
-              <h2 className="text-xl font-black">{text(language, 'تفصيل الأيام', 'Daily breakdown')}</h2>
-              <CalendarCheck size={20} className="text-[var(--accent)]" />
+              <h2 className="text-lg font-bold">{text(language, 'تفصيل الأيام', 'Daily breakdown')}</h2>
+              <CalendarCheck size={18} className="text-[var(--accent)]" />
             </div>
             <div className="list-panel">
               {hasData ? chartData.slice().reverse().map((item) => (
                 <div key={item.day} className="list-row">
                   <div className="mb-2 flex items-center justify-between gap-3">
-                    <div className="font-black">{item.label}</div>
+                    <div className="font-bold text-sm">{item.label}</div>
                     <Badge tone={item.successful ? 'good' : item.total ? 'warn' : 'neutral'}>{item.total ? `${item.done} / ${item.total}` : text(language, 'لا نشاط', 'No activity')}</Badge>
                   </div>
                   <ProgressBar value={item.completion} good={item.successful} label={text(language, 'نسبة اليوم', 'Day completion')} />
-                  <div className="mt-2 text-xs font-bold text-[var(--ink-3)]">{formatCompactDuration(item.workMinutes * 60000, language)}</div>
+                  <div className="mt-1.5 text-xs font-medium text-[var(--ink-3)]">{formatCompactDuration(item.workMinutes * 60000, language)}</div>
                 </div>
               )) : (
                 <EmptyState
@@ -120,3 +120,4 @@ export function ProgressPage() {
     </>
   )
 }
+

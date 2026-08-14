@@ -44,8 +44,8 @@ export function ActivityPage() {
       <section className="panel mb-5 p-5">
         <div className="section-title">
           <div className="flex items-center gap-2">
-            <Filter size={20} className="text-[var(--accent)]" />
-            <h2 className="text-xl font-black">{text(language, 'الفلاتر', 'Filters')}</h2>
+            <Filter size={18} className="text-[var(--accent)]" />
+            <h2 className="text-lg font-bold">{text(language, 'الفلاتر', 'Filters')}</h2>
           </div>
           <div className="flex items-center gap-2">
             <Badge>{filtered.length}</Badge>
@@ -69,7 +69,7 @@ export function ActivityPage() {
               {state.participants.map((participant) => <option key={participant.id} value={participant.id}>{language === 'ar' ? participant.name : participant.nameEn}</option>)}
             </SelectField>
           ) : (
-            <div className="panel-soft p-3 text-sm font-bold text-[var(--ink-2)]">
+            <div className="panel-soft p-3 text-xs font-semibold text-[var(--ink-2)]">
               {text(language, 'يظهر سجلك الشخصي فقط.', 'Only your personal history is shown.')}
             </div>
           )}
@@ -86,7 +86,7 @@ export function ActivityPage() {
 
       <section className="panel p-5">
         <div className="section-title">
-          <h2 className="text-xl font-black">{text(language, 'الأحداث', 'Events')}</h2>
+          <h2 className="text-lg font-bold">{text(language, 'الأحداث', 'Events')}</h2>
           <Badge tone="gold">{canSeeAll ? text(language, 'عرض إداري', 'Admin view') : text(language, 'عرض شخصي', 'Personal view')}</Badge>
         </div>
         {filtered.length ? (
@@ -109,12 +109,12 @@ export function ActivityPage() {
                   const task = event.taskId ? taskById(state, event.taskId) : null
                   return (
                     <tr key={event.id}>
-                      <td data-label={text(language, 'التاريخ', 'Date')} className="num">{formatDay(event.day, language)}</td>
-                      <td data-label={text(language, 'الوقت', 'Time')} className="num">{formatClock(event.at, language)}</td>
-                      {canSeeAll ? <td data-label={text(language, 'المشارك', 'Participant')} className="font-black">{participant ? (language === 'ar' ? participant.name : participant.nameEn) : '—'}</td> : null}
+                      <td data-label={text(language, 'التاريخ', 'Date')} className="num text-xs">{formatDay(event.day, language)}</td>
+                      <td data-label={text(language, 'الوقت', 'Time')} className="num text-xs">{formatClock(event.at, language)}</td>
+                      {canSeeAll ? <td data-label={text(language, 'المشارك', 'Participant')} className="font-bold text-sm">{participant ? (language === 'ar' ? participant.name : participant.nameEn) : '—'}</td> : null}
                       <td data-label={text(language, 'الحدث', 'Event')}><Badge tone={eventTone(event.type as EventType)}>{eventLabel(event.type as EventType, language)}</Badge></td>
-                      <td data-label={text(language, 'المهمة', 'Task')} className="max-w-sm text-[var(--ink-2)]">{task ? (language === 'ar' ? task.name : task.nameEn) : '—'}</td>
-                      <td data-label={text(language, 'تفاصيل', 'Details')} className="text-[var(--ink-3)]">{event.detail ?? '—'}</td>
+                      <td data-label={text(language, 'المهمة', 'Task')} className="max-w-sm text-xs text-[var(--ink-2)]">{task ? (language === 'ar' ? task.name : task.nameEn) : '—'}</td>
+                      <td data-label={text(language, 'تفاصيل', 'Details')} className="text-xs text-[var(--ink-3)]">{event.detail ?? '—'}</td>
                     </tr>
                   )
                 })}
@@ -130,12 +130,12 @@ export function ActivityPage() {
                   <div key={event.id} className="list-row">
                     <div className="mb-2 flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="font-black">{canSeeAll && participant ? (language === 'ar' ? participant.name : participant.nameEn) : eventLabel(event.type as EventType, language)}</div>
+                        <div className="font-bold text-sm">{canSeeAll && participant ? (language === 'ar' ? participant.name : participant.nameEn) : eventLabel(event.type as EventType, language)}</div>
                         {canSeeAll ? <div className="mt-1"><Badge tone={eventTone(event.type as EventType)}>{eventLabel(event.type as EventType, language)}</Badge></div> : null}
                       </div>
-                      <div className="num shrink-0 text-xs font-bold text-[var(--ink-3)]">{formatClock(event.at, language)}</div>
+                      <div className="num shrink-0 text-xs font-semibold text-[var(--ink-3)]">{formatClock(event.at, language)}</div>
                     </div>
-                    <div className="text-sm text-[var(--ink-2)]">
+                    <div className="text-xs text-[var(--ink-2)]">
                       <span className="num">{formatDay(event.day, language)}</span>
                       {task ? <span> · {language === 'ar' ? task.name : task.nameEn}</span> : null}
                     </div>
@@ -157,3 +157,4 @@ export function ActivityPage() {
     </>
   )
 }
+

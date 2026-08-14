@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { LockKeyhole, Moon, Search, Sun, UserRound } from 'lucide-react'
 import { useApp } from '../app/useApp'
 import { Brand } from '../components/Brand'
-import { Avatar, Badge, Button, EmptyState, IconButton } from '../components/ui'
+import { Avatar, Badge, Button, EmptyState, IconButton, OtpPinInput } from '../components/ui'
 import { text } from '../utils/text'
 
 export function LoginPage() {
@@ -35,6 +35,10 @@ export function LoginPage() {
     event.preventDefault()
     setError('')
     if (!selected) return
+    if (pin.length < 4) {
+      setError(text(language, 'الرجاء إدخال الرمز المكوّن من 4 أرقام.', 'Please enter the 4-digit PIN.'))
+      return
+    }
     if (setupMode && pin !== confirmPin) {
       setError(text(language, 'الرمزان غير متطابقين.', 'The PINs do not match.'))
       return
@@ -56,7 +60,7 @@ export function LoginPage() {
               <Brand language={language} variant="login" />
               <div className="flex gap-1">
                 <IconButton label={text(language, 'تبديل اللغة', 'Switch language')} onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}>
-                  <span className="text-xs font-black">{language === 'ar' ? 'EN' : 'AR'}</span>
+                  <span className="text-xs font-bold">{language === 'ar' ? 'EN' : 'AR'}</span>
                 </IconButton>
                 <IconButton label={text(language, 'تبديل الوضع', 'Switch theme')} onClick={() => setTheme(state.theme === 'light' ? 'dark' : 'light')}>
                   {state.theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
@@ -65,10 +69,10 @@ export function LoginPage() {
             </div>
             <div className="mt-10 max-w-xl md:mt-16">
               <p className="eyebrow">{text(language, 'بوابة المشاركين', 'Participant portal')}</p>
-              <h1 className="mt-3 text-3xl font-black leading-tight text-[var(--ink)] md:text-5xl">
+              <h1 className="mt-3 text-2xl font-bold leading-tight text-[var(--ink)] md:text-4xl">
                 {text(language, 'ادخل إلى رحلتك اليومية بوضوح وهدوء.', 'Enter your daily journey with clarity and calm.')}
               </h1>
-              <p className="mt-5 text-base text-[var(--ink-2)]">
+              <p className="mt-4 text-sm font-normal text-[var(--ink-2)] md:text-base">
                 {text(
                   language,
                   'اختر اسمك، أدخل رمزك، وتابع مهامك وتقدم المجموعة من مكان واحد منظم.',
@@ -77,14 +81,14 @@ export function LoginPage() {
               </p>
             </div>
           </div>
-          <div className="login-proofline mt-10">
+          <div className="login-proofline mt-8">
             <div>
-              <div className="text-2xl font-black num">{state.participants.filter((p) => p.active).length}</div>
-              <div className="mt-1 text-xs font-bold text-[var(--ink-3)]">{text(language, 'مشاركون نشطون', 'Active participants')}</div>
+              <div className="text-xl font-bold num">{state.participants.filter((p) => p.active).length}</div>
+              <div className="mt-1 text-xs font-medium text-[var(--ink-3)]">{text(language, 'مشاركون نشطون', 'Active participants')}</div>
             </div>
             <div>
-              <div className="text-2xl font-black num">90%</div>
-              <div className="mt-1 text-xs font-bold text-[var(--ink-3)]">{text(language, 'هدف اليوم', 'Daily target')}</div>
+              <div className="text-xl font-bold num">90%</div>
+              <div className="mt-1 text-xs font-medium text-[var(--ink-3)]">{text(language, 'هدف اليوم', 'Daily target')}</div>
             </div>
           </div>
         </section>
@@ -95,7 +99,7 @@ export function LoginPage() {
               <div className="section-title">
                 <div>
                   <p className="eyebrow">{text(language, 'الدخول', 'Sign in')}</p>
-                  <h2 className="text-2xl font-black">{text(language, 'اختر اسمك', 'Choose your name')}</h2>
+                  <h2 className="text-xl font-bold">{text(language, 'اختر اسمك', 'Choose your name')}</h2>
                 </div>
                 <Badge tone="gold">{activeParticipants.length}</Badge>
               </div>
@@ -116,7 +120,7 @@ export function LoginPage() {
                   <button
                     key={participant.id}
                     type="button"
-                    className="flex min-h-[58px] items-center justify-between gap-3 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-3 text-start hover:bg-[var(--surface-2)]"
+                    className="flex min-h-[56px] items-center justify-between gap-3 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-3 text-start transition-colors hover:bg-[var(--surface-2)]"
                     onClick={() => {
                       setSelectedId(participant.id)
                       setPin('')
@@ -127,8 +131,8 @@ export function LoginPage() {
                     <span className="flex min-w-0 items-center gap-3">
                       <Avatar name={participant.name} color={participant.avatar} />
                       <span className="min-w-0">
-                        <span className="block truncate font-black">{language === 'ar' ? participant.name : participant.nameEn}</span>
-                        <span className="block text-xs text-[var(--ink-3)]">{participant.mustSetPin ? text(language, 'يحتاج رمزاً جديداً', 'Needs new PIN') : text(language, 'جاهز للدخول', 'Ready')}</span>
+                        <span className="block truncate font-bold text-sm">{language === 'ar' ? participant.name : participant.nameEn}</span>
+                        <span className="block text-xs font-medium text-[var(--ink-3)]">{participant.mustSetPin ? text(language, 'يحتاج رمزاً جديداً', 'Needs new PIN') : text(language, 'جاهز للدخول', 'Ready')}</span>
                       </span>
                     </span>
                     {participant.role === 'admin' ? <Badge tone="gold">{text(language, 'مشرف', 'Admin')}</Badge> : null}
@@ -143,14 +147,14 @@ export function LoginPage() {
               </div>
             </>
           ) : (
-            <form onSubmit={submit} className="mx-auto grid max-w-md gap-5 py-8">
+            <form onSubmit={submit} className="mx-auto grid max-w-md gap-4 py-6">
               <div className="text-center">
                 <div className="mx-auto mb-3 flex justify-center">
                   <Avatar name={selected.name} color={selected.avatar} size="lg" />
                 </div>
                 <p className="eyebrow">{setupMode ? text(language, 'إعداد الرمز', 'PIN setup') : text(language, 'رمز الدخول', 'Enter PIN')}</p>
-                <h2 className="mt-1 text-2xl font-black">{language === 'ar' ? selected.name : selected.nameEn}</h2>
-                <p className="mt-2 text-sm text-[var(--ink-2)]">
+                <h2 className="mt-1 text-xl font-bold">{language === 'ar' ? selected.name : selected.nameEn}</h2>
+                <p className="mt-1.5 text-sm font-normal text-[var(--ink-2)]">
                   {setupMode
                     ? selected.pinReset
                       ? text(language, 'صفّر المشرف رمزك. اختر رمزاً جديداً.', 'An admin reset your PIN. Choose a new one.')
@@ -158,40 +162,38 @@ export function LoginPage() {
                     : text(language, 'أدخل رمزك المكوّن من 4 أرقام.', 'Enter your 4-digit PIN.')}
                 </p>
               </div>
-              <label className="field">
-                <span>{setupMode ? text(language, 'اختر رمزاً من 4 أرقام', 'Choose a 4-digit PIN') : text(language, 'الرمز السري', 'PIN')}</span>
-                <input
-                  className="input num text-center text-xl tracking-[0.45em]"
-                  value={pin}
-                  onChange={(event) => setPin(event.target.value.replace(/\D/g, '').slice(0, 4))}
-                  inputMode="numeric"
-                  autoComplete="off"
-                  type="password"
-                  maxLength={4}
-                  aria-invalid={!!error}
-                  autoFocus
-                />
-                {!setupMode ? <span className="text-xs font-bold text-[var(--ink-3)]">{text(language, 'للعرض التجريبي يمكنك استخدام 1234', 'For preview, you can use 1234')}</span> : null}
-              </label>
-              {setupMode ? (
-                <label className="field">
-                  <span>{text(language, 'تأكيد الرمز', 'Confirm PIN')}</span>
-                  <input
-                    className="input num text-center text-xl tracking-[0.45em]"
-                    value={confirmPin}
-                    onChange={(event) => setConfirmPin(event.target.value.replace(/\D/g, '').slice(0, 4))}
-                    inputMode="numeric"
-                    autoComplete="off"
-                    type="password"
-                    maxLength={4}
-                    aria-invalid={!!error}
-                  />
-                </label>
+
+              <OtpPinInput
+                value={pin}
+                onChange={setPin}
+                length={4}
+                error={!!error}
+                autoFocus
+                label={setupMode ? text(language, 'اختر رمزاً من 4 أرقام', 'Choose a 4-digit PIN') : text(language, 'الرمز السري', 'PIN')}
+                id="login-pin-input"
+              />
+
+              {!setupMode ? (
+                <span className="text-center text-xs font-medium text-[var(--ink-3)]">
+                  {text(language, 'للعرض التجريبي يمكنك استخدام 1234', 'For preview, you can use 1234')}
+                </span>
               ) : null}
-              <p role="alert" className="min-h-5 text-sm font-bold text-[var(--bad)]">{error}</p>
-              <div className="grid grid-cols-[1fr_auto] gap-2">
+
+              {setupMode ? (
+                <OtpPinInput
+                  value={confirmPin}
+                  onChange={setConfirmPin}
+                  length={4}
+                  error={!!error}
+                  label={text(language, 'تأكيد الرمز', 'Confirm PIN')}
+                  id="login-confirm-pin-input"
+                />
+              ) : null}
+
+              <p role="alert" className="min-h-5 text-center text-sm font-semibold text-[var(--bad)]">{error}</p>
+              <div className="grid grid-cols-[1fr_auto] gap-2 pt-2">
                 <Button type="submit" variant="primary">
-                  <LockKeyhole size={18} />
+                  <LockKeyhole size={17} />
                   {text(language, 'دخول', 'Sign in')}
                 </Button>
                 <Button variant="ghost" onClick={() => setSelectedId(null)}>
@@ -205,3 +207,4 @@ export function LoginPage() {
     </main>
   )
 }
+

@@ -42,10 +42,10 @@ export function CommunityPage() {
 
       <div className="grid gap-5">
         <section className="hero-panel p-5 md:p-6">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="eyebrow">{text(language, 'حالة المجموعة اليوم', 'Today group status')}</p>
-              <h2 className="mt-2 text-2xl font-black">{text(language, 'من يعمل؟ ومن وصل؟', 'Who is moving, who has arrived?')}</h2>
+              <h2 className="mt-1 text-xl font-bold">{text(language, 'من يعمل؟ ومن وصل؟', 'Who is moving, who has arrived?')}</h2>
             </div>
             <Badge tone="gold">{todayKey()}</Badge>
           </div>
@@ -62,8 +62,8 @@ export function CommunityPage() {
         <section className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
           <div className="panel p-5">
             <div className="section-title">
-              <h2 className="text-xl font-black">{text(language, 'المتصدرون', 'Top performers')}</h2>
-              <Medal className="text-[var(--accent)]" size={22} />
+              <h2 className="text-lg font-bold">{text(language, 'المتصدرون', 'Top performers')}</h2>
+              <Medal className="text-[var(--accent)]" size={20} />
             </div>
             <div className="list-panel">
               {topThree.length ? topThree.map((row, index) => (
@@ -73,13 +73,13 @@ export function CommunityPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <Badge tone="gold">#{index + 1}</Badge>
-                        <h3 className="truncate font-black">{language === 'ar' ? row.participant.name : row.participant.nameEn}</h3>
+                        <h3 className="truncate font-bold text-sm">{language === 'ar' ? row.participant.name : row.participant.nameEn}</h3>
                       </div>
                       <p className="mt-1 text-xs text-[var(--ink-3)]">{statusLabel(row, language)} · {formatCompactDuration(row.ms, language)} · {row.streak} {text(language, 'يوم ستريك', 'day streak')}</p>
                     </div>
-                    <div className="num text-2xl font-black">{row.percent.toFixed(0)}%</div>
+                    <div className="num text-xl font-bold">{row.percent.toFixed(0)}%</div>
                   </div>
-                  <div className="mt-3"><ProgressBar value={row.percent} good={row.pass} /></div>
+                  <div className="mt-2.5"><ProgressBar value={row.percent} good={row.pass} /></div>
                 </div>
               )) : (
                 <EmptyState
@@ -93,7 +93,7 @@ export function CommunityPage() {
 
           <div className="panel p-5">
             <div className="section-title">
-              <h2 className="text-xl font-black">{text(language, 'الترتيب الكامل', 'Full leaderboard')}</h2>
+              <h2 className="text-lg font-bold">{text(language, 'الترتيب الكامل', 'Full leaderboard')}</h2>
               <Badge>{todayKey()}</Badge>
             </div>
             {rows.length ? (
@@ -112,29 +112,29 @@ export function CommunityPage() {
                   <tbody>
                     {rows.map((row, index) => (
                       <tr key={row.participant.id} className={cx(row.participant.id === currentParticipant.id && 'bg-[var(--accent-bg)]')}>
-                        <td data-label={text(language, 'الترتيب', 'Rank')} className="num font-black">{index + 1}</td>
+                        <td data-label={text(language, 'الترتيب', 'Rank')} className="num font-bold">{index + 1}</td>
                         <td data-label={text(language, 'المشارك', 'Participant')}>
                           <div className="flex min-w-0 items-center gap-3">
                             <Avatar name={row.participant.name} color={row.participant.avatar} size="sm" />
                             <div className="min-w-0">
-                              <div className="truncate font-black">{language === 'ar' ? row.participant.name : row.participant.nameEn}</div>
-                              {row.participant.id === currentParticipant.id ? <div className="text-xs font-bold text-[var(--accent)]">{text(language, 'أنت', 'You')}</div> : null}
-                              <div className={cx('state-text mt-1', statusTone(row))}>{statusLabel(row, language)}</div>
+                              <div className="truncate font-bold text-sm">{language === 'ar' ? row.participant.name : row.participant.nameEn}</div>
+                              {row.participant.id === currentParticipant.id ? <div className="text-xs font-semibold text-[var(--accent)]">{text(language, 'أنت', 'You')}</div> : null}
+                              <div className={cx('state-text mt-0.5 text-xs', statusTone(row))}>{statusLabel(row, language)}</div>
                             </div>
                           </div>
                         </td>
                         <td data-label={text(language, 'الإنجاز', 'Completion')}>
                           <div className="min-w-32">
                             <div className="mb-1 flex justify-between gap-2">
-                              <span className="num font-black">{row.percent.toFixed(0)}%</span>
-                              <span className="text-xs text-[var(--ink-3)]">{row.done} / {row.total}</span>
+                              <span className="num font-bold text-xs">{row.percent.toFixed(0)}%</span>
+                              <span className="text-xs font-medium text-[var(--ink-3)]">{row.done} / {row.total}</span>
                             </div>
                             <ProgressBar value={row.percent} good={row.pass} />
                           </div>
                         </td>
-                        <td data-label={text(language, 'وقت العمل', 'Work time')} className="num">{formatCompactDuration(row.ms, language)}</td>
-                        <td data-label={text(language, 'الستريك', 'Streak')} className="num">{row.streak}</td>
-                        <td data-label={text(language, 'الأسبوع', 'Week')}>{row.week} / {state.settings.weeklyRequiredDays}</td>
+                        <td data-label={text(language, 'وقت العمل', 'Work time')} className="num text-xs">{formatCompactDuration(row.ms, language)}</td>
+                        <td data-label={text(language, 'الستريك', 'Streak')} className="num text-xs font-semibold">{row.streak}</td>
+                        <td data-label={text(language, 'الأسبوع', 'Week')} className="text-xs">{row.week} / {state.settings.weeklyRequiredDays}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -152,8 +152,8 @@ export function CommunityPage() {
 
         <section className="panel p-5">
           <div className="section-title">
-            <h2 className="text-xl font-black">{text(language, 'النشاط الجماعي المباشر', 'Live group activity')}</h2>
-            <Activity className="text-[var(--accent)]" size={22} />
+            <h2 className="text-lg font-bold">{text(language, 'النشاط الجماعي المباشر', 'Live group activity')}</h2>
+            <Activity className="text-[var(--accent)]" size={20} />
           </div>
           {recentEvents.length ? (
             <div className="timeline-list">
@@ -161,15 +161,15 @@ export function CommunityPage() {
                 const participant = state.participants.find((item) => item.id === event.pid)
                 const task = event.taskId ? taskById(state, event.taskId) : null
                 return (
-                  <div key={event.id} className="timeline-item">
+                  <div key={event.id} className="timeline-item text-xs">
                     <span className="timeline-dot text-[var(--good)]" />
                     <div className="min-w-0">
-                      <div className="font-bold">
-                        {participant ? (language === 'ar' ? participant.name : participant.nameEn) : '—'} <span className="text-[var(--ink-2)]">{eventLabel(event.type, language)}</span>
+                      <div className="font-semibold text-[var(--ink)]">
+                        {participant ? (language === 'ar' ? participant.name : participant.nameEn) : '—'} <span className="font-normal text-[var(--ink-2)]">{eventLabel(event.type, language)}</span>
                       </div>
-                      {task ? <div className="truncate text-sm text-[var(--ink-3)]">{language === 'ar' ? task.name : task.nameEn}</div> : null}
+                      {task ? <div className="truncate text-xs text-[var(--ink-3)]">{language === 'ar' ? task.name : task.nameEn}</div> : null}
                     </div>
-                    <div className="num text-xs font-bold text-[var(--ink-3)]">{formatClock(event.at, language)}</div>
+                    <div className="num text-xs text-[var(--ink-3)]">{formatClock(event.at, language)}</div>
                   </div>
                 )
               })}
@@ -186,3 +186,4 @@ export function CommunityPage() {
     </>
   )
 }
+

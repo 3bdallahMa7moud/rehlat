@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Download, FileText, Printer } from 'lucide-react'
 import { useApp } from '../app/useApp'
-import { Badge, Button, EmptyState, KpiBand, PageHeader, ProgressBar, SelectField } from '../components/ui'
+import { Badge, Button, CustomChartTooltip, EmptyState, KpiBand, PageHeader, ProgressBar, SelectField } from '../components/ui'
 import { availableReportMonths, monthStats } from '../utils/stats'
 import { formatCompactDuration, formatMonth, weekRange } from '../utils/date'
 import { text, unitLabel } from '../utils/text'
@@ -43,8 +43,24 @@ export function ReportsPage() {
     )
   })
 
+  const handlePrint = () => {
+    window.print()
+    exportMock('pdf')
+  }
+
   return (
     <>
+      <div className="print-header hidden" aria-hidden="true">
+        <div>
+          <h1 className="text-xl font-bold text-black">{text(language, 'رحلة التغيير — التقرير التنفيذي', 'Journey of Change — Executive Report')}</h1>
+          <p className="text-sm text-neutral-600">{formatMonth(month, language)}</p>
+        </div>
+        <div className="text-end text-xs text-neutral-500">
+          <div>{text(language, 'مستوى الإنتاجية والمتابعة', 'Productivity & Habit Tracking')}</div>
+          <div>{text(language, 'المشارك الحالي:', 'Viewer:')} {language === 'ar' ? currentParticipant.name : currentParticipant.nameEn}</div>
+        </div>
+      </div>
+
       <PageHeader
         eyebrow={text(language, 'تقارير شهرية ديناميكية', 'Dynamic monthly reports')}
         title={text(language, `تقرير ${formatMonth(month, language)}`, `${formatMonth(month, language)} Report`)}
@@ -58,9 +74,9 @@ export function ReportsPage() {
               <Download size={16} />
               {text(language, 'تصدير إكسل', 'Excel export')}
             </Button>
-            <Button size="sm" onClick={() => exportMock('pdf')}>
+            <Button size="sm" onClick={handlePrint}>
               <Printer size={16} />
-              {text(language, 'تصدير PDF', 'PDF export')}
+              {text(language, 'تصدير PDF / طباعة', 'PDF / Print')}
             </Button>
           </>
         )}
@@ -75,9 +91,9 @@ export function ReportsPage() {
       ) : (
         <div className="grid gap-5">
           <section className="hero-panel p-5 md:p-6">
-            <div className="mb-4">
+            <div className="mb-3">
               <p className="eyebrow">{text(language, 'ملخص التقرير', 'Report summary')}</p>
-              <h2 className="mt-2 text-2xl font-black">{formatMonth(month, language)}</h2>
+              <h2 className="mt-1 text-xl font-bold">{formatMonth(month, language)}</h2>
             </div>
             <KpiBand
               className="report-kpi-band"
@@ -94,7 +110,7 @@ export function ReportsPage() {
           <section className="grid gap-5 xl:grid-cols-2">
             <div className="panel p-5">
               <div className="section-title">
-                <h2 className="text-xl font-black">{text(language, 'أداء المجموعة', 'Group performance')}</h2>
+                <h2 className="text-lg font-bold">{text(language, 'أداء المجموعة', 'Group performance')}</h2>
                 <Badge>{formatMonth(month, language)}</Badge>
               </div>
               <div className="chart-box tall">
@@ -102,7 +118,7 @@ export function ReportsPage() {
                   <BarChart data={chartData} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
                     <XAxis dataKey="name" tick={{ fill: 'var(--ink-3)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={16} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: 'var(--ink-3)', fontSize: 10 }} width={28} axisLine={false} tickLine={false} tickCount={5} />
-                    <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--ink)' }} />
+                    <Tooltip content={<CustomChartTooltip valueSuffix="%" />} />
                     <Bar dataKey="completion" name={text(language, 'نسبة الإنجاز', 'Completion')} fill="var(--accent)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -111,17 +127,17 @@ export function ReportsPage() {
 
             <div className="panel p-5">
               <div className="section-title">
-                <h2 className="text-xl font-black">{text(language, 'مقارنة المشاركين', 'Participant comparison')}</h2>
+                <h2 className="text-lg font-bold">{text(language, 'مقارنة المشاركين', 'Participant comparison')}</h2>
               </div>
               <div className="list-panel">
                 {rows.map((row) => (
                   <div key={row.participant.id} className="list-row">
                     <div className="mb-2 flex items-center justify-between gap-3">
-                      <div className="font-black">{language === 'ar' ? row.participant.name : row.participant.nameEn}</div>
+                      <div className="font-bold text-sm">{language === 'ar' ? row.participant.name : row.participant.nameEn}</div>
                       <Badge tone={row.stats.goodWeeks >= state.settings.monthlyRequiredWeeks ? 'good' : 'neutral'}>{row.stats.goodWeeks} / {state.settings.monthlyRequiredWeeks}</Badge>
                     </div>
                     <ProgressBar value={row.stats.rate} good={row.stats.goodWeeks >= state.settings.monthlyRequiredWeeks} />
-                    <div className="mt-2 flex justify-between text-xs font-bold text-[var(--ink-3)]">
+                    <div className="mt-1.5 flex justify-between text-xs font-medium text-[var(--ink-3)]">
                       <span>{row.stats.successDays} {text(language, 'أيام ناجحة', 'success days')}</span>
                       <span>{formatCompactDuration(row.stats.ms, language)}</span>
                     </div>
@@ -133,7 +149,7 @@ export function ReportsPage() {
 
           <section className="panel p-5">
             <div className="section-title">
-              <h2 className="text-xl font-black">{text(language, 'جدول الأسابيع', 'Weekly progress')}</h2>
+              <h2 className="text-lg font-bold">{text(language, 'جدول الأسابيع', 'Weekly progress')}</h2>
               <Badge>{text(language, 'هدف الأسبوع 3 أيام', 'Weekly target 3 days')}</Badge>
             </div>
             <div className="table-shell desktop-only">
@@ -150,7 +166,7 @@ export function ReportsPage() {
                 <tbody>
                   {rows.map((row) => (
                     <tr key={row.participant.id}>
-                      <td data-label={text(language, 'المشارك', 'Participant')} className="font-black">{language === 'ar' ? row.participant.name : row.participant.nameEn}</td>
+                      <td data-label={text(language, 'المشارك', 'Participant')} className="font-bold">{language === 'ar' ? row.participant.name : row.participant.nameEn}</td>
                       {row.stats.weeks.map((week) => <td key={week.week} data-label={weekRange(week.week, language)} className="num">{week.successfulDays}</td>)}
                       <td data-label={text(language, 'أيام ناجحة', 'Success days')} className="num">{row.stats.successDays}</td>
                       <td data-label={text(language, 'وقت العمل', 'Work time')} className="num">{formatCompactDuration(row.stats.ms, language)}</td>
@@ -169,16 +185,16 @@ export function ReportsPage() {
                 {rows.map((row) => (
                   <div key={row.participant.id} className="list-row">
                     <div className="mb-2 flex items-center justify-between gap-3">
-                      <h3 className="font-black">{language === 'ar' ? row.participant.name : row.participant.nameEn}</h3>
+                      <h3 className="font-bold text-sm">{language === 'ar' ? row.participant.name : row.participant.nameEn}</h3>
                       <Badge tone={row.stats.goodWeeks >= state.settings.monthlyRequiredWeeks ? 'good' : 'warn'}>
                         {row.stats.goodWeeks} / {state.settings.monthlyRequiredWeeks}
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm text-[var(--ink-2)]">
+                    <div className="grid grid-cols-2 gap-2 text-xs text-[var(--ink-2)]">
                       <span>{text(language, 'أيام ناجحة', 'Success days')}: <strong className="num text-[var(--ink)]">{row.stats.successDays}</strong></span>
                       <span>{text(language, 'وقت العمل', 'Work time')}: <strong className="num text-[var(--ink)]">{formatCompactDuration(row.stats.ms, language)}</strong></span>
                     </div>
-                    <div className="mt-3 grid grid-cols-4 gap-1">
+                    <div className="mt-2.5 grid grid-cols-4 gap-1">
                       {row.stats.weeks.map((week) => (
                         <span key={week.week} className={cx('h-2 rounded-sm bg-[var(--surface-2)]', week.ok && 'bg-[var(--good)]', !week.ok && week.successfulDays > 0 && 'bg-[var(--accent)]')} title={weekRange(week.week, language)} />
                       ))}
@@ -192,8 +208,8 @@ export function ReportsPage() {
           <section className="panel p-5">
             <div className="section-title">
               <div>
-                <h2 className="text-xl font-black">{text(language, 'التقرير المكتوب', 'Written report')}</h2>
-                <p className="text-sm text-[var(--ink-2)]">{text(language, 'ثانوي ومختصر، ويمكن فتحه عند الحاجة.', 'Secondary and compact; expand when needed.')}</p>
+                <h2 className="text-lg font-bold">{text(language, 'التقرير المكتوب', 'Written report')}</h2>
+                <p className="text-xs text-[var(--ink-2)]">{text(language, 'ثانوي ومختصر، ويمكن فتحه عند الحاجة.', 'Secondary and compact; expand when needed.')}</p>
               </div>
               <Button size="sm" onClick={() => setOpenWritten((value) => !value)}>
                 {openWritten ? text(language, 'إخفاء', 'Collapse') : text(language, 'عرض', 'Expand')}
@@ -201,15 +217,15 @@ export function ReportsPage() {
             </div>
             {openWritten ? (
               <div className="max-w-3xl text-[var(--ink-2)]">
-                <p className="mb-3 font-bold text-[var(--ink)]">
+                <p className="mb-3 text-sm font-semibold text-[var(--ink)]">
                   {text(
                     language,
                     `في ${formatMonth(month, language)} سجّلت المجموعة ${totalSuccessDays} أيام ناجحة بإجمالي ${formatCompactDuration(totalWork, language)} من العمل الفعلي.`,
                     `In ${formatMonth(month, language)}, the group recorded ${totalSuccessDays} successful days and ${formatCompactDuration(totalWork, language)} of actual work.`,
                   )}
                 </p>
-                <ul className="grid gap-2">
-                  {writtenLines.map((line) => <li key={line} className="rounded-lg bg-[var(--surface-2)] p-3">{line}</li>)}
+                <ul className="grid gap-2 text-xs">
+                  {writtenLines.map((line) => <li key={line} className="rounded-lg bg-[var(--surface-2)] p-2.5">{line}</li>)}
                 </ul>
               </div>
             ) : null}
