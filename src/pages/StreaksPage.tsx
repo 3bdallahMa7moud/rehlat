@@ -1,7 +1,7 @@
-import { Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { CalendarDays, Crown, Trophy } from 'lucide-react'
+import { Bar, BarChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { CalendarDays, CheckCircle2, Circle, MinusCircle, Trophy, XCircle } from 'lucide-react'
 import { useApp } from '../app/useApp'
-import { Badge, EmptyState, Metric, PageHeader, ProgressBar } from '../components/ui'
+import { Badge, EmptyState, KpiBand, PageHeader, ProgressBar } from '../components/ui'
 import { addDays, formatDay, todayKey, weekDaysOf, weekRange } from '../utils/date'
 import { dayStats, dailyStreak, leaderboard, monthWeeks, successMap, weekDone } from '../utils/stats'
 import { text } from '../utils/text'
@@ -41,10 +41,21 @@ export function StreaksPage() {
       <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
         <div className="grid gap-5">
           <section className="hero-panel p-5 md:p-6">
-            <div className="grid gap-5 md:grid-cols-3">
-              <Metric label={text(language, 'الستريك اليومي الحالي', 'Current daily streak')} value={<span className="num">{currentDaily}</span>} detail={text(language, 'يوم ناجح متتالٍ', 'successful days')} tone="gold" />
-              <Metric label={text(language, 'هدف الأسبوع', 'Weekly target')} value={<span className="num">{currentWeek} / {state.settings.weeklyRequiredDays}</span>} detail={text(language, '3 أيام ناجحة = أسبوع ناجح', '3 successful days = successful week')} tone={currentWeek >= state.settings.weeklyRequiredDays ? 'good' : 'neutral'} />
-              <Metric label={text(language, 'هدف الشهر', 'Monthly target')} value={<span className="num">{currentMonth} / {state.settings.monthlyRequiredWeeks}</span>} detail={text(language, '4 أسابيع ناجحة = شهر ناجح', '4 successful weeks = successful month')} tone={currentMonth >= state.settings.monthlyRequiredWeeks ? 'good' : 'neutral'} />
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-end">
+              <div>
+                <p className="eyebrow">{text(language, 'سلسلتك الحالية', 'Your current streak')}</p>
+                <div className="mt-3 flex items-end gap-3">
+                  <span className="num text-6xl font-black leading-none text-[var(--accent)]">{currentDaily}</span>
+                  <span className="pb-2 text-lg font-black text-[var(--ink-2)]">{text(language, 'أيام', 'days')}</span>
+                </div>
+                <p className="mt-3 text-sm font-bold text-[var(--ink-3)]">{text(language, 'أطول معنى هنا هو الاستمرارية الهادئة، وليس المؤثرات.', 'The focus here is steady continuity, not effects.')}</p>
+              </div>
+              <KpiBand
+                items={[
+                  { label: text(language, 'هذا الأسبوع', 'This week'), value: <span className="num">{currentWeek} / {state.settings.weeklyRequiredDays}</span>, tone: currentWeek >= state.settings.weeklyRequiredDays ? 'good' : 'gold' },
+                  { label: text(language, 'هذا الشهر', 'This month'), value: <span className="num">{currentMonth} / {state.settings.monthlyRequiredWeeks}</span>, tone: currentMonth >= state.settings.monthlyRequiredWeeks ? 'good' : 'neutral' },
+                ]}
+              />
             </div>
           </section>
 
@@ -62,11 +73,12 @@ export function StreaksPage() {
                 const future = day > today
                 const isToday = day === today
                 const noActivity = !stats.record && !future
+                const icon = future ? <Circle size={15} /> : stats.pass ? <CheckCircle2 size={15} /> : stats.record ? <XCircle size={15} /> : <MinusCircle size={15} />
                 return (
                   <div
                     key={day}
                     className={cx(
-                      'min-h-24 rounded-lg border p-2 text-center',
+                      'grid min-h-24 content-between rounded-lg border p-2 text-center',
                       stats.pass && 'border-[color-mix(in_srgb,var(--good)_25%,transparent)] bg-[var(--good-bg)] text-[var(--good)]',
                       !stats.pass && stats.record && 'border-[color-mix(in_srgb,var(--bad)_25%,transparent)] bg-[var(--bad-bg)] text-[var(--bad)]',
                       future && 'border-[var(--line)] bg-[var(--surface-2)] opacity-55',
@@ -75,8 +87,9 @@ export function StreaksPage() {
                     )}
                   >
                     <div className="text-xs font-black">{formatDay(day, language).split(' ')[0]}</div>
-                    <div className="num mt-2 text-lg font-black">{future ? '·' : `${stats.percent.toFixed(0)}%`}</div>
-                    <div className="mt-1 text-[0.7rem] font-bold">
+                    <div className="mx-auto">{icon}</div>
+                    <div className="num text-base font-black">{future ? '—' : `${stats.percent.toFixed(0)}%`}</div>
+                    <div className="text-[0.68rem] font-bold">
                       {future
                         ? text(language, 'لاحقاً', 'Future')
                         : stats.pass
@@ -97,18 +110,17 @@ export function StreaksPage() {
               <Badge>{text(language, 'آخر 28 يوم', 'Last 28 days')}</Badge>
             </div>
             {hasHistory ? (
-              <div className="chart-box">
+              <div className="chart-box compact">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={history} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
-                    <CartesianGrid stroke="var(--line)" vertical={false} />
-                    <XAxis dataKey="label" tick={{ fill: 'var(--ink-3)', fontSize: 11 }} interval="preserveStartEnd" />
+                    <XAxis dataKey="label" tick={{ fill: 'var(--ink-3)', fontSize: 10 }} interval="preserveStartEnd" axisLine={false} tickLine={false} />
                     <YAxis hide domain={[0, 1]} />
                     <Tooltip
                       cursor={{ fill: 'var(--surface-2)' }}
                       contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--ink)' }}
                     />
-                    <ReferenceLine y={1} stroke="var(--good)" strokeDasharray="4 4" />
-                    <Bar dataKey="success" fill="var(--accent)" radius={[4, 4, 0, 0]} name={text(language, 'يوم ناجح', 'Successful day')} />
+                    <ReferenceLine y={1} stroke="var(--good)" strokeDasharray="3 5" />
+                    <Bar dataKey="success" fill="var(--accent)" radius={[3, 3, 0, 0]} name={text(language, 'يوم ناجح', 'Successful day')} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -130,11 +142,11 @@ export function StreaksPage() {
             </div>
             <div className="grid gap-3">
               {rows.length ? rows.map((row, index) => (
-                <div key={row.participant.id} className={cx('rounded-lg border border-[var(--line)] p-3', row.participant.id === currentParticipant.id && 'bg-[var(--accent-bg)]', index < 3 && 'border-[color-mix(in_srgb,var(--accent)_30%,var(--line))]')}>
+                <div key={row.participant.id} className={cx('list-row rounded-none', row.participant.id === currentParticipant.id && 'bg-[var(--accent-bg)]')}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 font-black">
-                        {index < 3 ? <Crown size={16} className="text-[var(--accent)]" /> : <span className="num text-[var(--ink-3)]">{index + 1}</span>}
+                        <span className={cx('num inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--line)] text-[var(--ink-3)]', index < 3 && 'border-[var(--accent)] text-[var(--accent)]')}>{index + 1}</span>
                         <span className="truncate">{language === 'ar' ? row.participant.name : row.participant.nameEn}</span>
                       </div>
                       <div className="mt-1 text-xs text-[var(--ink-3)]">{row.week} / {state.settings.weeklyRequiredDays} {text(language, 'هذا الأسبوع', 'this week')}</div>

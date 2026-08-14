@@ -63,21 +63,21 @@ export function LoginPage() {
                 </IconButton>
               </div>
             </div>
-            <div className="mt-16 max-w-xl">
+            <div className="mt-10 max-w-xl md:mt-16">
               <p className="eyebrow">{text(language, 'مساحة تقدم خاصة', 'Private progress workspace')}</p>
-              <h1 className="mt-3 text-4xl font-black leading-tight text-[var(--ink)] md:text-5xl">
+              <h1 className="mt-3 text-3xl font-black leading-tight text-[var(--ink)] md:text-5xl">
                 {text(language, 'ادخل إلى رحلتك اليومية بوضوح وهدوء.', 'Enter your daily journey with clarity and calm.')}
               </h1>
               <p className="mt-5 text-base text-[var(--ink-2)]">
                 {text(
                   language,
-                  'اختر اسمك، أدخل رمزك، وتابع مهامك وتقدم المجموعة من نفس المكان. هذه نسخة أمامية تجريبية ببيانات وهمية.',
-                  'Choose your name, enter your PIN, and follow your tasks and group progress from one place. This is a frontend demo with mock data.',
+                  'اختر اسمك، أدخل رمزك، وتابع مهامك وتقدم المجموعة من مكان واحد منظم.',
+                  'Choose your name, enter your PIN, and follow your tasks and group progress from one organized place.',
                 )}
               </p>
             </div>
           </div>
-          <div className="mt-10 grid grid-cols-3 gap-3">
+          <div className="mt-10 grid grid-cols-2 gap-3">
             <div className="panel-soft p-4">
               <div className="text-2xl font-black num">{state.participants.filter((p) => p.active).length}</div>
               <div className="mt-1 text-xs font-bold text-[var(--ink-3)]">{text(language, 'مشاركون', 'Participants')}</div>
@@ -85,10 +85,6 @@ export function LoginPage() {
             <div className="panel-soft p-4">
               <div className="text-2xl font-black num">90%</div>
               <div className="mt-1 text-xs font-bold text-[var(--ink-3)]">{text(language, 'هدف اليوم', 'Daily target')}</div>
-            </div>
-            <div className="panel-soft p-4">
-              <div className="text-2xl font-black num">1234</div>
-              <div className="mt-1 text-xs font-bold text-[var(--ink-3)]">{text(language, 'رمز العرض', 'Demo PIN')}</div>
             </div>
           </div>
         </section>
@@ -162,7 +158,7 @@ export function LoginPage() {
                     ? selected.pinReset
                       ? text(language, 'صفّر المشرف رمزك. اختر رمزاً جديداً.', 'An admin reset your PIN. Choose a new one.')
                       : text(language, 'أول دخول لك. الرمز الذي تختاره الآن سيصبح رمزك.', 'First sign in. The PIN you choose now becomes yours.')
-                    : text(language, 'أدخل رمزك المكوّن من 4 أرقام. رمز العرض الافتراضي 1234.', 'Enter your 4-digit PIN. The default demo PIN is 1234.')}
+                    : text(language, 'أدخل رمزك المكوّن من 4 أرقام.', 'Enter your 4-digit PIN.')}
                 </p>
               </div>
               <label className="field">
@@ -178,6 +174,7 @@ export function LoginPage() {
                   aria-invalid={!!error}
                   autoFocus
                 />
+                {!setupMode ? <span className="text-xs font-bold text-[var(--ink-3)]">{text(language, 'للعرض التجريبي استخدم 1234', 'For the demo, use 1234')}</span> : null}
               </label>
               {setupMode ? (
                 <label className="field">

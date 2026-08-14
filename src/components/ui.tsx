@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { Check, ChevronDown, MoreVertical } from 'lucide-react'
 import type { Language } from '../types'
@@ -6,7 +6,7 @@ import { initials, text } from '../utils/text'
 import { cx } from '../utils/cx'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'default' | 'primary' | 'ghost' | 'danger'
+  variant?: 'default' | 'primary' | 'secondary' | 'ghost' | 'danger'
   size?: 'sm' | 'md'
 }
 
@@ -31,7 +31,7 @@ export function Avatar({ name, color, size = 'md' }: { name: string; color: stri
   return (
     <span
       className={cx('grid shrink-0 place-items-center rounded-lg font-black text-white shadow-sm', dimensions)}
-      style={{ background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 62%, black))` }}
+      style={{ background: color }}
       aria-hidden="true"
     >
       {initials(name)}
@@ -48,6 +48,30 @@ export function EmptyState({ icon, title, body, action }: { icon?: ReactNode; ti
         <p className="mt-1 max-w-md text-sm text-[var(--ink-2)]">{body}</p>
       </div>
       {action}
+    </div>
+  )
+}
+
+export function KpiBand({
+  items,
+  columns,
+  className,
+  flush = false,
+}: {
+  items: Array<{ label: string; value: ReactNode; detail?: ReactNode; tone?: 'neutral' | 'good' | 'gold' | 'warn' | 'bad' }>
+  columns?: number
+  className?: string
+  flush?: boolean
+}) {
+  return (
+    <div className={cx('kpi-band', flush && 'flush', className)} style={{ gridTemplateColumns: `repeat(${columns ?? items.length}, minmax(0, 1fr))` }}>
+      {items.map((item, index) => (
+        <div key={`${item.label}-${index}`} className={cx('kpi-item', item.tone && item.tone !== 'neutral' && `tone-${item.tone}`)}>
+          <div className={cx('kpi-value', item.tone === 'good' && 'text-[var(--good)]', item.tone === 'gold' && 'text-[var(--accent)]', item.tone === 'warn' && 'text-[var(--warn)]', item.tone === 'bad' && 'text-[var(--bad)]')}>{item.value}</div>
+          <div className="kpi-label">{item.label}</div>
+          {item.detail ? <div className="kpi-detail">{item.detail}</div> : null}
+        </div>
+      ))}
     </div>
   )
 }
@@ -110,9 +134,14 @@ export function Modal({
 }) {
   const generated = useId()
   const titleId = labelledBy ?? generated
+  const dialogRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (!open) return undefined
+    window.setTimeout(() => {
+      const target = dialogRef.current?.querySelector<HTMLElement>('input, select, textarea, button, [href], [tabindex]:not([tabindex="-1"])')
+      target?.focus()
+    }, 0)
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
     }
@@ -124,7 +153,7 @@ export function Modal({
 
   return (
     <div className="dialog-backdrop" onMouseDown={(event) => event.currentTarget === event.target && onClose()}>
-      <div className="dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? `${titleId}-desc` : undefined}>
+      <div ref={dialogRef} className="dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? `${titleId}-desc` : undefined}>
         <div className="border-b border-[var(--line)] p-5">
           <h2 id={titleId} className="text-lg font-black">{title}</h2>
           {description ? <p id={`${titleId}-desc`} className="mt-1 text-sm text-[var(--ink-2)]">{description}</p> : null}

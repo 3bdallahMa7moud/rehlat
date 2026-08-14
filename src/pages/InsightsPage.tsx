@@ -1,24 +1,24 @@
 import { AlertTriangle, CheckCircle2, Lightbulb, SearchCheck } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useApp } from '../app/useApp'
-import { Badge, EmptyState, Metric, PageHeader } from '../components/ui'
+import { Badge, EmptyState, PageHeader } from '../components/ui'
 import { analyseParticipant, monthStats } from '../utils/stats'
 import { formatCompactDuration, todayKey } from '../utils/date'
 import { text } from '../utils/text'
 
 function InsightList({ title, icon, items, empty }: { title: string; icon: ReactNode; items: string[]; empty: string }) {
   return (
-    <div className="panel-soft p-4">
+    <div className="panel p-4">
       <div className="mb-3 flex items-center gap-2">
         <span className="text-[var(--accent)]">{icon}</span>
         <h3 className="font-black">{title}</h3>
       </div>
       {items.length ? (
-        <ul className="grid gap-2 text-sm text-[var(--ink-2)]">
-          {items.map((item) => <li key={item} className="rounded-md bg-[var(--surface)] p-3">{item}</li>)}
+        <ul className="list-panel text-sm text-[var(--ink-2)]">
+          {items.map((item) => <li key={item} className="list-row">{item}</li>)}
         </ul>
       ) : (
-        <p className="rounded-md bg-[var(--surface)] p-3 text-sm text-[var(--ink-3)]">{empty}</p>
+        <p className="rounded-md bg-[var(--surface-2)] p-3 text-sm text-[var(--ink-3)]">{empty}</p>
       )}
     </div>
   )
@@ -29,6 +29,7 @@ export function InsightsPage() {
   if (!currentParticipant) return null
   const language = state.language
   const insight = analyseParticipant(state, currentParticipant.id, now, language)
+  const mainAdvice = insight?.advice[0] ?? null
   const groupRows = state.participants
     .filter((participant) => participant.active)
     .map((participant) => ({
@@ -54,20 +55,22 @@ export function InsightsPage() {
       ) : (
         <div className="grid gap-5">
           <section className="hero-panel p-5 md:p-6">
-            <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.45fr)] lg:items-stretch">
               <div>
                 <Badge tone="gold">{text(language, 'الخلاصة الرئيسية', 'Main insight')}</Badge>
                 <h2 className="mt-4 max-w-3xl text-2xl font-black leading-snug md:text-3xl">{insight.headline}</h2>
               </div>
-              <div className="grid grid-cols-3 gap-3 lg:w-96">
-                <Metric label={text(language, 'قوة', 'Strengths')} value={insight.strengths.length} tone="good" />
-                <Metric label={text(language, 'تنبيه', 'Needs attention')} value={insight.weaknesses.length} tone="warn" />
-                <Metric label={text(language, 'توصية', 'Advice')} value={insight.advice.length} tone="gold" />
+              <div className="panel-soft flex flex-col justify-center p-4">
+                <div className="mb-2 flex items-center gap-2 text-[var(--accent)]">
+                  <Lightbulb size={19} />
+                  <h3 className="font-black">{text(language, 'اقتراح الأسبوع', 'Recommendation')}</h3>
+                </div>
+                <p className="text-sm font-bold leading-7 text-[var(--ink-2)]">{mainAdvice}</p>
               </div>
             </div>
           </section>
 
-          <section className="grid gap-5 lg:grid-cols-3">
+          <section className="grid gap-5 lg:grid-cols-2">
             <InsightList
               title={text(language, 'نقاط القوة', 'Strengths')}
               icon={<CheckCircle2 size={20} />}
@@ -79,12 +82,6 @@ export function InsightsPage() {
               icon={<AlertTriangle size={20} />}
               items={insight.weaknesses}
               empty={text(language, 'لا توجد مشكلة واضحة في البيانات الحالية.', 'No clear issue in the current data.')}
-            />
-            <InsightList
-              title={text(language, 'توصيات عملية', 'Recommendations')}
-              icon={<Lightbulb size={20} />}
-              items={insight.advice}
-              empty={text(language, 'استمر على نفس الإيقاع.', 'Keep the same rhythm.')}
             />
           </section>
 

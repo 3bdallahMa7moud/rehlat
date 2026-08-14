@@ -3,7 +3,7 @@ import { text } from '../utils/text'
 
 export function Brand({ language, compact = false }: { language: Language; compact?: boolean }) {
   return (
-    <div className="flex min-w-0 items-center gap-3">
+    <div className="brand-lockup flex min-w-0 items-center gap-3">
       <span className="brand-mark" aria-hidden="true" />
       <div className="min-w-0">
         <div className="truncate text-base font-black text-[var(--ink)]">

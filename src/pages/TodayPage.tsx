@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { Activity, ArrowLeft, ArrowRight, CheckCircle2, Clock3, History, ListChecks, Pause, Play, RotateCcw, TimerReset, Trophy, XCircle } from 'lucide-react'
+import { Activity, ArrowLeft, ArrowRight, CheckCircle2, Clock3, History, ListChecks, MessageSquare, Pause, Play, RotateCcw, TimerReset, Trophy, XCircle } from 'lucide-react'
 import { useApp } from '../app/useApp'
-import { Badge, Button, EmptyState, Metric, Modal, PageHeader, ProgressBar } from '../components/ui'
+import { Badge, Button, EmptyState, KpiBand, Modal, PageHeader, ProgressBar } from '../components/ui'
 import type { TaskEntry, TaskStatus } from '../types'
 import { addDays, formatClock, formatDay, formatDuration, todayKey } from '../utils/date'
 import { eventLabel } from '../utils/events'
@@ -30,18 +29,21 @@ function TaskRow({
   onFinish: (taskId: number) => void
 }) {
   const { state, currentParticipant, now, startTask, pauseTask, reopenTask, updateNote } = useApp()
+  const [noteOpen, setNoteOpen] = useState(false)
   const language = state.language
   const task = taskById(state, entry.taskId)
   const record = currentParticipant ? dayStats(state, currentParticipant.id, todayKey(), now).record : null
   if (!task || !currentParticipant) return null
   const running = entry.status === 'running'
+  const paused = entry.status === 'paused'
+  const idle = entry.status === 'idle'
   const elapsed = taskMs(record, task.id, now)
   const open = openIntervalFor(record, task.id)
   const liveElapsed = running && open ? elapsed : elapsed
   const label = taskStatusLabel(entry.status, language)
 
   return (
-    <div className={cx('task-row', running && 'running', entry.status === 'completed' && 'completed', entry.status === 'attempted' && 'attempted')}>
+    <div className={cx('task-row', running && 'running', paused && 'paused', idle && 'idle', entry.status === 'completed' && 'completed', entry.status === 'attempted' && 'attempted')}>
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="min-w-0 text-base font-black text-[var(--ink)]">{language === 'ar' ? task.name : task.nameEn}</h3>
@@ -52,7 +54,7 @@ function TaskRow({
           {!entry.counts ? <Badge>{text(language, 'خارج النسبة', 'Not counted')}</Badge> : null}
         </div>
         <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold text-[var(--ink-3)]">
-          <span className="num">{formatDuration(liveElapsed)}</span>
+          {!idle || liveElapsed > 0 ? <span className="num">{formatDuration(liveElapsed)}</span> : <span>{text(language, 'لم يبدأ بعد', 'Not started yet')}</span>}
           {entry.pauses ? <span>{entry.pauses} {text(language, 'إيقاف', 'pauses')}</span> : null}
           {entry.reopens ? <span>{entry.reopens} {text(language, 'إعادة فتح', 'reopens')}</span> : null}
           {entry.completedAt ? <span>{text(language, 'أُنجزت', 'Completed at')} <span className="num">{formatClock(entry.completedAt, language)}</span></span> : null}
@@ -60,7 +62,7 @@ function TaskRow({
         </div>
       </div>
       <div className="task-actions">
-        <span className={cx('num text-lg font-black', running && 'text-[var(--accent)]')}>{formatDuration(liveElapsed)}</span>
+        {!idle || liveElapsed > 0 ? <span className="task-clock num font-black">{formatDuration(liveElapsed)}</span> : null}
         {!locked && active && entry.status === 'running' ? (
           <>
             <Button size="sm" onClick={() => pauseTask(currentParticipant.id, task.id)}>
@@ -92,16 +94,23 @@ function TaskRow({
             {text(language, 'إعادة فتح', 'Reopen')}
           </Button>
         ) : null}
+        {!locked && active && !noteOpen && !entry.note ? (
+          <Button size="sm" variant="ghost" onClick={() => setNoteOpen(true)}>
+            <MessageSquare size={15} />
+            {text(language, 'ملاحظة', 'Note')}
+          </Button>
+        ) : null}
       </div>
       {record ? (
         <div className="col-span-full">
-          {!locked && active ? (
+          {!locked && active && (noteOpen || entry.note) ? (
             <label className="field">
               <span className="sr-only">{text(language, 'ملاحظة على المهمة', 'Task note')}</span>
               <input
                 className="input bg-[var(--surface-2)]"
                 value={entry.note}
                 onChange={(event) => updateNote(currentParticipant.id, task.id, event.target.value)}
+                onBlur={() => !entry.note && setNoteOpen(false)}
                 placeholder={text(language, 'اكتب ملاحظة قصيرة على هذه المهمة...', 'Write a short note on this task...')}
               />
             </label>
@@ -155,7 +164,7 @@ export function TodayPage() {
     <>
       <PageHeader
         eyebrow={formatDay(viewedDay, language, true)}
-        title={text(language, `مساء الخير، ${currentParticipant.name}`, `Good evening, ${currentParticipant.nameEn}`)}
+        title={text(language, `مرحباً، ${currentParticipant.name}`, `Hello, ${currentParticipant.nameEn}`)}
         description={pageDescription}
         actions={(
           <>
@@ -183,56 +192,64 @@ export function TodayPage() {
       ) : null}
 
       <section className="hero-panel mb-5 p-5 md:p-6">
-        <div className="grid gap-6 lg:grid-cols-[220px_1fr_auto] lg:items-center">
-          <div className="grid place-items-center">
-            <div
-              className="grid h-40 w-40 place-items-center rounded-full border border-[var(--line)] bg-[conic-gradient(var(--accent-bright)_var(--p),var(--surface-2)_0)]"
-              style={{ '--p': `${Math.min(100, stats.percent)}%` } as CSSProperties}
-              role="img"
-              aria-label={`${text(language, 'نسبة الإنجاز', 'Completion')} ${stats.percent.toFixed(0)}%`}
-            >
-              <div className="grid h-32 w-32 place-items-center rounded-full border border-[var(--line)] bg-[var(--surface)] text-center">
+        <div className="grid gap-5">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+            <div className="min-w-0">
+              <p className="eyebrow">{text(language, 'تقدمك اليوم', 'Today progress')}</p>
+              <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
                 <div>
-                  <div className="num text-4xl font-black">{stats.percent.toFixed(0)}%</div>
-                  <div className="mt-1 text-sm font-bold text-[var(--ink-3)]">{stats.done} / {stats.total}</div>
+                  <div className="num text-5xl font-black leading-none text-[var(--ink)]">{stats.percent.toFixed(0)}%</div>
+                  <div className="mt-2 text-base font-black text-[var(--ink-2)]">{stats.done} / {stats.total} {text(language, 'مهام', 'tasks')}</div>
+                </div>
+                <div className={cx('state-text', stats.pass ? 'good' : need <= 1 ? 'gold' : 'warn')}>
+                  {stats.pass ? <CheckCircle2 size={18} /> : <Clock3 size={18} />}
+                  {stats.pass
+                    ? text(language, 'وصلت إلى هدف اليوم', 'Daily target reached')
+                    : text(language, `تحتاج ${need} للوصول للهدف`, `${need} needed for target`)}
                 </div>
               </div>
+              <div className="mt-5">
+                <ProgressBar value={stats.percent} good={stats.pass} label={text(language, 'نسبة إنجاز اليوم', 'Today completion')} />
+              </div>
             </div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-4">
-            <Metric label={text(language, 'وقت العمل', 'Work time')} value={<span className="num">{formatDuration(stats.ms)}</span>} tone="gold" />
-            <Metric label={text(language, 'المتبقي للهدف', 'Needed for target')} value={stats.pass ? <CheckCircle2 className="text-[var(--good)]" /> : <span className="num">{need}</span>} tone={stats.pass ? 'good' : 'warn'} />
-            <Metric label={text(language, 'الستريك اليومي', 'Daily streak')} value={<span className="num">{streak}</span>} detail={text(language, 'التفاصيل في صفحة الستريك', 'Full detail on Streaks')} />
-            <Metric label={text(language, 'هدف اليوم', 'Daily target')} value={<span className="num">{state.settings.dailyTarget}%</span>} />
-          </div>
-          {today ? (
-            <div className="flex flex-wrap gap-2 lg:justify-end">
-              {dayState === 'not_started' ? (
-                <Button variant="primary" onClick={() => startDay(currentParticipant.id)}>
-                  <Play size={18} />
-                  {text(language, 'ابدأ يومي', 'Start my day')}
-                </Button>
-              ) : dayState === 'active' ? (
-                <>
-                  <Button variant="primary" onClick={() => endDay(currentParticipant.id, 'manual')}>
-                    <XCircle size={18} />
-                    {text(language, 'إنهاء اليوم', 'End day')}
+            {today ? (
+              <div className="flex flex-wrap gap-2 lg:max-w-64 lg:justify-end">
+                {dayState === 'not_started' ? (
+                  <Button variant="primary" onClick={() => startDay(currentParticipant.id)}>
+                    <Play size={18} />
+                    {text(language, 'ابدأ يومي', 'Start my day')}
                   </Button>
-                  {remaining.length ? (
-                    <Button onClick={() => setConfirmAll(true)}>
-                      <ListChecks size={18} />
-                      {text(language, 'إنهاء كل المتبقي', 'Complete remaining')}
+                ) : dayState === 'active' ? (
+                  <>
+                    <Button variant="primary" onClick={() => endDay(currentParticipant.id, 'manual')}>
+                      <XCircle size={18} />
+                      {text(language, 'إنهاء اليوم', 'End day')}
                     </Button>
-                  ) : null}
-                </>
-              ) : (
-                <Button variant="primary" onClick={() => startDay(currentParticipant.id)}>
-                  <TimerReset size={18} />
-                  {text(language, 'استئناف اليوم', 'Resume day')}
-                </Button>
-              )}
-            </div>
-          ) : null}
+                    {remaining.length ? (
+                      <Button variant="secondary" onClick={() => setConfirmAll(true)}>
+                        <ListChecks size={18} />
+                        {text(language, 'إنهاء المتبقي', 'Complete remaining')}
+                      </Button>
+                    ) : null}
+                  </>
+                ) : (
+                  <Button variant="primary" onClick={() => startDay(currentParticipant.id)}>
+                    <TimerReset size={18} />
+                    {text(language, 'استئناف اليوم', 'Resume day')}
+                  </Button>
+                )}
+              </div>
+            ) : null}
+          </div>
+          <KpiBand
+            flush
+            items={[
+              { label: text(language, 'وقت العمل', 'Work time'), value: <span className="num">{formatDuration(stats.ms)}</span>, tone: 'gold' },
+              { label: text(language, 'السلسلة الحالية', 'Current streak'), value: <span className="num">{streak}</span>, detail: text(language, 'يوم', 'days') },
+              { label: text(language, 'المتبقي للهدف', 'Needed for target'), value: stats.pass ? <CheckCircle2 size={26} /> : <span className="num">{need}</span>, tone: stats.pass ? 'good' : 'warn' },
+              { label: text(language, 'هدف اليوم', 'Daily target'), value: <span className="num">{state.settings.dailyTarget}%</span> },
+            ]}
+          />
         </div>
       </section>
 
@@ -242,11 +259,13 @@ export function TodayPage() {
             <h2 className="text-xl font-black">{text(language, 'ملخص المجموعة لذلك اليوم', 'Group summary for that day')}</h2>
             <Badge>{viewedDay}</Badge>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Metric label={text(language, 'بلغوا الهدف', 'Reached target')} value={rows.filter((row) => row.pass).length} tone="good" />
-            <Metric label={text(language, 'عملوا ولم يكملوا', 'Worked below target')} value={rows.filter((row) => !row.pass && (row.ms > 0 || row.done > 0)).length} tone="warn" />
-            <Metric label={text(language, 'لم يبدأوا', 'Did not start')} value={rows.filter((row) => row.ms === 0 && row.done === 0).length} />
-          </div>
+          <KpiBand
+            items={[
+              { label: text(language, 'بلغوا الهدف', 'Reached target'), value: rows.filter((row) => row.pass).length, tone: 'good' },
+              { label: text(language, 'عملوا ولم يكملوا', 'Worked below target'), value: rows.filter((row) => !row.pass && (row.ms > 0 || row.done > 0)).length, tone: 'warn' },
+              { label: text(language, 'لم يبدأوا', 'Did not start'), value: rows.filter((row) => row.ms === 0 && row.done === 0).length },
+            ]}
+          />
         </section>
       ) : null}
 
@@ -281,14 +300,20 @@ export function TodayPage() {
                 <h2 className="text-xl font-black">{text(language, 'تفصيل الإنجاز', 'Completion breakdown')}</h2>
                 <Badge>{completed.length} / {entries.length}</Badge>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="panel-soft p-4">
-                  <h3 className="mb-3 font-black text-[var(--good)]">{text(language, 'المنجز', 'Completed')}</h3>
-                  {completed.length ? <ul className="grid gap-2 text-sm">{completed.map(({ taskId }) => <li key={taskId}>• {language === 'ar' ? taskById(state, taskId)?.name : taskById(state, taskId)?.nameEn}</li>)}</ul> : <p className="text-sm text-[var(--ink-3)]">—</p>}
+              <div className="list-panel">
+                <div className="list-row">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <h3 className="font-black text-[var(--good)]">{text(language, 'المنجز', 'Completed')}</h3>
+                    <span className="num text-sm font-black text-[var(--good)]">{completed.length}</span>
+                  </div>
+                  {completed.length ? <ul className="grid gap-1 text-sm text-[var(--ink-2)]">{completed.map(({ taskId }) => <li key={taskId}>{language === 'ar' ? taskById(state, taskId)?.name : taskById(state, taskId)?.nameEn}</li>)}</ul> : <p className="text-sm text-[var(--ink-3)]">—</p>}
                 </div>
-                <div className="panel-soft p-4">
-                  <h3 className="mb-3 font-black text-[var(--ink-2)]">{text(language, 'المتبقي', 'Remaining')}</h3>
-                  {remaining.length ? <ul className="grid gap-2 text-sm">{remaining.map(({ taskId, entry }) => <li key={taskId}>• {language === 'ar' ? taskById(state, taskId)?.name : taskById(state, taskId)?.nameEn} {entry.status === 'attempted' ? <Badge tone="warn">{text(language, 'دون إنجاز', 'Attempted')}</Badge> : null}</li>)}</ul> : <p className="text-sm text-[var(--ink-3)]">—</p>}
+                <div className="list-row">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <h3 className="font-black text-[var(--ink-2)]">{text(language, 'المتبقي', 'Remaining')}</h3>
+                    <span className="num text-sm font-black text-[var(--ink-3)]">{remaining.length}</span>
+                  </div>
+                  {remaining.length ? <ul className="grid gap-1 text-sm text-[var(--ink-2)]">{remaining.map(({ taskId, entry }) => <li key={taskId} className="flex flex-wrap items-center gap-2">{language === 'ar' ? taskById(state, taskId)?.name : taskById(state, taskId)?.nameEn} {entry.status === 'attempted' ? <Badge tone="warn">{text(language, 'تمت المحاولة دون إنجاز', 'Attempted, not complete')}</Badge> : null}</li>)}</ul> : <p className="text-sm text-[var(--ink-3)]">—</p>}
                 </div>
               </div>
             </section>
@@ -299,11 +324,11 @@ export function TodayPage() {
           <section className="panel p-5">
             <div className="section-title">
               <h2 className="text-lg font-black">{text(language, 'لمحة المجموعة', 'Community preview')}</h2>
-              <Link className="btn ghost sm" to="/app/community">{text(language, 'عرض الكل', 'View all')}</Link>
+              <Link className="btn ghost sm" to="/app/community">{text(language, 'عرض المجموعة', 'View community')}</Link>
             </div>
-            <div className="grid gap-3">
-              {rows.slice(0, 4).map((row, index) => (
-                <div key={row.participant.id} className={cx('rounded-lg border border-[var(--line)] p-3', row.participant.id === currentParticipant.id && 'bg-[var(--accent-bg)]')}>
+            <div className="list-panel">
+              {rows.slice(0, 3).map((row, index) => (
+                <div key={row.participant.id} className={cx('list-row', row.participant.id === currentParticipant.id && 'bg-[var(--accent-bg)]')}>
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 font-black">{index + 1}. {language === 'ar' ? row.participant.name : row.participant.nameEn}</div>
                     <div className="num font-black">{row.percent.toFixed(0)}%</div>
@@ -317,15 +342,15 @@ export function TodayPage() {
           <section className="panel p-5">
             <div className="section-title">
               <h2 className="text-lg font-black">{text(language, 'نشاط مباشر', 'Live activity')}</h2>
-              <Link className="text-sm font-black text-[var(--accent)]" to="/app/activity">{text(language, 'السجل الكامل', 'Full log')}</Link>
+              <Link className="text-sm font-black text-[var(--accent)]" to="/app/activity">{text(language, 'عرض سجل الأحداث', 'View event log')}</Link>
             </div>
-            <div className="grid gap-2">
+            <div className="timeline-list">
               {recentEvents.length ? recentEvents.map((event) => {
                 const participant = state.participants.find((person) => person.id === event.pid)
                 const task = event.taskId ? taskById(state, event.taskId) : null
                 return (
-                  <div key={event.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-2 rounded-lg bg-[var(--surface-2)] p-3 text-sm">
-                    <span className="dot live text-[var(--good)]" />
+                  <div key={event.id} className="timeline-item text-sm">
+                    <span className="timeline-dot text-[var(--good)]" />
                     <span className="min-w-0">
                       <strong>{participant ? (language === 'ar' ? participant.name : participant.nameEn) : '—'}</strong> {eventLabel(event.type, language)}
                       {task ? <span className="block truncate text-xs text-[var(--ink-3)]">{language === 'ar' ? task.name : task.nameEn}</span> : null}

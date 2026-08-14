@@ -1,7 +1,7 @@
-import { Area, AreaChart, CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, AreaChart, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { BarChart3, CalendarCheck, Clock3 } from 'lucide-react'
 import { useApp } from '../app/useApp'
-import { Badge, EmptyState, Metric, PageHeader, ProgressBar } from '../components/ui'
+import { Badge, EmptyState, KpiBand, PageHeader, ProgressBar } from '../components/ui'
 import { formatCompactDuration, formatDay } from '../utils/date'
 import { progressSeries } from '../utils/stats'
 import { text } from '../utils/text'
@@ -27,15 +27,6 @@ export function ProgressPage() {
       />
 
       <div className="grid gap-5">
-        <section className="hero-panel p-5 md:p-6">
-          <div className="grid gap-5 md:grid-cols-4">
-            <Metric label={text(language, 'متوسط الإنجاز', 'Average completion')} value={<span className="num">{average.toFixed(0)}%</span>} tone="gold" />
-            <Metric label={text(language, 'أيام ناجحة', 'Successful days')} value={<span className="num">{successfulDays}</span>} tone={successfulDays >= 3 ? 'good' : 'neutral'} />
-            <Metric label={text(language, 'أفضل يوم', 'Best day')} value={<span className="num">{bestCompletion}%</span>} />
-            <Metric label={text(language, 'إجمالي العمل', 'Total work')} value={<span className="num">{formatCompactDuration(totalWorkMs, language)}</span>} />
-          </div>
-        </section>
-
         <section className="panel p-5">
           <div className="section-title">
             <div>
@@ -44,15 +35,23 @@ export function ProgressPage() {
             </div>
             <Badge tone="gold">{state.settings.dailyTarget}%</Badge>
           </div>
+          <KpiBand
+            className="mb-5"
+            items={[
+              { label: text(language, 'متوسط الإنجاز', 'Average completion'), value: <span className="num">{average.toFixed(0)}%</span>, tone: 'gold' },
+              { label: text(language, 'أيام ناجحة', 'Successful days'), value: <span className="num">{successfulDays}</span>, tone: successfulDays >= 3 ? 'good' : 'neutral' },
+              { label: text(language, 'أفضل يوم', 'Best day'), value: <span className="num">{bestCompletion}%</span> },
+              { label: text(language, 'إجمالي العمل', 'Total work'), value: <span className="num">{formatCompactDuration(totalWorkMs, language)}</span> },
+            ]}
+          />
           {hasData ? (
-            <div className="chart-box">
+            <div className="chart-box tall">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
-                  <CartesianGrid stroke="var(--line)" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fill: 'var(--ink-3)', fontSize: 11 }} interval="preserveStartEnd" />
-                  <YAxis domain={[0, 100]} tick={{ fill: 'var(--ink-3)', fontSize: 11 }} width={34} />
+                  <XAxis dataKey="label" tick={{ fill: 'var(--ink-3)', fontSize: 10 }} interval="preserveStartEnd" axisLine={false} tickLine={false} minTickGap={12} />
+                  <YAxis domain={[0, 100]} tick={{ fill: 'var(--ink-3)', fontSize: 10 }} width={28} axisLine={false} tickLine={false} tickCount={5} />
                   <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--ink)' }} />
-                  <ReferenceLine y={state.settings.dailyTarget} stroke="var(--good)" strokeDasharray="5 5" />
+                  <ReferenceLine y={state.settings.dailyTarget} stroke="var(--good)" strokeDasharray="4 5" />
                   <Line type="monotone" dataKey="completion" name={text(language, 'الإنجاز', 'Completion')} stroke="var(--accent)" strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -76,9 +75,8 @@ export function ProgressPage() {
               <div className="chart-box">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
-                    <CartesianGrid stroke="var(--line)" vertical={false} />
-                    <XAxis dataKey="label" tick={{ fill: 'var(--ink-3)', fontSize: 11 }} interval="preserveStartEnd" />
-                    <YAxis tick={{ fill: 'var(--ink-3)', fontSize: 11 }} width={34} />
+                    <XAxis dataKey="label" tick={{ fill: 'var(--ink-3)', fontSize: 10 }} interval="preserveStartEnd" axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: 'var(--ink-3)', fontSize: 10 }} width={30} axisLine={false} tickLine={false} tickCount={4} />
                     <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--ink)' }} />
                     <Area type="monotone" dataKey="workMinutes" name={text(language, 'دقائق العمل', 'Work minutes')} stroke="var(--accent)" fill="var(--accent-bg)" strokeWidth={2} />
                   </AreaChart>
@@ -98,9 +96,9 @@ export function ProgressPage() {
               <h2 className="text-xl font-black">{text(language, 'تفصيل الأيام', 'Daily breakdown')}</h2>
               <CalendarCheck size={20} className="text-[var(--accent)]" />
             </div>
-            <div className="grid gap-3">
+            <div className="list-panel">
               {hasData ? chartData.slice().reverse().map((item) => (
-                <div key={item.day} className="rounded-lg border border-[var(--line)] p-3">
+                <div key={item.day} className="list-row">
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <div className="font-black">{item.label}</div>
                     <Badge tone={item.successful ? 'good' : item.total ? 'warn' : 'neutral'}>{item.total ? `${item.done} / ${item.total}` : text(language, 'لا نشاط', 'No activity')}</Badge>

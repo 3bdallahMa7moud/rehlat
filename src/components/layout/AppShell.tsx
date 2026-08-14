@@ -17,7 +17,7 @@ import {
 import type { ReactNode } from 'react'
 import { useApp } from '../../app/useApp'
 import { Brand } from '../Brand'
-import { Avatar, Badge, Button, IconButton, Menu, Modal } from '../ui'
+import { Avatar, Button, IconButton, Menu, Modal } from '../ui'
 import { text } from '../../utils/text'
 import { useState } from 'react'
 import { cx } from '../../utils/cx'
@@ -72,7 +72,7 @@ export function AppShell() {
     <div className="app-shell">
       <aside className="sidebar">
         <Brand language={language} />
-        <nav className="mt-8 grid gap-1" aria-label={text(language, 'التنقل الرئيسي', 'Main navigation')}>
+        <nav className="mt-7 grid gap-1" aria-label={text(language, 'التنقل الرئيسي', 'Main navigation')}>
           {availableNav.map((item) => (
             <NavLink key={item.to} to={item.to} className={({ isActive }) => cx('nav-link', isActive && 'active')}>
               {item.icon}
@@ -81,18 +81,16 @@ export function AppShell() {
           ))}
         </nav>
         <div className="mt-auto grid gap-3 border-t border-[var(--line)] pt-5">
-          <div className="flex items-center gap-3">
+          <div className="panel-soft flex items-center gap-3 p-3">
             <Avatar name={currentParticipant.name} color={currentParticipant.avatar} />
             <div className="min-w-0">
               <div className="truncate font-black">{language === 'ar' ? currentParticipant.name : currentParticipant.nameEn}</div>
-              <div className="mt-1 flex gap-1">
-                <Badge tone={currentParticipant.role === 'admin' ? 'gold' : 'neutral'}>
-                  {currentParticipant.role === 'admin' ? text(language, 'مشرف', 'Admin') : text(language, 'مشارك', 'Participant')}
-                </Badge>
+              <div className="mt-1 text-xs font-bold text-[var(--ink-3)]">
+                {currentParticipant.role === 'admin' ? text(language, 'مشرف', 'Admin') : text(language, 'مشارك', 'Participant')}
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2" aria-label={text(language, 'أدوات الحساب', 'Account utilities')}>
             <IconButton label={text(language, 'تبديل اللغة', 'Switch language')} onClick={toggleLanguage}>
               <Languages size={18} />
             </IconButton>
@@ -124,7 +122,7 @@ export function AppShell() {
               <p className="eyebrow">{text(language, 'المساحة الحالية', 'Current workspace')}</p>
               <p className="mt-1 text-lg font-black">{title}</p>
             </div>
-            <Menu label={text(language, 'قائمة المستخدم', 'User menu')} language={language}>
+            <Menu label={text(language, 'قائمة الأدوات', 'Utility menu')} language={language}>
               {(close) => (
                 <>
                   <button type="button" role="menuitem" onClick={() => { toggleLanguage(); close() }}>

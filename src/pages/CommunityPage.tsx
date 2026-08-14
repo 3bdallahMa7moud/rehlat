@@ -1,11 +1,25 @@
 import { Activity, Medal, Users } from 'lucide-react'
 import { useApp } from '../app/useApp'
-import { Avatar, Badge, EmptyState, Metric, PageHeader, ProgressBar } from '../components/ui'
+import { Avatar, Badge, EmptyState, KpiBand, PageHeader, ProgressBar } from '../components/ui'
 import { formatClock, formatCompactDuration, todayKey } from '../utils/date'
 import { eventLabel } from '../utils/events'
 import { leaderboard, taskById } from '../utils/stats'
 import { text } from '../utils/text'
 import { cx } from '../utils/cx'
+
+function statusLabel(row: ReturnType<typeof leaderboard>[number], language: 'ar' | 'en') {
+  if (row.pass) return text(language, 'حقق الهدف', 'Reached target')
+  if (row.state === 'active') return text(language, 'يعمل الآن', 'Working now')
+  if (row.done > 0 || row.ms > 0 || row.attempted > 0) return text(language, 'أنهى دون الهدف', 'Below target')
+  return text(language, 'لم يبدأ', 'Not started')
+}
+
+function statusTone(row: ReturnType<typeof leaderboard>[number]) {
+  if (row.pass) return 'good'
+  if (row.state === 'active') return 'gold'
+  if (row.done > 0 || row.ms > 0 || row.attempted > 0) return 'warn'
+  return 'neutral'
+}
 
 export function CommunityPage() {
   const { state, currentParticipant, now } = useApp()
@@ -28,12 +42,21 @@ export function CommunityPage() {
 
       <div className="grid gap-5">
         <section className="hero-panel p-5 md:p-6">
-          <div className="grid gap-5 md:grid-cols-4">
-            <Metric label={text(language, 'بلغوا الهدف', 'Reached target')} value={<span className="num">{done}</span>} tone="good" />
-            <Metric label={text(language, 'يعملون الآن', 'Working now')} value={<span className="num">{working}</span>} tone="gold" />
-            <Metric label={text(language, 'لم يبدأوا', 'Not started')} value={<span className="num">{notStarted}</span>} />
-            <Metric label={text(language, 'مشاركون نشطون', 'Active participants')} value={<span className="num">{rows.length}</span>} />
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="eyebrow">{text(language, 'حالة المجموعة اليوم', 'Today group status')}</p>
+              <h2 className="mt-2 text-2xl font-black">{text(language, 'من يعمل؟ ومن وصل؟', 'Who is moving, who has arrived?')}</h2>
+            </div>
+            <Badge tone="gold">{todayKey()}</Badge>
           </div>
+          <KpiBand
+            items={[
+              { label: text(language, 'بلغوا الهدف', 'Reached target'), value: <span className="num">{done}</span>, tone: 'good' },
+              { label: text(language, 'يعملون الآن', 'Working now'), value: <span className="num">{working}</span>, tone: 'gold' },
+              { label: text(language, 'لم يبدأوا', 'Not started'), value: <span className="num">{notStarted}</span> },
+              { label: text(language, 'مشاركون نشطون', 'Active participants'), value: <span className="num">{rows.length}</span> },
+            ]}
+          />
         </section>
 
         <section className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
@@ -42,9 +65,9 @@ export function CommunityPage() {
               <h2 className="text-xl font-black">{text(language, 'المتصدرون', 'Top performers')}</h2>
               <Medal className="text-[var(--accent)]" size={22} />
             </div>
-            <div className="grid gap-3">
+            <div className="list-panel">
               {topThree.length ? topThree.map((row, index) => (
-                <div key={row.participant.id} className="rounded-lg border border-[color-mix(in_srgb,var(--accent)_28%,var(--line))] bg-[var(--surface)] p-4">
+                <div key={row.participant.id} className="list-row">
                   <div className="flex items-center gap-3">
                     <Avatar name={row.participant.name} color={row.participant.avatar} />
                     <div className="min-w-0 flex-1">
@@ -52,7 +75,7 @@ export function CommunityPage() {
                         <Badge tone="gold">#{index + 1}</Badge>
                         <h3 className="truncate font-black">{language === 'ar' ? row.participant.name : row.participant.nameEn}</h3>
                       </div>
-                      <p className="mt-1 text-xs text-[var(--ink-3)]">{formatCompactDuration(row.ms, language)} · {row.streak} {text(language, 'يوم ستريك', 'day streak')}</p>
+                      <p className="mt-1 text-xs text-[var(--ink-3)]">{statusLabel(row, language)} · {formatCompactDuration(row.ms, language)} · {row.streak} {text(language, 'يوم ستريك', 'day streak')}</p>
                     </div>
                     <div className="num text-2xl font-black">{row.percent.toFixed(0)}%</div>
                   </div>
@@ -96,6 +119,7 @@ export function CommunityPage() {
                             <div className="min-w-0">
                               <div className="truncate font-black">{language === 'ar' ? row.participant.name : row.participant.nameEn}</div>
                               {row.participant.id === currentParticipant.id ? <div className="text-xs font-bold text-[var(--accent)]">{text(language, 'أنت', 'You')}</div> : null}
+                              <div className={cx('state-text mt-1', statusTone(row))}>{statusLabel(row, language)}</div>
                             </div>
                           </div>
                         </td>
@@ -132,13 +156,13 @@ export function CommunityPage() {
             <Activity className="text-[var(--accent)]" size={22} />
           </div>
           {recentEvents.length ? (
-            <div className="grid gap-2 md:grid-cols-2">
+            <div className="timeline-list">
               {recentEvents.map((event) => {
                 const participant = state.participants.find((item) => item.id === event.pid)
                 const task = event.taskId ? taskById(state, event.taskId) : null
                 return (
-                  <div key={event.id} className="grid grid-cols-[auto_1fr_auto] gap-3 rounded-lg border border-[var(--line)] p-3">
-                    <span className="dot live mt-2 text-[var(--good)]" />
+                  <div key={event.id} className="timeline-item">
+                    <span className="timeline-dot text-[var(--good)]" />
                     <div className="min-w-0">
                       <div className="font-bold">
                         {participant ? (language === 'ar' ? participant.name : participant.nameEn) : '—'} <span className="text-[var(--ink-2)]">{eventLabel(event.type, language)}</span>

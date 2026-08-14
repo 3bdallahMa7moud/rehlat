@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Download, FileText, Printer } from 'lucide-react'
 import { useApp } from '../app/useApp'
-import { Badge, Button, EmptyState, Metric, PageHeader, ProgressBar, SelectField } from '../components/ui'
+import { Badge, Button, EmptyState, KpiBand, PageHeader, ProgressBar, SelectField } from '../components/ui'
 import { availableReportMonths, monthStats } from '../utils/stats'
 import { formatCompactDuration, formatMonth, weekRange } from '../utils/date'
 import { text } from '../utils/text'
+import { cx } from '../utils/cx'
 
 export function ReportsPage() {
   const { state, currentParticipant, now, setReportMonth, exportMock } = useApp()
@@ -74,13 +75,19 @@ export function ReportsPage() {
       ) : (
         <div className="grid gap-5">
           <section className="hero-panel p-5 md:p-6">
-            <div className="grid gap-5 md:grid-cols-5">
-              <Metric label={text(language, 'المشاركون', 'Participants')} value={<span className="num">{people.length}</span>} />
-              <Metric label={text(language, 'أيام ناجحة', 'Successful days')} value={<span className="num">{totalSuccessDays}</span>} tone="good" />
-              <Metric label={text(language, 'إجمالي الوقت', 'Total work')} value={<span className="num">{formatCompactDuration(totalWork, language)}</span>} tone="gold" />
-              <Metric label={text(language, 'حققوا الشهر', 'Monthly achievers')} value={<span className="num">{achievers}</span>} tone={achievers ? 'good' : 'warn'} />
-              <Metric label={text(language, 'متوسط الإنجاز', 'Average completion')} value={<span className="num">{average.toFixed(0)}%</span>} />
+            <div className="mb-4">
+              <p className="eyebrow">{text(language, 'ملخص التقرير', 'Report summary')}</p>
+              <h2 className="mt-2 text-2xl font-black">{formatMonth(month, language)}</h2>
             </div>
+            <KpiBand
+              items={[
+                { label: text(language, 'المشاركون', 'Participants'), value: <span className="num">{people.length}</span> },
+                { label: text(language, 'أيام ناجحة', 'Successful days'), value: <span className="num">{totalSuccessDays}</span>, tone: 'good' },
+                { label: text(language, 'إجمالي الوقت', 'Total work'), value: <span className="num">{formatCompactDuration(totalWork, language)}</span>, tone: 'gold' },
+                { label: text(language, 'حققوا الشهر', 'Monthly achievers'), value: <span className="num">{achievers}</span>, tone: achievers ? 'good' : 'warn' },
+                { label: text(language, 'متوسط الإنجاز', 'Average completion'), value: <span className="num">{average.toFixed(0)}%</span> },
+              ]}
+            />
           </section>
 
           <section className="grid gap-5 xl:grid-cols-2">
@@ -89,12 +96,11 @@ export function ReportsPage() {
                 <h2 className="text-xl font-black">{text(language, 'أداء المجموعة', 'Group performance')}</h2>
                 <Badge>{formatMonth(month, language)}</Badge>
               </div>
-              <div className="chart-box">
+              <div className="chart-box tall">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
-                    <CartesianGrid stroke="var(--line)" vertical={false} />
-                    <XAxis dataKey="name" tick={{ fill: 'var(--ink-3)', fontSize: 11 }} interval="preserveStartEnd" minTickGap={8} />
-                    <YAxis tick={{ fill: 'var(--ink-3)', fontSize: 11 }} width={34} />
+                    <XAxis dataKey="name" tick={{ fill: 'var(--ink-3)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={16} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: 'var(--ink-3)', fontSize: 10 }} width={28} axisLine={false} tickLine={false} tickCount={5} />
                     <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--ink)' }} />
                     <Bar dataKey="completion" name={text(language, 'نسبة الإنجاز', 'Completion')} fill="var(--accent)" radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -106,9 +112,9 @@ export function ReportsPage() {
               <div className="section-title">
                 <h2 className="text-xl font-black">{text(language, 'مقارنة المشاركين', 'Participant comparison')}</h2>
               </div>
-              <div className="grid gap-3">
+              <div className="list-panel">
                 {rows.map((row) => (
-                  <div key={row.participant.id} className="rounded-lg border border-[var(--line)] p-3">
+                  <div key={row.participant.id} className="list-row">
                     <div className="mb-2 flex items-center justify-between gap-3">
                       <div className="font-black">{language === 'ar' ? row.participant.name : row.participant.nameEn}</div>
                       <Badge tone={row.stats.goodWeeks >= state.settings.monthlyRequiredWeeks ? 'good' : 'neutral'}>{row.stats.goodWeeks} / {state.settings.monthlyRequiredWeeks}</Badge>
@@ -129,7 +135,7 @@ export function ReportsPage() {
               <h2 className="text-xl font-black">{text(language, 'جدول الأسابيع', 'Weekly progress')}</h2>
               <Badge>{text(language, 'هدف الأسبوع 3 أيام', 'Weekly target 3 days')}</Badge>
             </div>
-            <div className="table-shell">
+            <div className="table-shell desktop-only">
               <table className="data-table responsive-table">
                 <thead>
                   <tr>
@@ -156,6 +162,29 @@ export function ReportsPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="mobile-only">
+              <div className="list-panel">
+                {rows.map((row) => (
+                  <div key={row.participant.id} className="list-row">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <h3 className="font-black">{language === 'ar' ? row.participant.name : row.participant.nameEn}</h3>
+                      <Badge tone={row.stats.goodWeeks >= state.settings.monthlyRequiredWeeks ? 'good' : 'warn'}>
+                        {row.stats.goodWeeks} / {state.settings.monthlyRequiredWeeks}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm text-[var(--ink-2)]">
+                      <span>{text(language, 'أيام ناجحة', 'Success days')}: <strong className="num text-[var(--ink)]">{row.stats.successDays}</strong></span>
+                      <span>{text(language, 'وقت العمل', 'Work time')}: <strong className="num text-[var(--ink)]">{formatCompactDuration(row.stats.ms, language)}</strong></span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-4 gap-1">
+                      {row.stats.weeks.map((week) => (
+                        <span key={week.week} className={cx('h-2 rounded-sm bg-[var(--surface-2)]', week.ok && 'bg-[var(--good)]', !week.ok && week.successfulDays > 0 && 'bg-[var(--accent)]')} title={weekRange(week.week, language)} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
 
