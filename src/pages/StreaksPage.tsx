@@ -3,7 +3,7 @@ import { useApp } from '../app/useApp'
 import { Badge, EmptyState, KpiBand, PageHeader, ProgressBar } from '../components/ui'
 import { addDays, formatDay, todayKey, weekDaysOf, weekRange } from '../utils/date'
 import { dayStats, dailyStreak, leaderboard, monthWeeks, successMap, weekDone } from '../utils/stats'
-import { text } from '../utils/text'
+import { text, unitLabel } from '../utils/text'
 import { cx } from '../utils/cx'
 
 export function StreaksPage() {
@@ -52,8 +52,8 @@ export function StreaksPage() {
               </div>
               <KpiBand
                 items={[
-                  { label: text(language, 'هذا الأسبوع', 'This week'), value: <span className="num">{currentWeek} / {state.settings.weeklyRequiredDays}</span>, tone: currentWeek >= state.settings.weeklyRequiredDays ? 'good' : 'gold' },
-                  { label: text(language, 'هذا الشهر', 'This month'), value: <span className="num">{currentMonth} / {state.settings.monthlyRequiredWeeks}</span>, tone: currentMonth >= state.settings.monthlyRequiredWeeks ? 'good' : 'neutral' },
+                  { label: text(language, 'هذا الأسبوع', 'This week'), value: <span className="num">{currentWeek} / {state.settings.weeklyRequiredDays}</span>, unit: unitLabel(language, currentWeek, 'يوم', 'أيام', 'day'), tone: currentWeek >= state.settings.weeklyRequiredDays ? 'good' : 'gold' },
+                  { label: text(language, 'هذا الشهر', 'This month'), value: <span className="num">{currentMonth} / {state.settings.monthlyRequiredWeeks}</span>, unit: unitLabel(language, currentMonth, 'أسبوع', 'أسابيع', 'week'), tone: currentMonth >= state.settings.monthlyRequiredWeeks ? 'good' : 'neutral' },
                 ]}
               />
             </div>

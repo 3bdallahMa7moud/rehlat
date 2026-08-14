@@ -24,6 +24,11 @@ export function plural(language: Language, count: number, arSingular: string, ar
   return `${count} ${count === 1 ? enSingular : `${enSingular}s`}`
 }
 
+export function unitLabel(language: Language, count: number, arSingular: string, arPlural: string, enSingular: string) {
+  if (language === 'ar') return count === 0 || count === 1 ? arSingular : arPlural
+  return count === 1 ? enSingular : `${enSingular}s`
+}
+
 export function initials(name: string) {
   return name
     .split(/\s+/)

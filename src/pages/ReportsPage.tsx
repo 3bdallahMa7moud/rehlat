@@ -5,7 +5,7 @@ import { useApp } from '../app/useApp'
 import { Badge, Button, EmptyState, KpiBand, PageHeader, ProgressBar, SelectField } from '../components/ui'
 import { availableReportMonths, monthStats } from '../utils/stats'
 import { formatCompactDuration, formatMonth, weekRange } from '../utils/date'
-import { text } from '../utils/text'
+import { text, unitLabel } from '../utils/text'
 import { cx } from '../utils/cx'
 
 export function ReportsPage() {
@@ -83,9 +83,9 @@ export function ReportsPage() {
               className="report-kpi-band"
               items={[
                 { label: text(language, 'المشاركون', 'Participants'), value: <span className="num">{people.length}</span> },
-                { label: text(language, 'أيام ناجحة', 'Successful days'), value: <span className="num">{totalSuccessDays}</span>, tone: 'good' },
+                { label: text(language, 'أيام ناجحة', 'Successful days'), value: <span className="num">{totalSuccessDays}</span>, unit: unitLabel(language, totalSuccessDays, 'يوم', 'أيام', 'day'), tone: 'good' },
                 { label: text(language, 'إجمالي الوقت', 'Total work'), value: <span className="num">{formatCompactDuration(totalWork, language)}</span>, tone: 'gold' },
-                { label: text(language, 'حققوا الشهر', 'Monthly achievers'), value: <span className="num">{achievers}</span>, tone: achievers ? 'good' : 'warn' },
+                { label: text(language, 'حققوا الشهر', 'Monthly achievers'), value: <span className="num">{achievers}</span>, unit: unitLabel(language, achievers, 'مشارك', 'مشاركين', 'person'), tone: achievers ? 'good' : 'warn' },
                 { label: text(language, 'متوسط الإنجاز', 'Average completion'), value: <span className="num">{average.toFixed(0)}%</span> },
               ]}
             />

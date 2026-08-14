@@ -4,7 +4,7 @@ import { useApp } from '../app/useApp'
 import { Badge, EmptyState, KpiBand, PageHeader, ProgressBar } from '../components/ui'
 import { formatCompactDuration, formatDay } from '../utils/date'
 import { progressSeries } from '../utils/stats'
-import { text } from '../utils/text'
+import { text, unitLabel } from '../utils/text'
 
 export function ProgressPage() {
   const { state, currentParticipant, now } = useApp()
@@ -39,7 +39,7 @@ export function ProgressPage() {
             className="mb-5"
             items={[
               { label: text(language, 'متوسط الإنجاز', 'Average completion'), value: <span className="num">{average.toFixed(0)}%</span>, tone: 'gold' },
-              { label: text(language, 'أيام ناجحة', 'Successful days'), value: <span className="num">{successfulDays}</span>, tone: successfulDays >= 3 ? 'good' : 'neutral' },
+              { label: text(language, 'أيام ناجحة', 'Successful days'), value: <span className="num">{successfulDays}</span>, unit: unitLabel(language, successfulDays, 'يوم', 'أيام', 'day'), tone: successfulDays >= 3 ? 'good' : 'neutral' },
               { label: text(language, 'أفضل يوم', 'Best day'), value: <span className="num">{bestCompletion}%</span> },
               { label: text(language, 'إجمالي العمل', 'Total work'), value: <span className="num">{formatCompactDuration(totalWorkMs, language)}</span> },
             ]}

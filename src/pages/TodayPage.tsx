@@ -7,7 +7,7 @@ import type { DayRecord, TaskEntry, TaskStatus } from '../types'
 import { addDays, formatClock, formatDay, formatDuration, todayKey } from '../utils/date'
 import { eventLabel } from '../utils/events'
 import { dailyStreak, dayStats, leaderboard, neededForTarget, successMap, taskById, taskEntriesForDay, taskMs } from '../utils/stats'
-import { taskStatusLabel, text } from '../utils/text'
+import { taskStatusLabel, text, unitLabel } from '../utils/text'
 import { cx } from '../utils/cx'
 
 function statusTone(status: TaskStatus) {
@@ -252,10 +252,10 @@ export function TodayPage() {
           <KpiBand
             flush
             items={[
-              { label: text(language, 'وقت العمل', 'Work time'), value: <span className="num">{formatDuration(stats.ms)}</span>, tone: 'gold' },
-              { label: text(language, 'السلسلة الحالية', 'Current streak'), value: <span className="num">{streak}</span>, detail: text(language, 'يوم', 'days') },
-              { label: text(language, 'المتبقي للهدف', 'Needed for target'), value: stats.pass ? <CheckCircle2 size={26} /> : <span className="num">{need}</span>, tone: stats.pass ? 'good' : 'warn' },
-              { label: text(language, 'هدف اليوم', 'Daily target'), value: <span className="num">{state.settings.dailyTarget}%</span> },
+              { label: text(language, 'وقت العمل', 'Work time'), value: <span className="num">{formatDuration(stats.ms)}</span> },
+              { label: text(language, 'السلسلة الحالية', 'Current streak'), value: <span className="num">{streak}</span>, unit: unitLabel(language, streak, 'يوم', 'أيام', 'day'), tone: streak > 0 ? 'gold' : 'neutral' },
+              { label: text(language, 'المتبقي للهدف', 'Needed for target'), value: <span className="num">{need}</span>, unit: unitLabel(language, need, 'مهمة', 'مهام', 'task'), tone: stats.pass ? 'good' : 'warn' },
+              { label: text(language, 'هدف اليوم', 'Daily target'), value: <span className="num">{state.settings.dailyTarget}%</span>, tone: 'gold' },
             ]}
           />
         </div>

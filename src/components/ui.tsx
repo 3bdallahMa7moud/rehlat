@@ -58,7 +58,7 @@ export function KpiBand({
   className,
   flush = false,
 }: {
-  items: Array<{ label: string; value: ReactNode; detail?: ReactNode; tone?: 'neutral' | 'good' | 'gold' | 'warn' | 'bad' }>
+  items: Array<{ label: string; value: ReactNode; unit?: ReactNode; detail?: ReactNode; tone?: 'neutral' | 'good' | 'gold' | 'warn' | 'bad' }>
   columns?: number
   className?: string
   flush?: boolean
@@ -67,7 +67,10 @@ export function KpiBand({
     <div className={cx('kpi-band', flush && 'flush', className)} style={{ gridTemplateColumns: `repeat(${columns ?? items.length}, minmax(0, 1fr))` }}>
       {items.map((item, index) => (
         <div key={`${item.label}-${index}`} className={cx('kpi-item', item.tone && item.tone !== 'neutral' && `tone-${item.tone}`)}>
-          <div className={cx('kpi-value', item.tone === 'good' && 'text-[var(--good)]', item.tone === 'gold' && 'text-[var(--accent)]', item.tone === 'warn' && 'text-[var(--warn)]', item.tone === 'bad' && 'text-[var(--bad)]')}>{item.value}</div>
+          <div className="kpi-value">
+            {item.value}
+            {item.unit ? <span className="kpi-unit">{item.unit}</span> : null}
+          </div>
           <div className="kpi-label">{item.label}</div>
           {item.detail ? <div className="kpi-detail">{item.detail}</div> : null}
         </div>
@@ -101,10 +104,10 @@ export function PageHeader({
 
 export function Metric({ label, value, detail, tone = 'neutral' }: { label: string; value: ReactNode; detail?: ReactNode; tone?: 'neutral' | 'good' | 'gold' | 'warn' | 'bad' }) {
   return (
-    <div className={cx('border-s-2 py-1 ps-3', tone === 'good' && 'border-[var(--good)]', tone === 'gold' && 'border-[var(--accent)]', tone === 'warn' && 'border-[var(--warn)]', tone === 'bad' && 'border-[var(--bad)]', tone === 'neutral' && 'border-[var(--line-strong)]')}>
-      <div className="text-2xl font-black leading-none text-[var(--ink)]">{value}</div>
-      <div className="mt-1 text-xs font-bold text-[var(--ink-3)]">{label}</div>
-      {detail ? <div className="mt-1 text-xs text-[var(--ink-2)]">{detail}</div> : null}
+    <div className={cx('metric', tone !== 'neutral' && `tone-${tone}`)}>
+      <div className="metric-value">{value}</div>
+      <div className="metric-label">{label}</div>
+      {detail ? <div className="metric-detail">{detail}</div> : null}
     </div>
   )
 }

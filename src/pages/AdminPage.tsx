@@ -3,7 +3,7 @@ import { Archive, Download, MoreVertical, Plus, RotateCcw, Search, Settings, Shi
 import { useApp } from '../app/useApp'
 import { Avatar, Badge, Button, EmptyState, KpiBand, Menu, Modal, PageHeader } from '../components/ui'
 import type { ParticipantRole } from '../types'
-import { text } from '../utils/text'
+import { text, unitLabel } from '../utils/text'
 import { cx } from '../utils/cx'
 
 type Tab = 'participants' | 'tasks' | 'settings'
@@ -264,8 +264,8 @@ export function AdminPage() {
             <KpiBand
               items={[
                 { label: text(language, 'هدف اليوم', 'Daily target'), value: <span className="num">{state.settings.dailyTarget}%</span>, tone: 'gold' },
-                { label: text(language, 'أيام الأسبوع المطلوبة', 'Weekly required days'), value: <span className="num">{state.settings.weeklyRequiredDays}</span> },
-                { label: text(language, 'أسابيع الشهر المطلوبة', 'Monthly required weeks'), value: <span className="num">{state.settings.monthlyRequiredWeeks}</span> },
+                { label: text(language, 'أيام الأسبوع المطلوبة', 'Weekly required days'), value: <span className="num">{state.settings.weeklyRequiredDays}</span>, unit: unitLabel(language, state.settings.weeklyRequiredDays, 'يوم', 'أيام', 'day') },
+                { label: text(language, 'أسابيع الشهر المطلوبة', 'Monthly required weeks'), value: <span className="num">{state.settings.monthlyRequiredWeeks}</span>, unit: unitLabel(language, state.settings.monthlyRequiredWeeks, 'أسبوع', 'أسابيع', 'week') },
               ]}
             />
           </div>
