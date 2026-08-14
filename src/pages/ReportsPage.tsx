@@ -48,7 +48,7 @@ export function ReportsPage() {
       <PageHeader
         eyebrow={text(language, 'تقارير شهرية ديناميكية', 'Dynamic monthly reports')}
         title={text(language, `تقرير ${formatMonth(month, language)}`, `${formatMonth(month, language)} Report`)}
-        description={text(language, 'اختر شهراً من بيانات العرض لتغيير كل المؤشرات والجداول والرسوم.', 'Choose a mock-data month to update every KPI, table, and chart.')}
+        description={text(language, 'اختر شهراً من البيانات المتاحة لتغيير كل المؤشرات والجداول والرسوم.', 'Choose a month from available data to update every KPI, table, and chart.')}
         actions={(
           <>
             <SelectField label={text(language, 'الشهر', 'Month')} value={month} onChange={setReportMonth}>
@@ -80,6 +80,7 @@ export function ReportsPage() {
               <h2 className="mt-2 text-2xl font-black">{formatMonth(month, language)}</h2>
             </div>
             <KpiBand
+              className="report-kpi-band"
               items={[
                 { label: text(language, 'المشاركون', 'Participants'), value: <span className="num">{people.length}</span> },
                 { label: text(language, 'أيام ناجحة', 'Successful days'), value: <span className="num">{totalSuccessDays}</span>, tone: 'good' },
@@ -199,7 +200,7 @@ export function ReportsPage() {
               </Button>
             </div>
             {openWritten ? (
-              <div className="prose max-w-none text-[var(--ink-2)]">
+              <div className="max-w-3xl text-[var(--ink-2)]">
                 <p className="mb-3 font-bold text-[var(--ink)]">
                   {text(
                     language,

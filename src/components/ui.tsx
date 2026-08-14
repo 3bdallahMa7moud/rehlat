@@ -135,9 +135,11 @@ export function Modal({
   const generated = useId()
   const titleId = labelledBy ?? generated
   const dialogRef = useRef<HTMLDivElement | null>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     if (!open) return undefined
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
     window.setTimeout(() => {
       const target = dialogRef.current?.querySelector<HTMLElement>('input, select, textarea, button, [href], [tabindex]:not([tabindex="-1"])')
       target?.focus()
@@ -146,7 +148,10 @@ export function Modal({
       if (event.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      previousFocusRef.current?.focus()
+    }
   }, [onClose, open])
 
   if (!open) return null
@@ -175,8 +180,26 @@ export function Menu({
 }) {
   const [open, setOpen] = useState(false)
   const id = useId()
+  const menuRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    const onPointerDown = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('mousedown', onPointerDown)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('mousedown', onPointerDown)
+    }
+  }, [open])
+
   return (
-    <div className="menu">
+    <div className="menu" ref={menuRef}>
       <IconButton label={label} aria-haspopup="menu" aria-expanded={open} aria-controls={id} onClick={() => setOpen((value) => !value)}>
         <MoreVertical size={18} />
       </IconButton>

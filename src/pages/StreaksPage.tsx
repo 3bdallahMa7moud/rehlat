@@ -1,4 +1,3 @@
-import { Bar, BarChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CalendarDays, CheckCircle2, Circle, MinusCircle, Trophy, XCircle } from 'lucide-react'
 import { useApp } from '../app/useApp'
 import { Badge, EmptyState, KpiBand, PageHeader, ProgressBar } from '../components/ui'
@@ -24,8 +23,9 @@ export function StreaksPage() {
     return {
       day,
       label: formatDay(day, language),
-      success: stats.pass ? 1 : 0,
+      success: stats.pass,
       completion: stats.percent,
+      recorded: !!stats.record,
     }
   })
   const hasHistory = history.some((item) => item.completion > 0)
@@ -110,19 +110,24 @@ export function StreaksPage() {
               <Badge>{text(language, 'آخر 28 يوم', 'Last 28 days')}</Badge>
             </div>
             {hasHistory ? (
-              <div className="chart-box compact">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={history} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
-                    <XAxis dataKey="label" tick={{ fill: 'var(--ink-3)', fontSize: 10 }} interval="preserveStartEnd" axisLine={false} tickLine={false} />
-                    <YAxis hide domain={[0, 1]} />
-                    <Tooltip
-                      cursor={{ fill: 'var(--surface-2)' }}
-                      contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--ink)' }}
-                    />
-                    <ReferenceLine y={1} stroke="var(--good)" strokeDasharray="3 5" />
-                    <Bar dataKey="success" fill="var(--accent)" radius={[3, 3, 0, 0]} name={text(language, 'يوم ناجح', 'Successful day')} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="streak-history-grid" aria-label={text(language, 'تاريخ آخر 28 يوم', 'Last 28 days history')}>
+                {history.map((item) => {
+                  const partial = item.recorded && !item.success
+                  return (
+                    <div
+                      key={item.day}
+                      className={cx('streak-day', item.success && 'success', partial && 'partial', !item.recorded && 'empty')}
+                      title={`${item.label}: ${item.completion.toFixed(0)}%`}
+                      aria-label={`${item.label}: ${item.completion.toFixed(0)}%`}
+                    >
+                      <span className="streak-day-icon">
+                        {item.success ? <CheckCircle2 size={14} /> : partial ? <XCircle size={14} /> : <MinusCircle size={14} />}
+                      </span>
+                      <span className="num text-xs font-black">{item.completion.toFixed(0)}%</span>
+                      <span className="truncate text-[0.68rem] font-bold text-[var(--ink-3)]">{item.label.split(' ')[0]}</span>
+                    </div>
+                  )
+                })}
               </div>
             ) : (
               <EmptyState

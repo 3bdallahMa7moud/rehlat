@@ -108,7 +108,7 @@ export function AdminPage() {
       <PageHeader
         eyebrow={text(language, 'أدوات المشرف', 'Admin tools')}
         title={text(language, 'الإدارة', 'Admin')}
-        description={text(language, 'إدارة المشاركين والمهام والإعدادات التجريبية بدون تحويل الصفحة إلى قسم واحد ضخم.', 'Manage participants, tasks, and demo settings without one oversized admin section.')}
+        description={text(language, 'إدارة المشاركين والمهام وإعدادات الأهداف من مساحة منظمة ومباشرة.', 'Manage participants, tasks, and target settings from one organized workspace.')}
       />
 
       <div className="tabs-line mb-5" role="tablist" aria-label={text(language, 'تبويبات الإدارة', 'Admin tabs')}>
@@ -117,7 +117,16 @@ export function AdminPage() {
           ['tasks', text(language, 'المهام', 'Tasks'), <Archive size={17} />],
           ['settings', text(language, 'الإعدادات', 'Settings'), <Settings size={17} />],
         ].map(([id, label, icon]) => (
-          <button key={id as string} type="button" className="tab-line" onClick={() => setTab(id as Tab)} aria-selected={tab === id} role="tab">
+          <button
+            key={id as string}
+            type="button"
+            id={`admin-tab-${id}`}
+            className="tab-line"
+            onClick={() => setTab(id as Tab)}
+            aria-selected={tab === id}
+            aria-controls={`admin-panel-${id}`}
+            role="tab"
+          >
             {icon}
             {label}
           </button>
@@ -125,7 +134,7 @@ export function AdminPage() {
       </div>
 
       {tab === 'participants' ? (
-        <section className="panel p-5">
+        <section id="admin-panel-participants" role="tabpanel" aria-labelledby="admin-tab-participants" className="panel p-5">
           <div className="section-title">
             <div>
               <h2 className="text-xl font-black">{text(language, 'المشاركون', 'Participants')}</h2>
@@ -184,14 +193,14 @@ export function AdminPage() {
             <EmptyState
               icon={<Users size={30} />}
               title={text(language, 'لا يوجد مشاركون', 'No participants')}
-              body={text(language, 'أضف مشاركاً واحداً أو مجموعة أسماء لبدء العرض.', 'Add one participant or a list of names to begin.')}
+              body={text(language, 'أضف مشاركاً واحداً أو مجموعة أسماء لبدء الاستخدام.', 'Add one participant or a list of names to begin using the workspace.')}
             />
           )}
         </section>
       ) : null}
 
       {tab === 'tasks' ? (
-        <section className="panel p-5">
+        <section id="admin-panel-tasks" role="tabpanel" aria-labelledby="admin-tab-tasks" className="panel p-5">
           <div className="section-title">
             <div>
               <h2 className="text-xl font-black">{text(language, 'المهام', 'Tasks')}</h2>
@@ -246,11 +255,11 @@ export function AdminPage() {
       ) : null}
 
       {tab === 'settings' ? (
-        <section className="grid gap-5">
+        <section id="admin-panel-settings" role="tabpanel" aria-labelledby="admin-tab-settings" className="grid gap-5">
           <div className="hero-panel p-5 md:p-6">
             <div className="mb-4">
               <p className="eyebrow">{text(language, 'الأهداف المعتمدة', 'Configured targets')}</p>
-              <h2 className="mt-2 text-2xl font-black">{text(language, 'قواعد العرض الحالية', 'Current demo rules')}</h2>
+              <h2 className="mt-2 text-2xl font-black">{text(language, 'قواعد الأهداف الحالية', 'Current target rules')}</h2>
             </div>
             <KpiBand
               items={[
@@ -262,8 +271,9 @@ export function AdminPage() {
           </div>
           <div className="grid gap-5 lg:grid-cols-2">
             <div className="panel p-5">
-              <h2 className="text-xl font-black">{text(language, 'التصدير', 'Export')}</h2>
-              <p className="mt-2 text-sm text-[var(--ink-2)]">{text(language, 'إجراءات وهمية مناسبة للعرض أمام العميل.', 'Mock actions suitable for client demos.')}</p>
+              <p className="eyebrow">{text(language, 'البيانات', 'Data')}</p>
+              <h2 className="mt-1 text-xl font-black">{text(language, 'تصدير البيانات', 'Data export')}</h2>
+              <p className="mt-2 text-sm text-[var(--ink-2)]">{text(language, 'تنزيل ملفات البيانات الحالية بصيغ جاهزة للمراجعة.', 'Download the current data in review-ready formats.')}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button onClick={() => exportMock('excel')}><Download size={17} />{text(language, 'إكسل', 'Excel')}</Button>
                 <Button onClick={() => exportMock('pdf')}><Download size={17} />PDF</Button>
@@ -271,8 +281,8 @@ export function AdminPage() {
             </div>
             <div className="panel danger-zone p-5">
               <h2 className="text-xl font-black text-[var(--bad)]">{text(language, 'منطقة خطرة', 'Danger zone')}</h2>
-              <p className="mt-2 text-sm text-[var(--ink-2)]">{text(language, 'يعيد بيانات العرض إلى الحالة الافتراضية.', 'Resets demo data to its default state.')}</p>
-              <Button className="mt-4" variant="danger" onClick={() => setConfirmTarget({ kind: 'reset-data', label: text(language, 'كل بيانات العرض', 'all demo data') })}>
+              <p className="mt-2 text-sm text-[var(--ink-2)]">{text(language, 'يعيد البيانات الحالية إلى الحالة الافتراضية.', 'Resets the current data to its default state.')}</p>
+              <Button className="mt-4" variant="danger" onClick={() => setConfirmTarget({ kind: 'reset-data', label: text(language, 'كل البيانات الحالية', 'all current data') })}>
                 <Trash2 size={17} />
                 {text(language, 'مسح كل البيانات', 'Reset all data')}
               </Button>

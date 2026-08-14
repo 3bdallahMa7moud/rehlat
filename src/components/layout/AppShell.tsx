@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Activity,
   BarChart3,
@@ -46,17 +46,9 @@ function navLabel(item: NavItem, language: 'ar' | 'en') {
   return language === 'ar' ? item.labelAr : item.labelEn
 }
 
-function usePageTitle() {
-  const { state } = useApp()
-  const location = useLocation()
-  const item = navItems.find((nav) => location.pathname.startsWith(nav.to))
-  return item ? navLabel(item, state.language) : text(state.language, 'رحلة التغيير', 'Journey of Change')
-}
-
 export function AppShell() {
   const { state, currentParticipant, setLanguage, setTheme, signOut } = useApp()
   const navigate = useNavigate()
-  const title = usePageTitle()
   const [moreOpen, setMoreOpen] = useState(false)
 
   if (!currentParticipant) return null
@@ -117,10 +109,15 @@ export function AppShell() {
               </IconButton>
             </div>
           </div>
-          <div className="mb-4 hidden items-center justify-between border-b border-[var(--line)] pb-4 lg:flex">
-            <div>
-              <p className="eyebrow">{text(language, 'المساحة الحالية', 'Current workspace')}</p>
-              <p className="mt-1 text-lg font-black">{title}</p>
+          <div className="shell-utilitybar mb-4 hidden items-center justify-end gap-3 border-b border-[var(--line)] pb-4 lg:flex">
+            <div className="flex min-w-0 items-center gap-3 text-sm">
+              <Avatar name={currentParticipant.name} color={currentParticipant.avatar} size="sm" />
+              <div className="min-w-0">
+                <div className="truncate font-black">{language === 'ar' ? currentParticipant.name : currentParticipant.nameEn}</div>
+                <div className="text-xs font-bold text-[var(--ink-3)]">
+                  {currentParticipant.role === 'admin' ? text(language, 'مشرف', 'Admin') : text(language, 'مشارك', 'Participant')}
+                </div>
+              </div>
             </div>
             <Menu label={text(language, 'قائمة الأدوات', 'Utility menu')} language={language}>
               {(close) => (

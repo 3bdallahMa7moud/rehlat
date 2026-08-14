@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { LockKeyhole, Moon, Search, Shield, Sun, UserRound } from 'lucide-react'
+import { LockKeyhole, Moon, Search, Sun, UserRound } from 'lucide-react'
 import { useApp } from '../app/useApp'
 import { Brand } from '../components/Brand'
 import { Avatar, Badge, Button, EmptyState, IconButton } from '../components/ui'
@@ -64,7 +64,7 @@ export function LoginPage() {
               </div>
             </div>
             <div className="mt-10 max-w-xl md:mt-16">
-              <p className="eyebrow">{text(language, 'مساحة تقدم خاصة', 'Private progress workspace')}</p>
+              <p className="eyebrow">{text(language, 'بوابة المشاركين', 'Participant portal')}</p>
               <h1 className="mt-3 text-3xl font-black leading-tight text-[var(--ink)] md:text-5xl">
                 {text(language, 'ادخل إلى رحلتك اليومية بوضوح وهدوء.', 'Enter your daily journey with clarity and calm.')}
               </h1>
@@ -77,12 +77,12 @@ export function LoginPage() {
               </p>
             </div>
           </div>
-          <div className="mt-10 grid grid-cols-2 gap-3">
-            <div className="panel-soft p-4">
+          <div className="login-proofline mt-10">
+            <div>
               <div className="text-2xl font-black num">{state.participants.filter((p) => p.active).length}</div>
-              <div className="mt-1 text-xs font-bold text-[var(--ink-3)]">{text(language, 'مشاركون', 'Participants')}</div>
+              <div className="mt-1 text-xs font-bold text-[var(--ink-3)]">{text(language, 'مشاركون نشطون', 'Active participants')}</div>
             </div>
-            <div className="panel-soft p-4">
+            <div>
               <div className="text-2xl font-black num">90%</div>
               <div className="mt-1 text-xs font-bold text-[var(--ink-3)]">{text(language, 'هدف اليوم', 'Daily target')}</div>
             </div>
@@ -97,10 +97,7 @@ export function LoginPage() {
                   <p className="eyebrow">{text(language, 'الدخول', 'Sign in')}</p>
                   <h2 className="text-2xl font-black">{text(language, 'اختر اسمك', 'Choose your name')}</h2>
                 </div>
-                <Badge tone="gold">
-                  <Shield size={14} />
-                  {text(language, 'محلي فقط', 'Local only')}
-                </Badge>
+                <Badge tone="gold">{activeParticipants.length}</Badge>
               </div>
               <label className="field mb-4">
                 <span>{text(language, 'بحث عن مشارك', 'Search participants')}</span>
@@ -174,7 +171,7 @@ export function LoginPage() {
                   aria-invalid={!!error}
                   autoFocus
                 />
-                {!setupMode ? <span className="text-xs font-bold text-[var(--ink-3)]">{text(language, 'للعرض التجريبي استخدم 1234', 'For the demo, use 1234')}</span> : null}
+                {!setupMode ? <span className="text-xs font-bold text-[var(--ink-3)]">{text(language, 'للعرض التجريبي يمكنك استخدام 1234', 'For preview, you can use 1234')}</span> : null}
               </label>
               {setupMode ? (
                 <label className="field">

@@ -199,7 +199,7 @@ export function seedState(language: AppState['language'] = 'ar', theme: AppState
   const days = seedDays(participants, events)
   const withStatuses = participants.map((participant) => ({ ...participant, status: statusFromToday(days, participant) }))
 
-  createEvent(events, 3, null, dateMs(addDays(todayKey(), -12), 11, 20), 'participant_added', 'ضيف تجريبي جديد')
+  createEvent(events, 3, null, dateMs(addDays(todayKey(), -12), 11, 20), 'participant_added', 'ضيف جديد')
   createEvent(events, 3, 7, dateMs(addDays(todayKey(), -9), 12, 5), 'task_count_toggled', 'خارج النسبة')
   createEvent(events, 3, null, dateMs(addDays(todayKey(), -4), 15, 10), 'pin_reset', 'عبدالعزيز جمكس')
 

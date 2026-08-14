@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 import { Activity, ArrowLeft, ArrowRight, CheckCircle2, Clock3, History, ListChecks, MessageSquare, Pause, Play, RotateCcw, TimerReset, Trophy, XCircle } from 'lucide-react'
 import { useApp } from '../app/useApp'
 import { Badge, Button, EmptyState, KpiBand, Modal, PageHeader, ProgressBar } from '../components/ui'
-import type { TaskEntry, TaskStatus } from '../types'
+import type { DayRecord, TaskEntry, TaskStatus } from '../types'
 import { addDays, formatClock, formatDay, formatDuration, todayKey } from '../utils/date'
 import { eventLabel } from '../utils/events'
-import { dailyStreak, dayStats, leaderboard, neededForTarget, openIntervalFor, successMap, taskById, taskEntriesForDay, taskMs } from '../utils/stats'
+import { dailyStreak, dayStats, leaderboard, neededForTarget, successMap, taskById, taskEntriesForDay, taskMs } from '../utils/stats'
 import { taskStatusLabel, text } from '../utils/text'
 import { cx } from '../utils/cx'
 
@@ -19,11 +19,13 @@ function statusTone(status: TaskStatus) {
 
 function TaskRow({
   entry,
+  record,
   locked,
   active,
   onFinish,
 }: {
   entry: TaskEntry
+  record: DayRecord | null
   locked: boolean
   active: boolean
   onFinish: (taskId: number) => void
@@ -32,15 +34,13 @@ function TaskRow({
   const [noteOpen, setNoteOpen] = useState(false)
   const language = state.language
   const task = taskById(state, entry.taskId)
-  const record = currentParticipant ? dayStats(state, currentParticipant.id, todayKey(), now).record : null
   if (!task || !currentParticipant) return null
   const running = entry.status === 'running'
   const paused = entry.status === 'paused'
   const idle = entry.status === 'idle'
   const elapsed = taskMs(record, task.id, now)
-  const open = openIntervalFor(record, task.id)
-  const liveElapsed = running && open ? elapsed : elapsed
   const label = taskStatusLabel(entry.status, language)
+  const canEdit = !locked && active
 
   return (
     <div className={cx('task-row', running && 'running', paused && 'paused', idle && 'idle', entry.status === 'completed' && 'completed', entry.status === 'attempted' && 'attempted')}>
@@ -54,7 +54,7 @@ function TaskRow({
           {!entry.counts ? <Badge>{text(language, 'خارج النسبة', 'Not counted')}</Badge> : null}
         </div>
         <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold text-[var(--ink-3)]">
-          {!idle || liveElapsed > 0 ? <span className="num">{formatDuration(liveElapsed)}</span> : <span>{text(language, 'لم يبدأ بعد', 'Not started yet')}</span>}
+          {!idle || elapsed > 0 ? <span className="num">{formatDuration(elapsed)}</span> : <span>{text(language, 'لم يبدأ بعد', 'Not started yet')}</span>}
           {entry.pauses ? <span>{entry.pauses} {text(language, 'إيقاف', 'pauses')}</span> : null}
           {entry.reopens ? <span>{entry.reopens} {text(language, 'إعادة فتح', 'reopens')}</span> : null}
           {entry.completedAt ? <span>{text(language, 'أُنجزت', 'Completed at')} <span className="num">{formatClock(entry.completedAt, language)}</span></span> : null}
@@ -62,8 +62,8 @@ function TaskRow({
         </div>
       </div>
       <div className="task-actions">
-        {!idle || liveElapsed > 0 ? <span className="task-clock num font-black">{formatDuration(liveElapsed)}</span> : null}
-        {!locked && active && entry.status === 'running' ? (
+        {!idle || elapsed > 0 ? <span className="task-clock num font-black">{formatDuration(elapsed)}</span> : null}
+        {canEdit && entry.status === 'running' ? (
           <>
             <Button size="sm" onClick={() => pauseTask(currentParticipant.id, task.id)}>
               <Pause size={15} />
@@ -75,7 +75,7 @@ function TaskRow({
             </Button>
           </>
         ) : null}
-        {!locked && active && (entry.status === 'idle' || entry.status === 'paused') ? (
+        {canEdit && (entry.status === 'idle' || entry.status === 'paused') ? (
           <>
             <Button size="sm" variant="primary" onClick={() => startTask(currentParticipant.id, task.id)}>
               <Play size={15} />
@@ -88,13 +88,13 @@ function TaskRow({
             ) : null}
           </>
         ) : null}
-        {!locked && active && (entry.status === 'completed' || entry.status === 'attempted') ? (
+        {canEdit && (entry.status === 'completed' || entry.status === 'attempted') ? (
           <Button size="sm" onClick={() => reopenTask(currentParticipant.id, task.id)}>
             <RotateCcw size={15} />
             {text(language, 'إعادة فتح', 'Reopen')}
           </Button>
         ) : null}
-        {!locked && active && !noteOpen && !entry.note ? (
+        {canEdit && !noteOpen && !entry.note ? (
           <Button size="sm" variant="ghost" onClick={() => setNoteOpen(true)}>
             <MessageSquare size={15} />
             {text(language, 'ملاحظة', 'Note')}
@@ -103,7 +103,7 @@ function TaskRow({
       </div>
       {record ? (
         <div className="col-span-full">
-          {!locked && active && (noteOpen || entry.note) ? (
+          {canEdit && (noteOpen || entry.note) ? (
             <label className="field">
               <span className="sr-only">{text(language, 'ملاحظة على المهمة', 'Task note')}</span>
               <input
@@ -141,12 +141,13 @@ export function TodayPage() {
   const need = neededForTarget(stats.done, stats.total, state.settings.dailyTarget)
   const rows = leaderboard(state, viewedDay, now)
   const recentEvents = state.events
-    .filter((event) => event.day === todayKey() && ['day_started', 'day_ended', 'task_completed', 'task_attempted'].includes(event.type))
+    .filter((event) => event.day === viewedDay && ['day_started', 'day_ended', 'task_completed', 'task_attempted'].includes(event.type))
     .slice(-5)
     .reverse()
 
   const entries = taskEntriesForDay(state, currentRecord)
   const completed = entries.filter(({ entry }) => entry.status === 'completed')
+  const attempted = entries.filter(({ entry }) => entry.status === 'attempted')
   const remaining = entries.filter(({ entry }) => entry.status !== 'completed')
   const locked = !today || dayState !== 'active'
   const active = today && dayState === 'active'
@@ -182,12 +183,19 @@ export function TodayPage() {
       />
 
       {!today ? (
-        <div className="panel-soft mb-4 flex items-start gap-3 p-4">
+        <div className="history-banner mb-4">
           <History className="mt-1 text-[var(--accent)]" size={20} />
-          <div>
+          <div className="min-w-0">
             <h2 className="font-black">{text(language, 'عرض تاريخي للقراءة فقط', 'Read-only historical view')}</h2>
-            <p className="text-sm text-[var(--ink-2)]">{text(language, 'لا تظهر أدوات التعديل عند استعراض يوم سابق.', 'Editing controls are hidden when viewing a past day.')}</p>
+            <p className="text-sm text-[var(--ink-2)]">
+              {text(
+                language,
+                `أنت تستعرض ${formatDay(viewedDay, language, true)}. التعديل غير متاح لهذا اليوم.`,
+                `You are viewing ${formatDay(viewedDay, language, true)}. Editing is unavailable for this day.`,
+              )}
+            </p>
           </div>
+          <Badge>{viewedDay}</Badge>
         </div>
       ) : null}
 
@@ -221,16 +229,16 @@ export function TodayPage() {
                   </Button>
                 ) : dayState === 'active' ? (
                   <>
-                    <Button variant="primary" onClick={() => endDay(currentParticipant.id, 'manual')}>
-                      <XCircle size={18} />
-                      {text(language, 'إنهاء اليوم', 'End day')}
-                    </Button>
                     {remaining.length ? (
-                      <Button variant="secondary" onClick={() => setConfirmAll(true)}>
+                      <Button variant="primary" onClick={() => setConfirmAll(true)}>
                         <ListChecks size={18} />
                         {text(language, 'إنهاء المتبقي', 'Complete remaining')}
                       </Button>
                     ) : null}
+                    <Button variant={remaining.length ? 'secondary' : 'primary'} onClick={() => endDay(currentParticipant.id, 'manual')}>
+                      <XCircle size={18} />
+                      {text(language, 'إنهاء اليوم', 'End day')}
+                    </Button>
                   </>
                 ) : (
                   <Button variant="primary" onClick={() => startDay(currentParticipant.id)}>
@@ -276,14 +284,18 @@ export function TodayPage() {
               <div>
                 <h2 className="text-xl font-black">{text(language, 'مهامي اليوم', 'My tasks')}</h2>
                 <p className="text-sm text-[var(--ink-2)]">
-                  {active ? text(language, 'يمكن تشغيل أكثر من مهمة في نفس الوقت؛ لكل مهمة مؤقتها المستقل.', 'Multiple tasks can run at once; every task has its own timer.') : text(language, 'ابدأ اليوم لتفعيل أزرار المهام.', 'Start the day to enable task actions.')}
+                  {active
+                    ? text(language, 'يمكن تشغيل أكثر من مهمة في نفس الوقت؛ لكل مهمة مؤقتها المستقل.', 'Multiple tasks can run at once; every task has its own timer.')
+                    : today
+                      ? text(language, 'ابدأ اليوم لتفعيل أزرار المهام.', 'Start the day to enable task actions.')
+                      : text(language, 'سجل اليوم المحدد ظاهر للقراءة فقط.', 'The selected day history is read-only.')}
                 </p>
               </div>
               <Badge tone={stats.pass ? 'good' : 'gold'}>{stats.done} / {stats.total}</Badge>
             </div>
             <div className="grid gap-3">
               {entries.length ? entries.map(({ entry }) => (
-                <TaskRow key={entry.taskId} entry={entry} locked={locked} active={active} onFinish={setFinishingTask} />
+                <TaskRow key={entry.taskId} entry={entry} record={currentRecord} locked={locked} active={active} onFinish={setFinishingTask} />
               )) : (
                 <EmptyState
                   icon={<ListChecks size={28} />}
@@ -300,20 +312,27 @@ export function TodayPage() {
                 <h2 className="text-xl font-black">{text(language, 'تفصيل الإنجاز', 'Completion breakdown')}</h2>
                 <Badge>{completed.length} / {entries.length}</Badge>
               </div>
-              <div className="list-panel">
-                <div className="list-row">
+              <div className="breakdown-strip">
+                <div className="breakdown-item">
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <h3 className="font-black text-[var(--good)]">{text(language, 'المنجز', 'Completed')}</h3>
                     <span className="num text-sm font-black text-[var(--good)]">{completed.length}</span>
                   </div>
                   {completed.length ? <ul className="grid gap-1 text-sm text-[var(--ink-2)]">{completed.map(({ taskId }) => <li key={taskId}>{language === 'ar' ? taskById(state, taskId)?.name : taskById(state, taskId)?.nameEn}</li>)}</ul> : <p className="text-sm text-[var(--ink-3)]">—</p>}
                 </div>
-                <div className="list-row">
+                <div className="breakdown-item">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <h3 className="font-black text-[var(--warn)]">{text(language, 'المحاولات', 'Attempted')}</h3>
+                    <span className="num text-sm font-black text-[var(--warn)]">{attempted.length}</span>
+                  </div>
+                  {attempted.length ? <ul className="grid gap-1 text-sm text-[var(--ink-2)]">{attempted.map(({ taskId }) => <li key={taskId}>{language === 'ar' ? taskById(state, taskId)?.name : taskById(state, taskId)?.nameEn}</li>)}</ul> : <p className="text-sm text-[var(--ink-3)]">—</p>}
+                </div>
+                <div className="breakdown-item">
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <h3 className="font-black text-[var(--ink-2)]">{text(language, 'المتبقي', 'Remaining')}</h3>
                     <span className="num text-sm font-black text-[var(--ink-3)]">{remaining.length}</span>
                   </div>
-                  {remaining.length ? <ul className="grid gap-1 text-sm text-[var(--ink-2)]">{remaining.map(({ taskId, entry }) => <li key={taskId} className="flex flex-wrap items-center gap-2">{language === 'ar' ? taskById(state, taskId)?.name : taskById(state, taskId)?.nameEn} {entry.status === 'attempted' ? <Badge tone="warn">{text(language, 'تمت المحاولة دون إنجاز', 'Attempted, not complete')}</Badge> : null}</li>)}</ul> : <p className="text-sm text-[var(--ink-3)]">—</p>}
+                  {remaining.length ? <ul className="grid gap-1 text-sm text-[var(--ink-2)]">{remaining.map(({ taskId }) => <li key={taskId}>{language === 'ar' ? taskById(state, taskId)?.name : taskById(state, taskId)?.nameEn}</li>)}</ul> : <p className="text-sm text-[var(--ink-3)]">—</p>}
                 </div>
               </div>
             </section>
@@ -342,7 +361,7 @@ export function TodayPage() {
           <section className="panel p-5">
             <div className="section-title">
               <h2 className="text-lg font-black">{text(language, 'نشاط مباشر', 'Live activity')}</h2>
-              <Link className="text-sm font-black text-[var(--accent)]" to="/app/activity">{text(language, 'عرض سجل الأحداث', 'View event log')}</Link>
+              <Link className="btn ghost sm" to="/app/activity">{text(language, 'عرض سجل الأحداث', 'View event log')}</Link>
             </div>
             <div className="timeline-list">
               {recentEvents.length ? recentEvents.map((event) => {
