@@ -53,7 +53,7 @@ export function LoginPage() {
         <section className="hero-panel flex flex-col justify-between p-6 md:p-8">
           <div>
             <div className="flex items-start justify-between gap-3">
-              <Brand language={language} />
+              <Brand language={language} variant="login" />
               <div className="flex gap-1">
                 <IconButton label={text(language, 'تبديل اللغة', 'Switch language')} onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}>
                   <span className="text-xs font-black">{language === 'ar' ? 'EN' : 'AR'}</span>
