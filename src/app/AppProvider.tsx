@@ -416,6 +416,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
       task.nameEn = name
       logEvent(draft, draft.sessionId ?? 1, 'task_renamed', taskId, name)
     }),
+    reorderTask: (taskId, direction) => mutate((draft) => {
+      const active = draft.tasks.filter((task) => !task.archived).sort((a, b) => a.pos - b.pos)
+      const index = active.findIndex((task) => task.id === taskId)
+      if (index === -1) return
+      const targetIndex = direction === 'up' ? index - 1 : index + 1
+      if (targetIndex < 0 || targetIndex >= active.length) return
+
+      const currentTask = active[index]
+      const neighborTask = active[targetIndex]
+      const tempPos = currentTask.pos
+      currentTask.pos = neighborTask.pos
+      neighborTask.pos = tempPos
+
+      const sorted = draft.tasks.slice().sort((a, b) => a.pos - b.pos)
+      sorted.forEach((task, i) => {
+        task.pos = i
+      })
+    }),
     toggleTaskCounts: (taskId) => mutate((draft) => {
       const task = taskById(draft, taskId)
       if (!task) return
@@ -427,6 +445,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!task) return
       task.archived = archived
       logEvent(draft, draft.sessionId ?? 1, archived ? 'task_archived' : 'task_restored', taskId, task.name)
+    }),
+    updateSettings: (newSettings) => mutate((draft) => {
+      draft.settings = {
+        dailyTarget: typeof newSettings.dailyTarget === 'number' && Number.isFinite(newSettings.dailyTarget)
+          ? Math.max(1, Math.min(100, Math.round(newSettings.dailyTarget)))
+          : draft.settings.dailyTarget,
+        weeklyRequiredDays: typeof newSettings.weeklyRequiredDays === 'number' && Number.isFinite(newSettings.weeklyRequiredDays)
+          ? Math.max(1, Math.min(7, Math.round(newSettings.weeklyRequiredDays)))
+          : draft.settings.weeklyRequiredDays,
+        monthlyRequiredWeeks: typeof newSettings.monthlyRequiredWeeks === 'number' && Number.isFinite(newSettings.monthlyRequiredWeeks)
+          ? Math.max(1, Math.min(5, Math.round(newSettings.monthlyRequiredWeeks)))
+          : draft.settings.monthlyRequiredWeeks,
+      }
     }),
     resetDemoData: () => mutate((draft) => {
       const seeded = seedState(draft.language, draft.theme)

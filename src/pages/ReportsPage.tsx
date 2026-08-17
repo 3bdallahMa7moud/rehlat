@@ -62,9 +62,13 @@ export function ReportsPage() {
       </div>
 
       <PageHeader
-        eyebrow={text(language, 'تقارير شهرية ديناميكية', 'Dynamic monthly reports')}
-        title={text(language, `تقرير ${formatMonth(month, language)}`, `${formatMonth(month, language)} Report`)}
-        description={text(language, 'اختر شهراً من البيانات المتاحة لتغيير كل المؤشرات والجداول والرسوم.', 'Choose a month from available data to update every KPI, table, and chart.')}
+        eyebrow={text(language, 'تقارير تاريخية مجمعة', 'Historical summary reports')}
+        title={text(language, `تقرير شهر ${formatMonth(month, language)}`, `${formatMonth(month, language)} Report`)}
+        description={text(
+          language,
+          'استعراض تاريخي ملخّص للأداء الشهري ونسب الإنجاز وساعات العمل، مع إمكانية التصدير والطباعة.',
+          'Summarized historical report of monthly performance, completion rates, and work hours, with export and print options.',
+        )}
         actions={(
           <>
             <SelectField label={text(language, 'الشهر', 'Month')} value={month} onChange={setReportMonth}>
@@ -72,7 +76,7 @@ export function ReportsPage() {
             </SelectField>
             <Button size="sm" onClick={() => exportMock('excel')}>
               <Download size={16} />
-              {text(language, 'تصدير إكسل', 'Excel export')}
+              {text(language, 'تصدير CSV (إكسل)', 'CSV Export (Excel)')}
             </Button>
             <Button size="sm" onClick={handlePrint}>
               <Printer size={16} />

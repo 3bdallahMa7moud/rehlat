@@ -1,6 +1,23 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Activity, ArrowLeft, ArrowRight, CheckCircle2, Clock3, History, ListChecks, MessageSquare, Pause, Play, RotateCcw, TimerReset, Trophy, XCircle } from 'lucide-react'
+import {
+  Activity,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  ChevronDown,
+  Clock3,
+  Flame,
+  History,
+  ListChecks,
+  MessageSquare,
+  Pause,
+  Play,
+  RotateCcw,
+  TimerReset,
+  Trophy,
+  XCircle,
+} from 'lucide-react'
 import { useApp } from '../app/useApp'
 import { Badge, Button, EmptyState, KpiBand, Modal, PageHeader, ProgressBar } from '../components/ui'
 import type { DayRecord, TaskEntry, TaskStatus } from '../types'
@@ -10,11 +27,46 @@ import { dailyStreak, dayStats, leaderboard, neededForTarget, successMap, taskBy
 import { taskStatusLabel, text, unitLabel } from '../utils/text'
 import { cx } from '../utils/cx'
 
-function statusTone(status: TaskStatus) {
-  if (status === 'completed') return 'good'
-  if (status === 'attempted') return 'warn'
-  if (status === 'running') return 'gold'
-  return 'neutral'
+function TaskStatusBadge({ status, language }: { status: TaskStatus; language: 'ar' | 'en' }) {
+  const label = taskStatusLabel(status, language)
+  if (status === 'running') {
+    return (
+      <Badge tone="gold">
+        <span className="dot live" />
+        {label}
+      </Badge>
+    )
+  }
+  if (status === 'paused') {
+    return (
+      <Badge tone="warn">
+        <Pause size={12} />
+        {label}
+      </Badge>
+    )
+  }
+  if (status === 'completed') {
+    return (
+      <Badge tone="good">
+        <CheckCircle2 size={12} />
+        {label}
+      </Badge>
+    )
+  }
+  if (status === 'attempted') {
+    return (
+      <Badge tone="warn">
+        <Clock3 size={12} />
+        {label}
+      </Badge>
+    )
+  }
+  return (
+    <Badge tone="neutral">
+      <Play size={12} />
+      {label}
+    </Badge>
+  )
 }
 
 function TaskRow({
@@ -22,12 +74,14 @@ function TaskRow({
   record,
   locked,
   active,
+  spotlight = false,
   onFinish,
 }: {
   entry: TaskEntry
   record: DayRecord | null
   locked: boolean
   active: boolean
+  spotlight?: boolean
   onFinish: (taskId: number) => void
 }) {
   const { state, currentParticipant, now, startTask, pauseTask, reopenTask, updateNote } = useApp()
@@ -39,39 +93,64 @@ function TaskRow({
   const paused = entry.status === 'paused'
   const idle = entry.status === 'idle'
   const elapsed = taskMs(record, task.id, now)
-  const label = taskStatusLabel(entry.status, language)
   const canEdit = !locked && active
 
   return (
-    <div className={cx('task-row', running && 'running', paused && 'paused', idle && 'idle', entry.status === 'completed' && 'completed', entry.status === 'attempted' && 'attempted')}>
+    <div
+      className={cx(
+        'task-row',
+        spotlight && running && 'spotlight-running',
+        running && 'running',
+        paused && 'paused',
+        idle && 'idle',
+        entry.status === 'completed' && 'completed',
+        entry.status === 'attempted' && 'attempted',
+      )}
+    >
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="min-w-0 text-base font-bold text-[var(--ink)]">{language === 'ar' ? task.name : task.nameEn}</h3>
-          <Badge tone={statusTone(entry.status)}>
-            {running ? <span className="dot live" /> : null}
-            {label}
-          </Badge>
+          <h3 className={cx('min-w-0 font-bold text-[var(--ink)]', spotlight && running ? 'text-lg' : 'text-base')}>
+            {language === 'ar' ? task.name : task.nameEn}
+          </h3>
+          <TaskStatusBadge status={entry.status} language={language} />
           {!entry.counts ? <Badge>{text(language, 'خارج النسبة', 'Not counted')}</Badge> : null}
         </div>
         <div className="mt-1.5 flex flex-wrap gap-2 text-xs font-medium text-[var(--ink-3)]">
-          {!idle || elapsed > 0 ? <span className="num font-semibold">{formatDuration(elapsed)}</span> : <span>{text(language, 'لم يبدأ بعد', 'Not started yet')}</span>}
+          {!idle || elapsed > 0 ? (
+            <span className={cx('num font-semibold', running && 'text-[var(--accent)]')}>
+              {formatDuration(elapsed)}
+            </span>
+          ) : (
+            <span>{text(language, 'لم تبدأ بعد', 'Not started yet')}</span>
+          )}
           {entry.pauses ? <span>{entry.pauses} {text(language, 'إيقاف', 'pauses')}</span> : null}
           {entry.reopens ? <span>{entry.reopens} {text(language, 'إعادة فتح', 'reopens')}</span> : null}
-          {entry.completedAt ? <span>{text(language, 'أُنجزت', 'Completed at')} <span className="num font-semibold">{formatClock(entry.completedAt, language)}</span></span> : null}
-          {entry.status === 'attempted' ? <span>{text(language, 'وقت محفوظ ولا يحتسب إنجازاً', 'Time kept, not counted as complete')}</span> : null}
+          {entry.completedAt ? (
+            <span>
+              {text(language, 'أُنجزت', 'Completed at')}{' '}
+              <span className="num font-semibold">{formatClock(entry.completedAt, language)}</span>
+            </span>
+          ) : null}
+          {entry.status === 'attempted' ? (
+            <span>{text(language, 'وقت محفوظ ولا يحتسب إنجازاً', 'Time kept, not counted as complete')}</span>
+          ) : null}
         </div>
       </div>
       <div className="task-actions">
-        {!idle || elapsed > 0 ? <span className="task-clock num font-bold">{formatDuration(elapsed)}</span> : null}
+        {!idle || elapsed > 0 ? (
+          <span className={cx('task-clock num font-bold', running && 'text-lg text-[var(--accent)]')}>
+            {formatDuration(elapsed)}
+          </span>
+        ) : null}
         {canEdit && entry.status === 'running' ? (
           <>
-            <Button size="sm" onClick={() => pauseTask(currentParticipant.id, task.id)}>
+            <Button size={spotlight ? 'md' : 'sm'} variant="secondary" onClick={() => pauseTask(currentParticipant.id, task.id)}>
               <Pause size={15} />
               {text(language, 'إيقاف', 'Pause')}
             </Button>
-            <Button size="sm" variant="primary" onClick={() => onFinish(task.id)}>
+            <Button size={spotlight ? 'md' : 'sm'} variant="primary" onClick={() => onFinish(task.id)}>
               <CheckCircle2 size={15} />
-              {text(language, 'إنهاء', 'Finish')}
+              {text(language, 'إنهاء / إكمال', 'Finish / Complete')}
             </Button>
           </>
         ) : null}
@@ -128,6 +207,7 @@ export function TodayPage() {
   const [dayOffset, setDayOffset] = useState(0)
   const [finishingTask, setFinishingTask] = useState<number | null>(null)
   const [confirmAll, setConfirmAll] = useState(false)
+  const [completedExpanded, setCompletedExpanded] = useState(false)
   const language = state.language
   if (!currentParticipant) return null
 
@@ -146,8 +226,11 @@ export function TodayPage() {
     .reverse()
 
   const entries = taskEntriesForDay(state, currentRecord)
+  const runningEntries = entries.filter(({ entry }) => entry.status === 'running')
+  const remainingEntries = entries.filter(({ entry }) => entry.status === 'idle' || entry.status === 'paused')
   const completed = entries.filter(({ entry }) => entry.status === 'completed')
   const attempted = entries.filter(({ entry }) => entry.status === 'attempted')
+  const completedEntries = entries.filter(({ entry }) => entry.status === 'completed' || entry.status === 'attempted')
   const remaining = entries.filter(({ entry }) => entry.status !== 'completed')
   const locked = !today || dayState !== 'active'
   const active = today && dayState === 'active'
@@ -199,6 +282,7 @@ export function TodayPage() {
         </div>
       ) : null}
 
+      {/* 1. Today Summary Hero Panel */}
       <section className="hero-panel mb-5 p-5 md:p-6">
         <div className="grid gap-4">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
@@ -279,30 +363,97 @@ export function TodayPage() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
         <div className="grid gap-5">
+          {/* Main Tasks Container */}
           <section className="panel p-5">
             <div className="section-title">
               <div>
                 <h2 className="text-lg font-bold">{text(language, 'مهامي اليوم', 'My tasks')}</h2>
                 <p className="text-xs text-[var(--ink-2)]">
                   {active
-                    ? text(language, 'يمكن تشغيل أكثر من مهمة في نفس الوقت؛ لكل مهمة مؤقتها المستقل.', 'Multiple tasks can run at once; every task has its own timer.')
+                    ? text(language, 'المهمة الجارية في المقدمة، والمتبقي مرتب للبدء والمتابعة.', 'Running tasks appear prominently at the top, with remaining tasks queued below.')
                     : today
-                      ? text(language, 'ابدأ اليوم لتفعيل أزرار المهام.', 'Start the day to enable task actions.')
+                      ? text(language, 'ابدأ اليوم لتفعيل أزرار المهام والمؤقتات.', 'Start the day to enable task controls and timers.')
                       : text(language, 'سجل اليوم المحدد ظاهر للقراءة فقط.', 'The selected day history is read-only.')}
                 </p>
               </div>
               <Badge tone={stats.pass ? 'good' : 'gold'}>{stats.done} / {stats.total}</Badge>
             </div>
-            <div className="grid gap-3">
-              {entries.length ? entries.map(({ entry }) => (
-                <TaskRow key={entry.taskId} entry={entry} record={currentRecord} locked={locked} active={active} onFinish={setFinishingTask} />
-              )) : (
+
+            <div className="grid gap-5">
+              {/* 2. Current / Running Task(s) Spotlight */}
+              {runningEntries.length > 0 ? (
+                <div className="rounded-lg border-2 border-[var(--accent)] bg-[var(--accent-bg)] p-4 shadow-sm">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Flame className="text-[var(--accent)]" size={18} />
+                      <h3 className="text-sm font-bold text-[var(--accent)] uppercase tracking-wide">
+                        {text(language, 'المهمة الجارية الآن', 'Current / Running Task')}
+                      </h3>
+                    </div>
+                    <Badge tone="gold">{runningEntries.length} {text(language, 'جارية', 'running')}</Badge>
+                  </div>
+                  <div className="grid gap-3">
+                    {runningEntries.map(({ entry }) => (
+                      <TaskRow key={entry.taskId} entry={entry} record={currentRecord} locked={locked} active={active} spotlight onFinish={setFinishingTask} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* 3. Remaining Tasks */}
+              {remainingEntries.length > 0 ? (
+                <div className="grid gap-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-[var(--ink)]">
+                      {runningEntries.length > 0
+                        ? text(language, 'المهام التالية', 'Up Next / Remaining')
+                        : text(language, 'المهام المتبقية للبدء', 'Tasks to Start')}
+                    </h3>
+                    <Badge>{remainingEntries.length}</Badge>
+                  </div>
+                  <div className="grid gap-3">
+                    {remainingEntries.map(({ entry }) => (
+                      <TaskRow key={entry.taskId} entry={entry} record={currentRecord} locked={locked} active={active} onFinish={setFinishingTask} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* 4. Completed & Attempted Tasks (Collapsible Section) */}
+              {completedEntries.length > 0 ? (
+                <div className="rounded-lg border border-[var(--line)] bg-[var(--surface-2)]/35 p-3.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      className="flex cursor-pointer items-center gap-2 text-start font-bold text-sm text-[var(--ink)]"
+                      onClick={() => setCompletedExpanded((v) => !v)}
+                      aria-expanded={completedExpanded}
+                    >
+                      <ChevronDown className={cx('transition-transform duration-200', !completedExpanded && '-rotate-90 rtl:rotate-90')} size={17} />
+                      <span>{text(language, 'المهام المنجزة والمحاولات', 'Completed & Attempted Tasks')}</span>
+                      <Badge tone="good">{completed.length} / {entries.length}</Badge>
+                    </button>
+                    <Button size="sm" variant="ghost" onClick={() => setCompletedExpanded((v) => !v)}>
+                      {completedExpanded ? text(language, 'طي القائمة', 'Collapse') : text(language, 'عرض التفاصيل', 'Expand')}
+                    </Button>
+                  </div>
+                  {completedExpanded ? (
+                    <div className="mt-3 grid gap-2.5 border-t border-[var(--line)] pt-3">
+                      {completedEntries.map(({ entry }) => (
+                        <TaskRow key={entry.taskId} entry={entry} record={currentRecord} locked={locked} active={active} onFinish={setFinishingTask} />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {entries.length === 0 ? (
                 <EmptyState
                   icon={<ListChecks size={28} />}
                   title={text(language, 'لا توجد مهام', 'No tasks')}
                   body={text(language, 'يمكن للمشرف إضافة مهام جديدة من صفحة الإدارة.', 'An admin can add tasks from the Admin page.')}
                 />
-              )}
+              ) : null}
             </div>
           </section>
 

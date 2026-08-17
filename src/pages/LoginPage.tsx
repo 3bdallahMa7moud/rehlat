@@ -1,30 +1,59 @@
-import { useMemo, useState } from 'react'
-import type { FormEvent } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { LockKeyhole, Moon, Search, Sun, UserRound } from 'lucide-react'
+import { Check, LockKeyhole, Moon, Search, Shield, Sun, UserRound, Users, X } from 'lucide-react'
 import { useApp } from '../app/useApp'
 import { Brand } from '../components/Brand'
 import { Avatar, Badge, Button, EmptyState, IconButton, OtpPinInput } from '../components/ui'
 import { text } from '../utils/text'
+import { cx } from '../utils/cx'
+
+type RoleFilter = 'all' | 'admin' | 'participant'
 
 export function LoginPage() {
   const { state, currentParticipant, setLanguage, setTheme, signIn, setPinAndSignIn } = useApp()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
+  const [focusedIndex, setFocusedIndex] = useState(0)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [pin, setPin] = useState('')
   const [confirmPin, setConfirmPin] = useState('')
   const [error, setError] = useState('')
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
   const language = state.language
 
   const activeParticipants = useMemo(() => {
     const query = search.trim().toLowerCase()
     return state.participants.filter((participant) => {
       if (!participant.active) return false
+      if (roleFilter !== 'all' && participant.role !== roleFilter) return false
       if (!query) return true
       return `${participant.name} ${participant.nameEn}`.toLowerCase().includes(query)
     })
-  }, [search, state.participants])
+  }, [search, roleFilter, state.participants])
+
+  const handleSearchKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (!activeParticipants.length) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setFocusedIndex((prev) => (prev + 1) % activeParticipants.length)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setFocusedIndex((prev) => (prev - 1 + activeParticipants.length) % activeParticipants.length)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      const target = activeParticipants[focusedIndex] ?? activeParticipants[0]
+      if (target) {
+        setSelectedId(target.id)
+        setPin('')
+        setConfirmPin('')
+        setError('')
+      }
+    } else if (e.key === 'Escape') {
+      setSearch('')
+    }
+  }
 
   if (currentParticipant) return <Navigate to="/app/today" replace />
 
@@ -101,47 +130,148 @@ export function LoginPage() {
                   <p className="eyebrow">{text(language, 'الدخول', 'Sign in')}</p>
                   <h2 className="text-xl font-bold">{text(language, 'اختر اسمك', 'Choose your name')}</h2>
                 </div>
-                <Badge tone="gold">{activeParticipants.length}</Badge>
+                <Badge tone="gold">{activeParticipants.length} / {state.participants.filter((p) => p.active).length}</Badge>
               </div>
-              <label className="field mb-4">
-                <span>{text(language, 'بحث عن مشارك', 'Search participants')}</span>
+
+              {/* Role filter chips */}
+              <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label={text(language, 'تصفية الأدوار', 'Role filter')}>
+                <button
+                  type="button"
+                  onClick={() => { setRoleFilter('all'); setFocusedIndex(0) }}
+                  className={cx(
+                    'flex min-h-[30px] items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-colors',
+                    roleFilter === 'all'
+                      ? 'bg-[var(--accent)] text-[var(--accent-ink)]'
+                      : 'border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-2)] hover:text-[var(--ink)]',
+                  )}
+                >
+                  <Users size={13} />
+                  {text(language, 'الكل', 'All')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setRoleFilter('admin'); setFocusedIndex(0) }}
+                  className={cx(
+                    'flex min-h-[30px] items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-colors',
+                    roleFilter === 'admin'
+                      ? 'bg-[var(--accent)] text-[var(--accent-ink)]'
+                      : 'border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-2)] hover:text-[var(--ink)]',
+                  )}
+                >
+                  <Shield size={13} />
+                  {text(language, 'المشرفون', 'Admins')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setRoleFilter('participant'); setFocusedIndex(0) }}
+                  className={cx(
+                    'flex min-h-[30px] items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-colors',
+                    roleFilter === 'participant'
+                      ? 'bg-[var(--accent)] text-[var(--accent-ink)]'
+                      : 'border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-2)] hover:text-[var(--ink)]',
+                  )}
+                >
+                  <UserRound size={13} />
+                  {text(language, 'المشاركون', 'Participants')}
+                </button>
+              </div>
+
+              {/* Combobox Search Input */}
+              <label className="field mb-3">
+                <span className="sr-only">{text(language, 'بحث عن مشارك', 'Search participants')}</span>
                 <span className="relative">
                   <Search className="pointer-events-none absolute top-1/2 -translate-y-1/2 text-[var(--ink-3)] ltr:left-3 rtl:right-3" size={17} />
                   <input
-                    className="input ps-12"
+                    ref={searchInputRef}
+                    className="input ps-11 pe-9"
                     value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder={text(language, 'اكتب الاسم...', 'Type a name...')}
+                    onChange={(event) => {
+                      setSearch(event.target.value)
+                      setFocusedIndex(0)
+                    }}
+                    onKeyDown={handleSearchKeyDown}
+                    placeholder={text(language, 'ابحث بالاسم أو استخدم الأسهم للاختيار...', 'Search by name or use arrows to select...')}
+                    role="combobox"
+                    aria-expanded={activeParticipants.length > 0}
+                    aria-controls="participants-listbox"
+                    aria-autocomplete="list"
+                    autoFocus
                   />
+                  {search ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearch('')
+                        searchInputRef.current?.focus()
+                      }}
+                      className="absolute top-1/2 -translate-y-1/2 text-[var(--ink-3)] hover:text-[var(--ink)] ltr:right-3 rtl:left-3"
+                      aria-label={text(language, 'مسح البحث', 'Clear search')}
+                    >
+                      <X size={16} />
+                    </button>
+                  ) : null}
                 </span>
               </label>
-              <div className="grid max-h-[560px] gap-2 overflow-y-auto pe-1">
-                {activeParticipants.length ? activeParticipants.map((participant) => (
-                  <button
-                    key={participant.id}
-                    type="button"
-                    className="flex min-h-[56px] items-center justify-between gap-3 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-3 text-start transition-colors hover:bg-[var(--surface-2)]"
-                    onClick={() => {
-                      setSelectedId(participant.id)
-                      setPin('')
-                      setConfirmPin('')
-                      setError('')
-                    }}
-                  >
-                    <span className="flex min-w-0 items-center gap-3">
-                      <Avatar name={participant.name} color={participant.avatar} />
-                      <span className="min-w-0">
-                        <span className="block truncate font-bold text-sm">{language === 'ar' ? participant.name : participant.nameEn}</span>
-                        <span className="block text-xs font-medium text-[var(--ink-3)]">{participant.mustSetPin ? text(language, 'يحتاج رمزاً جديداً', 'Needs new PIN') : text(language, 'جاهز للدخول', 'Ready')}</span>
-                      </span>
-                    </span>
-                    {participant.role === 'admin' ? <Badge tone="gold">{text(language, 'مشرف', 'Admin')}</Badge> : null}
-                  </button>
-                )) : (
+
+              {/* Scrollable listbox */}
+              <div
+                id="participants-listbox"
+                role="listbox"
+                aria-label={text(language, 'قائمة المشاركين', 'Participants list')}
+                className="grid max-h-[500px] gap-2 overflow-y-auto pe-1"
+              >
+                {activeParticipants.length ? (
+                  activeParticipants.map((participant, index) => {
+                    const isFocused = index === focusedIndex
+                    return (
+                      <button
+                        key={participant.id}
+                        type="button"
+                        role="option"
+                        aria-selected={isFocused}
+                        onMouseEnter={() => setFocusedIndex(index)}
+                        className={cx(
+                          'flex min-h-[56px] items-center justify-between gap-3 rounded-lg border p-3 text-start transition-all cursor-pointer',
+                          isFocused
+                            ? 'border-[var(--accent)] bg-[var(--accent-bg)]/35 shadow-sm'
+                            : 'border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-2)]',
+                        )}
+                        onClick={() => {
+                          setSelectedId(participant.id)
+                          setPin('')
+                          setConfirmPin('')
+                          setError('')
+                        }}
+                      >
+                        <span className="flex min-w-0 items-center gap-3">
+                          <Avatar name={participant.name} color={participant.avatar} />
+                          <span className="min-w-0">
+                            <span className="block truncate font-bold text-sm">
+                              {language === 'ar' ? participant.name : participant.nameEn}
+                            </span>
+                            <span className="block text-xs font-medium text-[var(--ink-3)]">
+                              {participant.mustSetPin
+                                ? text(language, 'يحتاج رمزاً جديداً', 'Needs new PIN')
+                                : text(language, 'جاهز للدخول (1234)', 'Ready for sign in')}
+                            </span>
+                          </span>
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {participant.role === 'admin' ? (
+                            <Badge tone="gold">{text(language, 'مشرف', 'Admin')}</Badge>
+                          ) : null}
+                          {isFocused ? (
+                            <Check size={16} className="text-[var(--accent)] shrink-0 hidden sm:block" />
+                          ) : null}
+                        </div>
+                      </button>
+                    )
+                  })
+                ) : (
                   <EmptyState
                     icon={<UserRound size={28} />}
-                    title={text(language, 'لا يوجد مشاركون', 'No participants')}
-                    body={text(language, 'غيّر البحث أو أضف مشاركين من أدوات المشرف لاحقاً.', 'Adjust the search or add participants later from Admin tools.')}
+                    title={text(language, 'لا يوجد مشاركون مطابقون', 'No matching participants')}
+                    body={text(language, 'غيّر البحث أو الفلتر للعثور على المشارك المطلوب.', 'Try adjusting your search query or role filter.')}
                   />
                 )}
               </div>

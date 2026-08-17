@@ -1,8 +1,24 @@
 import { useState } from 'react'
-import { Archive, Download, MoreVertical, Plus, RotateCcw, Search, Settings, Shield, Trash2, UserPlus, Users } from 'lucide-react'
+import {
+  Archive,
+  ArrowDown,
+  ArrowUp,
+  CheckCircle2,
+  Download,
+  MoreVertical,
+  Plus,
+  RotateCcw,
+  Save,
+  Search,
+  Settings as SettingsIcon,
+  Shield,
+  Trash2,
+  UserPlus,
+  Users,
+} from 'lucide-react'
 import { useApp } from '../app/useApp'
-import { Avatar, Badge, Button, EmptyState, KpiBand, Menu, Modal, PageHeader } from '../components/ui'
-import type { ParticipantRole } from '../types'
+import { Avatar, Badge, Button, EmptyState, IconButton, KpiBand, Menu, Modal, PageHeader } from '../components/ui'
+import type { ParticipantRole, Settings } from '../types'
 import { text, unitLabel } from '../utils/text'
 import { cx } from '../utils/cx'
 
@@ -11,8 +27,147 @@ type RenameTarget = { kind: 'participant' | 'task'; id: number; value: string } 
 type ConfirmTarget =
   | { kind: 'reset-pin'; id: number; label: string }
   | { kind: 'participant-active'; id: number; label: string; active: boolean }
+  | { kind: 'participant-role'; id: number; label: string; role: ParticipantRole }
   | { kind: 'task-archive'; id: number; label: string; archived: boolean }
   | null
+
+function TargetSettingsEditor({
+  settings,
+  language,
+  onSave,
+}: {
+  settings: Settings
+  language: 'ar' | 'en'
+  onSave: (newSettings: Settings) => void
+}) {
+  const [dailyTarget, setDailyTarget] = useState(settings.dailyTarget)
+  const [weeklyDays, setWeeklyDays] = useState(settings.weeklyRequiredDays)
+  const [monthlyWeeks, setMonthlyWeeks] = useState(settings.monthlyRequiredWeeks)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+
+  const hasChanges =
+    dailyTarget !== settings.dailyTarget ||
+    weeklyDays !== settings.weeklyRequiredDays ||
+    monthlyWeeks !== settings.monthlyRequiredWeeks
+
+  const handleSave = () => {
+    if (dailyTarget < 1 || dailyTarget > 100) {
+      setError(text(language, 'نسبة هدف اليوم يجب أن تكون بين 1% و 100%.', 'Daily completion target must be between 1% and 100%.'))
+      return
+    }
+    if (weeklyDays < 1 || weeklyDays > 7) {
+      setError(text(language, 'أيام الأسبوع المطلوبة يجب أن تكون بين 1 و 7 أيام.', 'Required days per week must be between 1 and 7.'))
+      return
+    }
+    if (monthlyWeeks < 1 || monthlyWeeks > 5) {
+      setError(text(language, 'أسابيع الشهر المطلوبة يجب أن تكون بين 1 و 5 أسابيع.', 'Required weeks per month must be between 1 and 5.'))
+      return
+    }
+    setError('')
+    onSave({
+      dailyTarget,
+      weeklyRequiredDays: weeklyDays,
+      monthlyRequiredWeeks: monthlyWeeks,
+    })
+    setSaved(true)
+    setTimeout(() => setSaved(false), 3500)
+  }
+
+  const handleReset = () => {
+    setDailyTarget(settings.dailyTarget)
+    setWeeklyDays(settings.weeklyRequiredDays)
+    setMonthlyWeeks(settings.monthlyRequiredWeeks)
+    setError('')
+  }
+
+  return (
+    <div className="panel p-5 md:p-6">
+      <div className="section-title">
+        <div>
+          <h2 className="text-lg font-bold">{text(language, 'تعديل قواعد الأهداف', 'Edit target rules')}</h2>
+          <p className="text-xs text-[var(--ink-2)]">
+            {text(
+              language,
+              'تتحكم هذه الإعدادات في حساب نسب النجاح اليومية والأسبوعية والشهرية لجميع المشاركين.',
+              'These settings control daily, weekly, and monthly success calculations for all participants.',
+            )}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {saved ? (
+            <div className="flex items-center gap-1.5 rounded-full bg-[var(--good-bg)] px-3 py-1 text-xs font-bold text-[var(--good)]">
+              <CheckCircle2 size={16} />
+              <span>{text(language, 'تم حفظ الإعدادات بنجاح', 'Settings saved successfully')}</span>
+            </div>
+          ) : null}
+          {hasChanges ? <Badge tone="warn">{text(language, 'تغييرات غير محفوظة', 'Unsaved changes')}</Badge> : null}
+        </div>
+      </div>
+
+      {error ? (
+        <div className="mb-4 rounded-lg border border-[var(--bad-bg)] bg-[var(--bad-bg)] p-3 text-xs font-semibold text-[var(--bad)]" role="alert">
+          {error}
+        </div>
+      ) : null}
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <label className="field">
+          <span>{text(language, 'نسبة الإنجاز اليومي (%)', 'Daily completion target (%)')}</span>
+          <input
+            type="number"
+            min={1}
+            max={100}
+            step={1}
+            className="input num font-bold text-base"
+            value={dailyTarget}
+            onChange={(e) => setDailyTarget(Number(e.target.value))}
+          />
+          <span className="text-[11px] text-[var(--ink-3)]">{text(language, 'الموصى به: 90% (من 1 إلى 100)', 'Recommended: 90% (1 to 100)')}</span>
+        </label>
+
+        <label className="field">
+          <span>{text(language, 'الأيام المطلوبة أسبوعياً', 'Required days per week')}</span>
+          <input
+            type="number"
+            min={1}
+            max={7}
+            step={1}
+            className="input num font-bold text-base"
+            value={weeklyDays}
+            onChange={(e) => setWeeklyDays(Number(e.target.value))}
+          />
+          <span className="text-[11px] text-[var(--ink-3)]">{text(language, 'الموصى به: 3 أيام (من 1 إلى 7)', 'Recommended: 3 days (1 to 7)')}</span>
+        </label>
+
+        <label className="field">
+          <span>{text(language, 'الأسابيع المطلوبة شهرياً', 'Required weeks per month')}</span>
+          <input
+            type="number"
+            min={1}
+            max={5}
+            step={1}
+            className="input num font-bold text-base"
+            value={monthlyWeeks}
+            onChange={(e) => setMonthlyWeeks(Number(e.target.value))}
+          />
+          <span className="text-[11px] text-[var(--ink-3)]">{text(language, 'الموصى به: 4 أسابيع (من 1 إلى 5)', 'Recommended: 4 weeks (1 to 5)')}</span>
+        </label>
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-[var(--line)] pt-4">
+        <Button variant="ghost" size="sm" onClick={handleReset} disabled={!hasChanges}>
+          <RotateCcw size={15} />
+          {text(language, 'تراجع / استعادة', 'Reset changes')}
+        </Button>
+        <Button variant="primary" size="sm" onClick={handleSave} disabled={!hasChanges}>
+          <Save size={15} />
+          {text(language, 'حفظ التغييرات', 'Save changes')}
+        </Button>
+      </div>
+    </div>
+  )
+}
 
 export function AdminPage() {
   const {
@@ -26,8 +181,10 @@ export function AdminPage() {
     setParticipantActive,
     addTask,
     renameTask,
+    reorderTask,
     toggleTaskCounts,
     setTaskArchived,
+    updateSettings,
     resetDemoData,
     exportMock,
   } = useApp()
@@ -49,12 +206,15 @@ export function AdminPage() {
   if (!currentParticipant) return null
   const language = state.language
   const activeCount = state.participants.filter((participant) => participant.active).length
-  const activeTasks = state.tasks.filter((task) => !task.archived).length
+  const activeTasksList = state.tasks.filter((task) => !task.archived).sort((a, b) => a.pos - b.pos)
+  const activeTasks = activeTasksList.length
+
   const visibleParticipants = state.participants.filter((participant) => {
     const query = participantSearch.trim().toLowerCase()
     if (!query) return true
     return `${participant.name} ${participant.nameEn}`.toLowerCase().includes(query)
   })
+
   const visibleTasks = state.tasks.slice().sort((a, b) => a.pos - b.pos).filter((task) => {
     const query = taskSearch.trim().toLowerCase()
     if (!query) return true
@@ -98,6 +258,7 @@ export function AdminPage() {
     if (!confirmTarget) return
     if (confirmTarget.kind === 'reset-pin') resetPin(confirmTarget.id)
     if (confirmTarget.kind === 'participant-active') setParticipantActive(confirmTarget.id, confirmTarget.active)
+    if (confirmTarget.kind === 'participant-role') setParticipantRole(confirmTarget.id, confirmTarget.role)
     if (confirmTarget.kind === 'task-archive') setTaskArchived(confirmTarget.id, confirmTarget.archived)
     setConfirmTarget(null)
   }
@@ -119,7 +280,7 @@ export function AdminPage() {
         {[
           ['participants', text(language, 'المشاركون', 'Participants'), <Users size={16} />],
           ['tasks', text(language, 'المهام', 'Tasks'), <Archive size={16} />],
-          ['settings', text(language, 'الإعدادات', 'Settings'), <Settings size={16} />],
+          ['settings', text(language, 'الإعدادات', 'Settings'), <SettingsIcon size={16} />],
         ].map(([id, label, icon]) => (
           <button
             key={id as string}
@@ -183,7 +344,21 @@ export function AdminPage() {
                       <>
                         <button type="button" role="menuitem" onClick={() => { setRenameTarget({ kind: 'participant', id: participant.id, value: participant.name }); close() }}>{text(language, 'إعادة تسمية', 'Rename')}</button>
                         <button type="button" role="menuitem" onClick={() => { setConfirmTarget({ kind: 'reset-pin', id: participant.id, label: participant.name }); close() }}>{text(language, 'تصفير الرمز', 'Reset PIN')}</button>
-                        <button type="button" role="menuitem" onClick={() => { setParticipantRole(participant.id, participant.role === 'admin' ? 'participant' : 'admin'); close() }}>{participant.role === 'admin' ? text(language, 'جعله مشاركاً', 'Make participant') : text(language, 'جعله مشرفاً', 'Make admin')}</button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setConfirmTarget({
+                              kind: 'participant-role',
+                              id: participant.id,
+                              label: language === 'ar' ? participant.name : participant.nameEn,
+                              role: participant.role === 'admin' ? 'participant' : 'admin',
+                            })
+                            close()
+                          }}
+                        >
+                          {participant.role === 'admin' ? text(language, 'جعله مشاركاً', 'Make participant') : text(language, 'جعله مشرفاً', 'Make admin')}
+                        </button>
                         <button type="button" role="menuitem" onClick={() => { setConfirmTarget({ kind: 'participant-active', id: participant.id, label: participant.name, active: !participant.active }); close() }}>
                           {participant.active ? text(language, 'إيقاف', 'Deactivate') : text(language, 'استعادة', 'Restore')}
                         </button>
@@ -208,7 +383,7 @@ export function AdminPage() {
           <div className="section-title">
             <div>
               <h2 className="text-lg font-bold">{text(language, 'المهام', 'Tasks')}</h2>
-              <p className="text-xs text-[var(--ink-2)]">{text(language, 'ترتيب واضح للمهام النشطة والمؤرشفة بدون جعل النموذج يسيطر على الصفحة.', 'A clear list of active and archived tasks without letting the form dominate the page.')}</p>
+              <p className="text-xs text-[var(--ink-2)]">{text(language, 'ترتيب المهام اليومية باستخدام أزرار الترتيب، وتعديل حالة الاحتساب والأرشفة.', 'Reorder daily tasks using up/down controls, toggle completion counting, and manage archives.')}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button variant="primary" size="sm" onClick={() => setAddTaskOpen(true)}>
@@ -227,26 +402,56 @@ export function AdminPage() {
           </label>
           {visibleTasks.length ? (
             <div className="list-panel">
-              {visibleTasks.map((task) => (
-                <div key={task.id} className={cx('interactive-row', task.archived && 'opacity-60')}>
-                  <div className="min-w-0">
-                    <div className="truncate font-bold text-sm">{language === 'ar' ? task.name : task.nameEn}</div>
-                    <div className="mt-1 flex gap-1">
-                      <Badge tone={task.counts ? 'good' : 'neutral'}>{task.counts ? text(language, 'تُحتسب', 'Counts') : text(language, 'خارج النسبة', 'Not counted')}</Badge>
-                      <Badge tone={task.archived ? 'bad' : 'gold'}>{task.archived ? text(language, 'مؤرشفة', 'Archived') : text(language, 'نشطة', 'Active')}</Badge>
+              {visibleTasks.map((task) => {
+                const activeIndex = activeTasksList.findIndex((t) => t.id === task.id)
+                return (
+                  <div key={task.id} className={cx('interactive-row', task.archived && 'opacity-60')}>
+                    <div className="flex min-w-0 items-center gap-3">
+                      {!task.archived && !taskSearch.trim() ? (
+                        <div className="flex flex-col gap-0.5" aria-label={text(language, 'ترتيب المهمة', 'Task position controls')}>
+                          <IconButton
+                            label={text(language, 'نقل المهمة للأعلى', 'Move task up')}
+                            disabled={activeIndex <= 0}
+                            onClick={() => reorderTask(task.id, 'up')}
+                            className="h-7 w-7 min-h-0 min-w-0"
+                          >
+                            <ArrowUp size={14} />
+                          </IconButton>
+                          <IconButton
+                            label={text(language, 'نقل المهمة للأسفل', 'Move task down')}
+                            disabled={activeIndex === -1 || activeIndex >= activeTasksList.length - 1}
+                            onClick={() => reorderTask(task.id, 'down')}
+                            className="h-7 w-7 min-h-0 min-w-0"
+                          >
+                            <ArrowDown size={14} />
+                          </IconButton>
+                        </div>
+                      ) : null}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          {!task.archived ? (
+                            <span className="num text-xs font-bold text-[var(--ink-3)]">#{activeIndex + 1}</span>
+                          ) : null}
+                          <div className="truncate font-bold text-sm">{language === 'ar' ? task.name : task.nameEn}</div>
+                        </div>
+                        <div className="mt-1 flex gap-1">
+                          <Badge tone={task.counts ? 'good' : 'neutral'}>{task.counts ? text(language, 'تُحتسب', 'Counts') : text(language, 'خارج النسبة', 'Not counted')}</Badge>
+                          <Badge tone={task.archived ? 'bad' : 'gold'}>{task.archived ? text(language, 'مؤرشفة', 'Archived') : text(language, 'نشطة', 'Active')}</Badge>
+                        </div>
+                      </div>
                     </div>
+                    <Menu label={text(language, 'إجراءات المهمة', 'Task actions')} language={language}>
+                      {(close) => (
+                        <>
+                          <button type="button" role="menuitem" onClick={() => { setRenameTarget({ kind: 'task', id: task.id, value: task.name }); close() }}>{text(language, 'إعادة تسمية', 'Rename')}</button>
+                          <button type="button" role="menuitem" onClick={() => { toggleTaskCounts(task.id); close() }}>{task.counts ? text(language, 'إخراج من النسبة', 'Do not count') : text(language, 'احتساب في النسبة', 'Count')}</button>
+                          <button type="button" role="menuitem" onClick={() => { setConfirmTarget({ kind: 'task-archive', id: task.id, label: task.name, archived: !task.archived }); close() }}>{task.archived ? text(language, 'استعادة', 'Restore') : text(language, 'أرشفة', 'Archive')}</button>
+                        </>
+                      )}
+                    </Menu>
                   </div>
-                  <Menu label={text(language, 'إجراءات المهمة', 'Task actions')} language={language}>
-                    {(close) => (
-                      <>
-                        <button type="button" role="menuitem" onClick={() => { setRenameTarget({ kind: 'task', id: task.id, value: task.name }); close() }}>{text(language, 'إعادة تسمية', 'Rename')}</button>
-                        <button type="button" role="menuitem" onClick={() => { toggleTaskCounts(task.id); close() }}>{task.counts ? text(language, 'إخراج من النسبة', 'Do not count') : text(language, 'احتساب في النسبة', 'Count')}</button>
-                        <button type="button" role="menuitem" onClick={() => { setConfirmTarget({ kind: 'task-archive', id: task.id, label: task.name, archived: !task.archived }); close() }}>{task.archived ? text(language, 'استعادة', 'Restore') : text(language, 'أرشفة', 'Archive')}</button>
-                      </>
-                    )}
-                  </Menu>
-                </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <EmptyState
@@ -260,6 +465,7 @@ export function AdminPage() {
 
       {tab === 'settings' ? (
         <section id="admin-panel-settings" role="tabpanel" aria-labelledby="admin-tab-settings" className="grid gap-5">
+          {/* Target Settings Summary & Live KPIs */}
           <div className="hero-panel p-5 md:p-6">
             <div className="mb-3">
               <p className="eyebrow">{text(language, 'الأهداف المعتمدة', 'Configured targets')}</p>
@@ -273,14 +479,35 @@ export function AdminPage() {
               ]}
             />
           </div>
+
+          {/* Interactive Target Settings Editor */}
+          <TargetSettingsEditor
+            key={`${state.settings.dailyTarget}-${state.settings.weeklyRequiredDays}-${state.settings.monthlyRequiredWeeks}`}
+            settings={state.settings}
+            language={language}
+            onSave={updateSettings}
+          />
+
           <div className="grid gap-5 lg:grid-cols-2">
             <div className="panel p-5">
               <p className="eyebrow">{text(language, 'البيانات', 'Data')}</p>
               <h2 className="mt-1 text-lg font-bold">{text(language, 'تصدير البيانات', 'Data export')}</h2>
-              <p className="mt-1.5 text-xs text-[var(--ink-2)]">{text(language, 'تنزيل ملفات البيانات الحالية بصيغ جاهزة للمراجعة.', 'Download the current data in review-ready formats.')}</p>
+              <p className="mt-1.5 text-xs text-[var(--ink-2)]">
+                {text(
+                  language,
+                  'تصدير فوري من المتصفح لبيانات الجلسة الحالية بصيغة CSV ملائمة لبرنامج Excel أو استعراض التقرير المطبوع.',
+                  'Instant client-side export for current session data in Excel-compatible CSV or printable report view.',
+                )}
+              </p>
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button size="sm" onClick={() => exportMock('excel')}><Download size={16} />{text(language, 'إكسل', 'Excel')}</Button>
-                <Button size="sm" onClick={() => exportMock('pdf')}><Download size={16} />PDF</Button>
+                <Button size="sm" onClick={() => exportMock('excel')}>
+                  <Download size={16} />
+                  {text(language, 'تصدير CSV (إكسل)', 'CSV Export (Excel)')}
+                </Button>
+                <Button size="sm" onClick={() => exportMock('pdf')}>
+                  <Download size={16} />
+                  {text(language, 'تصدير CSV (تقرير)', 'CSV Export (Report)')}
+                </Button>
               </div>
             </div>
 
@@ -378,12 +605,53 @@ export function AdminPage() {
       <Modal open={!!confirmTarget} onClose={() => setConfirmTarget(null)} title={text(language, 'تأكيد الإجراء', 'Confirm action')}>
         <div className="grid gap-4">
           <div className="flex items-start gap-3 rounded-lg bg-[var(--surface-2)] p-4">
-            {confirmTarget?.kind === 'reset-pin' ? <RotateCcw className="text-[var(--warn)]" /> : <MoreVertical className="text-[var(--accent)]" />}
-            <p className="text-sm font-semibold text-[var(--ink-2)]">
-              {confirmTarget
-                ? text(language, `هل تريد تنفيذ الإجراء على ${confirmTarget.label}؟`, `Apply this action to ${confirmTarget.label}?`)
-                : ''}
-            </p>
+            {confirmTarget?.kind === 'reset-pin' ? (
+              <RotateCcw className="mt-0.5 shrink-0 text-[var(--warn)]" size={20} />
+            ) : confirmTarget?.kind === 'participant-role' ? (
+              <Shield className="mt-0.5 shrink-0 text-[var(--accent)]" size={20} />
+            ) : (
+              <MoreVertical className="mt-0.5 shrink-0 text-[var(--accent)]" size={20} />
+            )}
+            <div className="text-sm font-semibold text-[var(--ink)]">
+              {confirmTarget?.kind === 'participant-role' ? (
+                confirmTarget.role === 'admin' ? (
+                  <div>
+                    <p>{text(language, `هل تريد ترقية «${confirmTarget.label}» إلى مشرف؟`, `Promote "${confirmTarget.label}" to administrator?`)}</p>
+                    <p className="mt-1.5 text-xs font-normal text-[var(--ink-2)]">
+                      {text(
+                        language,
+                        'المشرفون يملكون صلاحيات كاملة لإدارة المشاركين، تعديل المهام، تغيير إعدادات الأهداف، وتصفير البيانات.',
+                        'Administrators have full permissions to manage participants, modify tasks, change target settings, and reset data.',
+                      )}
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p>{text(language, `هل تريد إزالة صلاحيات المشرف من «${confirmTarget.label}»؟`, `Remove administrator role from "${confirmTarget.label}"?`)}</p>
+                    <p className="mt-1.5 text-xs font-normal text-[var(--ink-2)]">
+                      {text(
+                        language,
+                        'سيصبح حساباً عادياً للمشاركة اليومية ولن يتمكن من الوصول إلى لوحة الإدارة.',
+                        'This account will become a standard participant and will not be able to access the admin panel.',
+                      )}
+                    </p>
+                  </div>
+                )
+              ) : confirmTarget?.kind === 'reset-pin' ? (
+                <div>
+                  <p>{text(language, `هل تريد تصفير رمز الدخول للمشارك «${confirmTarget.label}»؟`, `Reset PIN for "${confirmTarget.label}"?`)}</p>
+                  <p className="mt-1.5 text-xs font-normal text-[var(--ink-2)]">
+                    {text(
+                      language,
+                      'سيُطلب من المشارك اختيار رمز دخول جديد من 4 أرقام عند أول دخول قادم.',
+                      'The participant will be prompted to create a new 4-digit PIN upon next sign-in.',
+                    )}
+                  </p>
+                </div>
+              ) : confirmTarget ? (
+                text(language, `هل تريد تنفيذ الإجراء على ${confirmTarget.label}؟`, `Apply this action to ${confirmTarget.label}?`)
+              ) : ''}
+            </div>
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setConfirmTarget(null)}>{text(language, 'إلغاء', 'Cancel')}</Button>

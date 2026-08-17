@@ -223,6 +223,122 @@ function aggregateEntries(state: AppState, pid: number, now: number) {
   return result
 }
 
+export function weekOverWeekComparison(state: AppState, pid: number, now: number) {
+  const today = todayKey()
+  const currentWeekDays = weekDaysOf(today)
+  const previousWeekStart = addDays(weekStartOf(today), -7)
+  const previousWeekDays = weekDaysOf(previousWeekStart)
+
+  const computeWeek = (days: string[]) => {
+    let done = 0
+    let total = 0
+    let successDays = 0
+    let workMs = 0
+    for (const day of days) {
+      const stats = dayStats(state, pid, day, now)
+      done += stats.done
+      total += stats.total
+      if (stats.pass) successDays += 1
+      workMs += stats.ms
+    }
+    const rate = percent(done, total)
+    return { done, total, successDays, workMs, rate }
+  }
+
+  const current = computeWeek(currentWeekDays)
+  const previous = computeWeek(previousWeekDays)
+  const delta = Math.round((current.rate - previous.rate) * 10) / 10
+
+  return {
+    thisWeekRate: current.rate,
+    lastWeekRate: previous.rate,
+    delta,
+    thisWeekDone: current.done,
+    thisWeekTotal: current.total,
+    lastWeekDone: previous.done,
+    lastWeekTotal: previous.total,
+    thisWeekSuccessDays: current.successDays,
+    lastWeekSuccessDays: previous.successDays,
+    thisWeekWorkMs: current.workMs,
+    lastWeekWorkMs: previous.workMs,
+  }
+}
+
+export function taskConsistencyBreakdown(state: AppState, pid: number, now: number) {
+  const aggregated = aggregateEntries(state, pid, now)
+  const tasks = activeTasks(state).map((task) => {
+    const data = aggregated[task.id] ?? { ms: 0, done: 0, attempted: 0, pauses: 0, reopens: 0, seen: 0 }
+    const rate = data.seen > 0 ? percent(data.done, data.seen) : 0
+    return {
+      task,
+      seen: data.seen,
+      done: data.done,
+      attempted: data.attempted,
+      pauses: data.pauses,
+      reopens: data.reopens,
+      ms: data.ms,
+      rate,
+    }
+  })
+
+  const sorted = tasks.slice().sort((a, b) => b.rate - a.rate || b.done - a.done)
+  const strongest = sorted.filter((t) => t.seen > 0 && t.rate >= 70)
+  const needsAttention = sorted.filter((t) => t.seen > 0 && (t.rate < 70 || t.attempted > 0 || t.pauses >= 3))
+
+  return { tasks: sorted, strongest, needsAttention }
+}
+
+export function dayOfWeekPerformance(state: AppState, pid: number, now: number, language: Language) {
+  const dayNamesAr = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
+  const dayNamesEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const dayScores: Record<number, { done: number; total: number; count: number }> = {}
+
+  for (let i = 0; i < 7; i++) {
+    dayScores[i] = { done: 0, total: 0, count: 0 }
+  }
+
+  const days = Object.keys(state.days[String(pid)] ?? {})
+  if (!days.length) return null
+
+  for (const day of days) {
+    const date = new Date(day + 'T00:00:00Z')
+    const dayOfWeek = date.getUTCDay()
+    const stats = dayStats(state, pid, day, now)
+    if (stats.total > 0) {
+      dayScores[dayOfWeek].done += stats.done
+      dayScores[dayOfWeek].total += stats.total
+      dayScores[dayOfWeek].count += 1
+    }
+  }
+
+  const computedDays = Object.entries(dayScores)
+    .filter(([, v]) => v.count > 0 && v.total > 0)
+    .map(([d, v]) => {
+      const dayIndex = Number(d)
+      const rate = percent(v.done, v.total)
+      return {
+        dayIndex,
+        name: language === 'ar' ? dayNamesAr[dayIndex] : dayNamesEn[dayIndex],
+        rate,
+        count: v.count,
+      }
+    })
+
+  if (!computedDays.length) return null
+  const overallAvg = computedDays.reduce((sum, d) => sum + d.rate, 0) / computedDays.length
+  computedDays.sort((a, b) => b.rate - a.rate)
+  const bestDay = computedDays[0]
+  const worstDay = computedDays[computedDays.length - 1]
+  const bestDelta = Math.round(bestDay.rate - overallAvg)
+
+  return {
+    bestDay,
+    worstDay,
+    overallAvg,
+    bestDelta,
+  }
+}
+
 export function analyseParticipant(state: AppState, pid: number, now: number, language: Language): InsightSummary | null {
   const records = state.days[String(pid)] ?? {}
   const days = Object.keys(records).sort()
@@ -231,6 +347,9 @@ export function analyseParticipant(state: AppState, pid: number, now: number, la
   const map = successMap(state, pid, now)
   const today = dayStats(state, pid, todayKey(), now)
   const perTask = aggregateEntries(state, pid, now)
+  const wow = weekOverWeekComparison(state, pid, now)
+  const dayPerf = dayOfWeekPerformance(state, pid, now, language)
+
   const strengths: string[] = []
   const weaknesses: string[] = []
   const advice: string[] = []
@@ -241,40 +360,80 @@ export function analyseParticipant(state: AppState, pid: number, now: number, la
   const totalPauses = Object.values(perTask).reduce((sum, entry) => sum + entry.pauses, 0)
   const totalMs = Object.values(perTask).reduce((sum, entry) => sum + entry.ms, 0)
   const averageTaskMs = totalDone ? totalMs / totalDone : 0
-  const recent = days.slice(-7)
-  const prior = days.slice(-14, -7)
-  const rateOf = (list: string[]) => {
-    const totals = list.reduce(
-      (acc, day) => {
-        const stats = dayStats(state, pid, day, now)
-        acc.done += stats.done
-        acc.total += stats.total
-        return acc
-      },
-      { done: 0, total: 0 },
-    )
-    return percent(totals.done, totals.total)
-  }
-  const recentRate = rateOf(recent)
-  const priorRate = prior.length ? rateOf(prior) : null
 
+  // 1. Streak & Success Rate Strengths
   if (streak >= 2) {
-    strengths.push(text(language, `سلسلتك الحالية ${streak} أيام ناجحة متتالية.`, `Your current streak is ${streak} successful days.`))
+    strengths.push(
+      text(
+        language,
+        `سلسلة مستمرة: ${streak} أيام متتالية محققة لهدف ${state.settings.dailyTarget}%. استمرارك يحافظ على العزم.`,
+        `Active streak: ${streak} consecutive days reaching the ${state.settings.dailyTarget}% target.`,
+      ),
+    )
   }
+
   if (successDays > 0) {
-    strengths.push(text(language, `حققت الهدف في ${successDays} من ${days.length} أيام مسجلة.`, `You reached the target on ${successDays} of ${days.length} recorded days.`))
+    const totalRecordedDays = days.length
+    const overallSuccessRate = Math.round((successDays / totalRecordedDays) * 100)
+    strengths.push(
+      text(
+        language,
+        `حققت الهدف في ${successDays} من ${totalRecordedDays} أيام مسجلة (${overallSuccessRate}% نسبة نجاح الأيام).`,
+        `Reached the daily target on ${successDays} of ${totalRecordedDays} recorded days (${overallSuccessRate}% success rate).`,
+      ),
+    )
   }
-  if (priorRate != null && recentRate > priorRate) {
-    strengths.push(text(language, `متوسط آخر 7 أيام ارتفع إلى ${recentRate.toFixed(0)}%.`, `Your last 7 days improved to ${recentRate.toFixed(0)}%.`))
+
+  // 2. Week-over-Week comparative strengths & weaknesses
+  if (wow.lastWeekTotal > 0) {
+    if (wow.delta > 0) {
+      strengths.push(
+        text(
+          language,
+          `أداء هذا الأسبوع (${wow.thisWeekRate.toFixed(0)}%) أعلى بنسبة +${wow.delta.toFixed(0)}% مقارنة بالأسبوع الماضي (${wow.lastWeekRate.toFixed(0)}%).`,
+          `This week's completion (${wow.thisWeekRate.toFixed(0)}%) is up +${wow.delta.toFixed(0)}% compared to last week (${wow.lastWeekRate.toFixed(0)}%).`,
+        ),
+      )
+    } else if (wow.delta < -5) {
+      weaknesses.push(
+        text(
+          language,
+          `أداء هذا الأسبوع (${wow.thisWeekRate.toFixed(0)}%) انخفض بنسبة ${Math.abs(wow.delta).toFixed(0)}% مقارنة بالأسبوع السابق (${wow.lastWeekRate.toFixed(0)}%).`,
+          `This week's completion (${wow.thisWeekRate.toFixed(0)}%) dropped ${Math.abs(wow.delta).toFixed(0)}% compared to last week (${wow.lastWeekRate.toFixed(0)}%).`,
+        ),
+      )
+      advice.push(
+        text(
+          language,
+          'اختر مهام الصباح أولاً لإعادة بناء الزخم وتعويض فارق الأسبوع الماضي.',
+          'Start with early morning tasks to rebuild momentum and recover last week’s pace.',
+        ),
+      )
+    }
   }
+
+  // 3. Day of week actionable insights
+  if (dayPerf && dayPerf.bestDelta > 5) {
+    strengths.push(
+      text(
+        language,
+        `يوم ${dayPerf.bestDay.name} هو أقوى أيامك بنسبة إنجاز ${dayPerf.bestDay.rate.toFixed(0)}% (أعلى بـ +${dayPerf.bestDelta}% من متوسطك الأسبوعي).`,
+        `${dayPerf.bestDay.name} is your strongest day at ${dayPerf.bestDay.rate.toFixed(0)}% (+${dayPerf.bestDelta}% above your weekly average).`,
+      ),
+    )
+  }
+
   if (averageTaskMs > 0) {
-    strengths.push(text(language, `متوسط زمن المهمة المنجزة ${formatCompactDuration(averageTaskMs, language)}.`, `Average completed task time is ${formatCompactDuration(averageTaskMs, language)}.`))
+    strengths.push(
+      text(
+        language,
+        `متوسط الوقت لإنجاز المهمة الواحدة هو ${formatCompactDuration(averageTaskMs, language)}.`,
+        `Average completed task duration is ${formatCompactDuration(averageTaskMs, language)}.`,
+      ),
+    )
   }
 
-  if (priorRate != null && recentRate < priorRate) {
-    weaknesses.push(text(language, `الأداء انخفض من ${priorRate.toFixed(0)}% إلى ${recentRate.toFixed(0)}% في آخر أسبوعين.`, `Performance dropped from ${priorRate.toFixed(0)}% to ${recentRate.toFixed(0)}% over the last two weeks.`))
-  }
-
+  // 4. Task-level bottlenecks & actionable advice
   const attemptedSinks = Object.entries(perTask)
     .filter(([, entry]) => entry.attempted > 0 && entry.ms > 0)
     .sort((a, b) => b[1].ms - a[1].ms)
@@ -283,41 +442,109 @@ export function analyseParticipant(state: AppState, pid: number, now: number, la
   for (const [taskId, entry] of attemptedSinks) {
     const task = taskById(state, Number(taskId))
     if (!task) continue
-    weaknesses.push(text(language, `«${task.name}» استهلكت ${formatCompactDuration(entry.ms, language)} وانتهت دون إنجاز.`, `"${task.nameEn}" consumed ${formatCompactDuration(entry.ms, language)} and ended without completion.`))
-    advice.push(text(language, `قسّم «${task.name}» إلى خطوة أولى صغيرة قبل البدء.`, `Break "${task.nameEn}" into a very small first step before starting.`))
+    weaknesses.push(
+      text(
+        language,
+        `«${task.name}» استهلكت ${formatCompactDuration(entry.ms, language)} وانتهت دون إكمال (${entry.attempted} محاولات).`,
+        `"${task.nameEn}" took ${formatCompactDuration(entry.ms, language)} and ended without completion (${entry.attempted} attempts).`,
+      ),
+    )
+    advice.push(
+      text(
+        language,
+        `قسّم «${task.name}» إلى خطوة صغيرة محددة بـ 15 دقيقة لتجاوز عقبة البداية.`,
+        `Break "${task.nameEn}" into a 15-minute starter milestone to overcome the initial block.`,
+      ),
+    )
   }
 
   const pauseHeavy = Object.entries(perTask).sort((a, b) => b[1].pauses - a[1].pauses)[0]
   if (pauseHeavy && pauseHeavy[1].pauses >= 3) {
     const task = taskById(state, Number(pauseHeavy[0]))
-    if (task) weaknesses.push(text(language, `«${task.name}» تتوقف كثيراً (${pauseHeavy[1].pauses} مرات).`, `"${task.nameEn}" is paused frequently (${pauseHeavy[1].pauses} times).`))
+    if (task) {
+      weaknesses.push(
+        text(
+          language,
+          `«${task.name}» تشهد انقطاعات متكررة (${pauseHeavy[1].pauses} مرات إيقاف مؤقت).`,
+          `"${task.nameEn}" experiences frequent interruptions (${pauseHeavy[1].pauses} pauses).`,
+        ),
+      )
+      advice.push(
+        text(
+          language,
+          `جرّب تشغيل مؤقت «${task.name}» في بيئة خالية من المشتتات لمدة 20 دقيقة متصلة.`,
+          `Try running "${task.nameEn}" in a focused 20-minute block without switching tasks.`,
+        ),
+      )
+    }
   }
 
   const reopened = Object.entries(perTask).sort((a, b) => b[1].reopens - a[1].reopens)[0]
   if (reopened && reopened[1].reopens >= 2) {
     const task = taskById(state, Number(reopened[0]))
-    if (task) weaknesses.push(text(language, `«${task.name}» أُعيد فتحها ${reopened[1].reopens} مرات.`, `"${task.nameEn}" was reopened ${reopened[1].reopens} times.`))
+    if (task) {
+      weaknesses.push(
+        text(
+          language,
+          `«${task.name}» أُعيد فتحها ${reopened[1].reopens} مرات بعد الإغلاق.`,
+          `"${task.nameEn}" was reopened ${reopened[1].reopens} times after closing.`,
+        ),
+      )
+    }
   }
 
   if (totalAttempted > totalDone && totalDone > 0) {
-    weaknesses.push(text(language, `عدد المحاولات غير المكتملة أعلى من المهام المنجزة.`, `Unfinished attempts are higher than completed tasks.`))
+    weaknesses.push(
+      text(
+        language,
+        'عدد المحاولات غير المكتملة يتجاوز المهام المنجزة، مما يؤثر على نسبة النجاح النهائية.',
+        'Incomplete attempts exceed finished tasks, pulling down the overall completion rate.',
+      ),
+    )
   }
 
+  // Headline determination
   const need = neededForTarget(today.done, today.total, state.settings.dailyTarget)
   const headline = !today.record
-    ? text(language, 'لم تبدأ يومك بعد.', 'You have not started your day yet.')
+    ? text(language, 'لم تبدأ يومك بعد. ابدأ اليوم لتحقيق هدف الإنجاز.', 'You have not started your day yet. Start now to meet your daily target.')
     : today.pass
-      ? text(language, `اليوم ${today.percent.toFixed(0)}% - وصلت للهدف.`, `Today is ${today.percent.toFixed(0)}% - target reached.`)
-      : text(language, `تحتاج ${need} مهام للوصول إلى ${state.settings.dailyTarget}%.`, `You need ${need} tasks to reach ${state.settings.dailyTarget}%.`)
+      ? text(
+          language,
+          `إنجاز اليوم ${today.percent.toFixed(0)}% — وصلت للهدف بنجاح وتجاوزت عتبة ${state.settings.dailyTarget}%.`,
+          `Today's completion is ${today.percent.toFixed(0)}% — target reached successfully.`,
+        )
+      : text(
+          language,
+          `تحتاج إلى ${need} مهام إضافية اليوم للوصول إلى هدف ${state.settings.dailyTarget}%.`,
+          `You need ${need} more tasks today to achieve the ${state.settings.dailyTarget}% target.`,
+        )
 
   if (!today.pass && streak > 0) {
-    advice.push(text(language, `سلسلتك على المحك اليوم؛ ${need} مهام تحميها.`, `Your streak is at risk today; ${need} tasks protects it.`))
+    advice.push(
+      text(
+        language,
+        `سلسلتك الحالية (${streak} أيام) في انتظارك؛ إنجاز ${need} مهام يحافظ عليها اليوم.`,
+        `Your streak (${streak} days) is active; finishing ${need} tasks secures it today.`,
+      ),
+    )
   }
   if (totalPauses > totalDone * 2 && totalDone > 0) {
-    advice.push(text(language, 'جرّب جلسة عمل قصيرة بلا توقف قبل تبديل المهمة.', 'Try one short uninterrupted block before switching tasks.'))
+    advice.push(
+      text(
+        language,
+        'جرّب تقنية العمل المركّز: اختر مهمة واحدة ولا توقف المؤقت حتى تكمل مرحلتها الأولى.',
+        'Try focused single-tasking: run one task without pausing until its initial phase is complete.',
+      ),
+    )
   }
   if (!advice.length) {
-    advice.push(text(language, 'استمر على نفس النمط؛ البيانات لا تظهر مشكلة جوهرية.', 'Keep the same rhythm; the data shows no major issue.'))
+    advice.push(
+      text(
+        language,
+        'استمر على نفس النمط والوتيرة؛ مؤشراتك الحالية متزنة ومنتظمة.',
+        'Maintain your current rhythm; your performance indicators are steady and balanced.',
+      ),
+    )
   }
 
   return { headline, strengths, weaknesses, advice }
@@ -335,3 +562,4 @@ export function taskEntriesForDay(state: AppState, record: DayRecord | null): Ar
 export function currentWeekKey() {
   return weekStartOf(todayKey())
 }
+

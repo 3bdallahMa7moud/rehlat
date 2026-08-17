@@ -31,8 +31,10 @@ export type AppContextValue = {
   setParticipantActive: (pid: number, active: boolean) => void
   addTask: (name: string, counts: boolean) => void
   renameTask: (taskId: number, name: string) => void
+  reorderTask: (taskId: number, direction: 'up' | 'down') => void
   toggleTaskCounts: (taskId: number) => void
   setTaskArchived: (taskId: number, archived: boolean) => void
+  updateSettings: (settings: { dailyTarget?: number; weeklyRequiredDays?: number; monthlyRequiredWeeks?: number }) => void
   resetDemoData: () => void
   exportMock: (kind: 'excel' | 'pdf') => void
 }
