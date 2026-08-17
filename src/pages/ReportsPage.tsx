@@ -2,14 +2,14 @@ import { useState } from 'react'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Download, FileText, Printer } from 'lucide-react'
 import { useApp } from '../app/useApp'
-import { Badge, Button, CustomChartTooltip, EmptyState, KpiBand, PageHeader, ProgressBar, SelectField } from '../components/ui'
+import { Badge, Button, CustomChartTooltip, EmptyState, KpiBand, PageHeader, ProgressBar } from '../components/ui'
 import { availableReportMonths, monthStats } from '../utils/stats'
 import { formatCompactDuration, formatMonth, weekRange } from '../utils/date'
 import { text, unitLabel } from '../utils/text'
 import { cx } from '../utils/cx'
 
 export function ReportsPage() {
-  const { state, currentParticipant, now, setReportMonth, exportMock } = useApp()
+  const { state, currentParticipant, now, setReportMonth } = useApp()
   const [openWritten, setOpenWritten] = useState(false)
   if (!currentParticipant) return null
   const language = state.language
@@ -43,48 +43,133 @@ export function ReportsPage() {
     )
   })
 
+  const handleExportCsv = () => {
+    const filename = `rehlat-report-${month}.csv`
+    const isAr = language === 'ar'
+
+    const headers = isAr
+      ? [
+          'المشارك',
+          ...weeks.map((w) => `أسبوع (${weekRange(w.week, 'ar')})`),
+          'الأيام الناجحة',
+          'نسبة الإنجاز %',
+          'الأسابيع الناجحة',
+          'وقت العمل (دقائق)',
+          'وقت العمل',
+          'النتيجة',
+        ]
+      : [
+          'Participant',
+          ...weeks.map((w) => `Week (${weekRange(w.week, 'en')})`),
+          'Success Days',
+          'Completion Rate %',
+          'Good Weeks',
+          'Work Minutes',
+          'Work Time',
+          'Status',
+        ]
+
+    const csvRows = [headers.map((h) => `"${h}"`).join(',')]
+
+    for (const row of rows) {
+      const name = isAr ? row.participant.name : row.participant.nameEn
+      const weekSuccessCounts = row.stats.weeks.map((w) => w.successfulDays)
+      const successDays = row.stats.successDays
+      const rate = `${row.stats.rate.toFixed(0)}%`
+      const goodWeeks = `${row.stats.goodWeeks}/${state.settings.monthlyRequiredWeeks}`
+      const workMinutes = Math.round(row.stats.ms / 60000)
+      const workFormatted = formatCompactDuration(row.stats.ms, language)
+      const status = row.stats.goodWeeks >= state.settings.monthlyRequiredWeeks
+        ? (isAr ? 'حقق هدف الشهر' : 'Target Achieved')
+        : (isAr ? 'لم يحقق الهدف' : 'Not Achieved')
+
+      const rowValues = [
+        name,
+        ...weekSuccessCounts,
+        successDays,
+        rate,
+        goodWeeks,
+        workMinutes,
+        workFormatted,
+        status,
+      ]
+
+      csvRows.push(rowValues.map((val) => `"${val}"`).join(','))
+    }
+
+    csvRows.push('')
+    csvRows.push(
+      isAr
+        ? `"الإجمالي / المتوسط",${weeks.map(() => '""').join(',')},"${totalSuccessDays}","${average.toFixed(0)}%","${achievers}/${rows.length} حققوا الهدف",${Math.round(totalWork / 60000)},"${formatCompactDuration(totalWork, language)}",""`
+        : `"Total / Average",${weeks.map(() => '""').join(',')},"${totalSuccessDays}","${average.toFixed(0)}%","${achievers}/${rows.length} Achieved",${Math.round(totalWork / 60000)},"${formatCompactDuration(totalWork, language)}",""`
+    )
+
+    const blob = new Blob([`\uFEFF${csvRows.join('\r\n')}`], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = filename
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
   const handlePrint = () => {
     window.print()
-    exportMock('pdf')
   }
 
   return (
     <>
       <div className="print-header hidden" aria-hidden="true">
         <div>
-          <h1 className="text-xl font-bold text-black">{text(language, 'رحلة التغيير — التقرير التنفيذي', 'Journey of Change — Executive Report')}</h1>
-          <p className="text-sm text-neutral-600">{formatMonth(month, language)}</p>
+          <h1 className="text-xl font-bold text-black">{text(language, 'رحلة التغيير — التقرير الشهري التنفيذي', 'Journey of Change — Executive Monthly Report')}</h1>
+          <p className="text-sm text-neutral-600">{text(language, `تقرير شهر: ${formatMonth(month, language)}`, `Month Report: ${formatMonth(month, language)}`)}</p>
         </div>
-        <div className="text-end text-xs text-neutral-500">
-          <div>{text(language, 'مستوى الإنتاجية والمتابعة', 'Productivity & Habit Tracking')}</div>
-          <div>{text(language, 'المشارك الحالي:', 'Viewer:')} {language === 'ar' ? currentParticipant.name : currentParticipant.nameEn}</div>
+        <div className="text-end text-xs text-neutral-600">
+          <div>{text(language, 'نظام متابعة الأداء والإنتاجية', 'Habit & Productivity Tracking')}</div>
+          <div>{text(language, 'المستعرض:', 'Viewer:')} {language === 'ar' ? currentParticipant.name : currentParticipant.nameEn}</div>
         </div>
       </div>
 
-      <PageHeader
-        eyebrow={text(language, 'تقارير تاريخية مجمعة', 'Historical summary reports')}
-        title={text(language, `تقرير شهر ${formatMonth(month, language)}`, `${formatMonth(month, language)} Report`)}
-        description={text(
-          language,
-          'استعراض تاريخي ملخّص للأداء الشهري ونسب الإنجاز وساعات العمل، مع إمكانية التصدير والطباعة.',
-          'Summarized historical report of monthly performance, completion rates, and work hours, with export and print options.',
-        )}
-        actions={(
-          <>
-            <SelectField label={text(language, 'الشهر', 'Month')} value={month} onChange={setReportMonth}>
-              {months.map((item) => <option key={item} value={item}>{formatMonth(item, language)}</option>)}
-            </SelectField>
-            <Button size="sm" onClick={() => exportMock('excel')}>
-              <Download size={16} />
-              {text(language, 'تصدير CSV (إكسل)', 'CSV Export (Excel)')}
-            </Button>
-            <Button size="sm" onClick={handlePrint}>
-              <Printer size={16} />
-              {text(language, 'تصدير PDF / طباعة', 'PDF / Print')}
-            </Button>
-          </>
-        )}
-      />
+      <div className="no-print">
+        <PageHeader
+          eyebrow={text(language, 'تقارير تاريخية مجمعة', 'Historical summary reports')}
+          title={text(language, `تقرير شهر ${formatMonth(month, language)}`, `${formatMonth(month, language)} Report`)}
+          description={text(
+            language,
+            'استعراض تاريخي ملخّص للأداء الشهري ونسب الإنجاز وساعات العمل، مع إمكانية التصدير والطباعة.',
+            'Summarized historical report of monthly performance, completion rates, and work hours, with export and print options.',
+          )}
+          actions={(
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex min-h-[36px] items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-2)] px-3 py-1">
+                <label htmlFor="report-month-select" className="text-xs font-bold text-[var(--ink-2)] shrink-0">
+                  {text(language, 'الشهر:', 'Month:')}
+                </label>
+                <select
+                  id="report-month-select"
+                  className="cursor-pointer bg-transparent text-xs font-bold text-[var(--ink)] focus:outline-none"
+                  value={month}
+                  onChange={(e) => setReportMonth(e.target.value)}
+                >
+                  {months.map((item) => (
+                    <option key={item} value={item} className="bg-[var(--surface)] text-[var(--ink)]">
+                      {formatMonth(item, language)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Button size="sm" onClick={handleExportCsv}>
+                <Download size={15} />
+                {text(language, 'تصدير CSV (إكسل)', 'CSV Export (Excel)')}
+              </Button>
+              <Button size="sm" onClick={handlePrint}>
+                <Printer size={15} />
+                {text(language, 'تصدير PDF / طباعة', 'PDF / Print')}
+              </Button>
+            </div>
+          )}
+        />
+      </div>
 
       {!hasData ? (
         <EmptyState
@@ -94,8 +179,9 @@ export function ReportsPage() {
         />
       ) : (
         <div className="grid gap-5">
-          <section className="hero-panel p-5 md:p-6">
-            <div className="mb-3">
+          {/* Summary KPIs Panel */}
+          <section className="hero-panel p-5 md:p-6 print-kpi-panel">
+            <div className="mb-3 no-print">
               <p className="eyebrow">{text(language, 'ملخص التقرير', 'Report summary')}</p>
               <h2 className="mt-1 text-xl font-bold">{formatMonth(month, language)}</h2>
             </div>
@@ -111,7 +197,8 @@ export function ReportsPage() {
             />
           </section>
 
-          <section className="grid gap-5 xl:grid-cols-2">
+          {/* Screen-only Group Performance Chart & Participant Cards */}
+          <section className="no-print grid gap-5 xl:grid-cols-2">
             <div className="panel p-5">
               <div className="section-title">
                 <h2 className="text-lg font-bold">{text(language, 'أداء المجموعة', 'Group performance')}</h2>
@@ -151,10 +238,11 @@ export function ReportsPage() {
             </div>
           </section>
 
-          <section className="panel p-5">
-            <div className="section-title">
-              <h2 className="text-lg font-bold">{text(language, 'جدول الأسابيع', 'Weekly progress')}</h2>
-              <Badge>{text(language, 'هدف الأسبوع 3 أيام', 'Weekly target 3 days')}</Badge>
+          {/* Full Weekly Progress Table (Star of the Print and Desktop View) */}
+          <section className="panel p-5 print-table-panel">
+            <div className="section-title no-print">
+              <h2 className="text-lg font-bold">{text(language, 'جدول الأسابيع التفصيلي', 'Detailed weekly progress')}</h2>
+              <Badge tone="gold">{text(language, `الهدف الأسبوعي ${state.settings.weeklyRequiredDays} أيام`, `Weekly target ${state.settings.weeklyRequiredDays} days`)}</Badge>
             </div>
             <div className="table-shell desktop-only">
               <table className="data-table responsive-table">
@@ -163,6 +251,7 @@ export function ReportsPage() {
                     <th>{text(language, 'المشارك', 'Participant')}</th>
                     {weeks.map((week) => <th key={week.week}>{weekRange(week.week, language)}</th>)}
                     <th>{text(language, 'أيام ناجحة', 'Success days')}</th>
+                    <th>{text(language, 'نسبة الإنجاز', 'Completion')}</th>
                     <th>{text(language, 'وقت العمل', 'Work time')}</th>
                     <th>{text(language, 'النتيجة', 'Result')}</th>
                   </tr>
@@ -172,11 +261,12 @@ export function ReportsPage() {
                     <tr key={row.participant.id}>
                       <td data-label={text(language, 'المشارك', 'Participant')} className="font-bold">{language === 'ar' ? row.participant.name : row.participant.nameEn}</td>
                       {row.stats.weeks.map((week) => <td key={week.week} data-label={weekRange(week.week, language)} className="num">{week.successfulDays}</td>)}
-                      <td data-label={text(language, 'أيام ناجحة', 'Success days')} className="num">{row.stats.successDays}</td>
+                      <td data-label={text(language, 'أيام ناجحة', 'Success days')} className="num font-bold">{row.stats.successDays}</td>
+                      <td data-label={text(language, 'نسبة الإنجاز', 'Completion')} className="num">{row.stats.rate.toFixed(0)}%</td>
                       <td data-label={text(language, 'وقت العمل', 'Work time')} className="num">{formatCompactDuration(row.stats.ms, language)}</td>
                       <td data-label={text(language, 'النتيجة', 'Result')}>
                         <Badge tone={row.stats.goodWeeks >= state.settings.monthlyRequiredWeeks ? 'good' : 'bad'}>
-                          {row.stats.goodWeeks >= state.settings.monthlyRequiredWeeks ? text(language, 'حقق الشهر', 'Achieved') : text(language, 'لم يحقق', 'Not achieved')}
+                          {row.stats.goodWeeks >= state.settings.monthlyRequiredWeeks ? text(language, 'حقق الهدف', 'Achieved') : text(language, 'لم يحقق', 'Not achieved')}
                         </Badge>
                       </td>
                     </tr>
@@ -184,7 +274,7 @@ export function ReportsPage() {
                 </tbody>
               </table>
             </div>
-            <div className="mobile-only">
+            <div className="mobile-only no-print">
               <div className="list-panel">
                 {rows.map((row) => (
                   <div key={row.participant.id} className="list-row">
@@ -209,7 +299,8 @@ export function ReportsPage() {
             </div>
           </section>
 
-          <section className="panel p-5">
+          {/* Screen-only Written Report Accordion */}
+          <section className="no-print panel p-5">
             <div className="section-title">
               <div>
                 <h2 className="text-lg font-bold">{text(language, 'التقرير المكتوب', 'Written report')}</h2>
@@ -234,6 +325,11 @@ export function ReportsPage() {
               </div>
             ) : null}
           </section>
+
+          {/* Dedicated Print Footer */}
+          <div className="print-footer hidden" aria-hidden="true">
+            <p>{text(language, 'تم استخراج هذا التقرير تلقائياً من نظام رحلة التغيير.', 'Generated automatically by Journey of Change.')}</p>
+          </div>
         </div>
       )}
     </>
