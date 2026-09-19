@@ -42,11 +42,11 @@ npm run dev
 
 المشروع جاهز تماماً للنشر المباشر بنقرة واحدة على **Vercel**:
 1. قم برفع المشروع على حسابك في GitHub.
-2. ادخل إلى لوحة تحكم [Vercel](https://vercel.com) واختر **New Project** ثم استورد المستودع.
-3. ملف `vercel.json` سيتولى إعداد وضبط البناء تلقائياً:
-   - **Framework:** Next.js
-   - **Root Directory:** `./` أو `frontend` (كلاهما مدعوم تلقائياً)
-   - **Build Command:** `npm --prefix frontend run build`
+2. ادخل إلى لوحة تحكم [Vercel](https://vercel.com) واختر **New Project** ثم استورد مستودع `rehlat`.
+3. في شاشة الإعدادات:
+   - **Root Directory:** اضغط Edit وحدد مجلد `frontend`
+   - **Framework Preset:** سيتعرف عليه تلقائياً كـ `Next.js`
+4. اضغط **Deploy**.
 
 ---
 
@@ -60,8 +60,9 @@ journey-of-change/
 │   │   ├── components/     # المكونات التفاعلية والواجهات
 │   │   ├── state/          # إدارة الحالة (DemoContext & ThemeContext)
 │   │   └── types/          # تعريفات النماذج والبيانات
+│   ├── vercel.json         # إعدادات Vercel للتطبيق
 │   └── package.json
 ├── database/               # مخططات قاعدة البيانات PostgreSQL واختبارات الجودة
-├── vercel.json             # إعدادات النشر السحابي التلقائي
 └── README.md
 ```
+
