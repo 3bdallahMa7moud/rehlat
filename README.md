@@ -1,34 +1,67 @@
-# Journey of Change
+# 🌟 رحلة التغيير | Journey of Change
 
-Journey of Change is a React frontend prototype for a shared daily progress dashboard. Participants can sign in with a PIN, manage daily tasks with independent timers, review streaks, follow group progress, inspect reports, and use admin tools for participants, tasks, targets, and exports.
+منصة تفاعلية لبناء الالتزام بالعادات والمهام اليومية (إيمانية، ثقافية، رياضية، وصحية)، مبنية بأحدث تقنيات الويب **Next.js 16 (App Router)** و **React 19** مع دعم الوضعين الفاتح والداكن وتجربة مستخدم عربية بالكامل.
 
-## Stack
+---
 
-- React
-- TypeScript
-- Vite
-- React Router
-- Recharts
-- Tailwind CSS utilities with a small custom design system
+## 🚀 المميزات الرئيسية (Core Features)
 
-## Prototype Status
+- 🔒 **تسجيل دخول بالرمز السري (PIN Login):** تبدأ المنصة مباشرة من صفحة الدخول مع دعم مستخدمين متعددين وتجربة وصول سريعة ومباشرة.
+- 🕌 **محطات يومية متكاملة:**
+  - متابعة ورد القرآن الكريم.
+  - متابعة الصلوات الخمس وسننها.
+  - الأذكار اليومية والسبحة الرقمية.
+  - النشاط الرياضي والماء وساعات النوم.
+  - القراءة وتطوير الذات.
+- 🏆 **سلاسل الاستمرارية والتنافس (Streaks & Leaderboard):** حوافز بصرية، منصة التتويج للمراكز الأولى، ولوحة الشرف للأوسمة والألقاب.
+- ⏱️ **غرفة التركيز (Focus Room):** مؤقت بومودورو تفاعلي مع خيارات زمنية متعددة لتعزيز الإنجاز.
+- 📊 **تحليلات وتقارير أداء دورية:** رسوم بيانية تفاعلية (يومية، أسبوعية، وشهرية) لقياس معدل الالتزام.
+- 🛡️ **مساحة المشرف (Admin Suite):** متابعة المشاركين، رصد النشاط اللحظي، وإدارة المهام.
+- 🤖 **مساعد الذكاء الاصطناعي:** واجهة محادثة ذكية لتشجيع ومساعدة المشارك في تنظيم أولوياته.
 
-This project is currently a frontend-only prototype. It uses local mock data and browser storage to simulate product workflows; no backend, database, or remote API is required.
+---
 
-## Setup
+## 🛠️ التشغيل محلياً (Local Development)
 
+### 1. تثبيت الحزم:
 ```bash
+cd frontend
 npm install
 ```
 
-## Development
-
+### 2. تشغيل سيرفر التطوير:
 ```bash
 npm run dev
 ```
 
-## Build
+افتح المتصفح على [http://localhost:3000](http://localhost:3000).
 
-```bash
-npm run build
+---
+
+## ☁️ النشر على Vercel (Deployment)
+
+المشروع جاهز تماماً للنشر المباشر بنقرة واحدة على **Vercel**:
+1. قم برفع المشروع على حسابك في GitHub.
+2. ادخل إلى لوحة تحكم [Vercel](https://vercel.com) واختر **New Project** ثم استورد المستودع.
+3. ملف `vercel.json` سيتولى إعداد وضبط البناء تلقائياً:
+   - **Framework:** Next.js
+   - **Root Directory:** `./` أو `frontend` (كلاهما مدعوم تلقائياً)
+   - **Build Command:** `npm --prefix frontend run build`
+
+---
+
+## 📂 هيكل المشروع (Project Architecture)
+
+```
+journey-of-change/
+├── frontend/               # تطبيق الواجهة الأمامية (Next.js 16 + React 19)
+│   ├── src/
+│   │   ├── app/            # صفحات وتوجيهات App Router
+│   │   ├── components/     # المكونات التفاعلية والواجهات
+│   │   ├── state/          # إدارة الحالة (DemoContext & ThemeContext)
+│   │   └── types/          # تعريفات النماذج والبيانات
+│   └── package.json
+├── database/               # مخططات قاعدة البيانات PostgreSQL واختبارات الجودة
+├── vercel.json             # إعدادات النشر السحابي التلقائي
+└── README.md
 ```

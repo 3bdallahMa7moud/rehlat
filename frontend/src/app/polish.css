@@ -1,0 +1,51 @@
+/* Final responsive and layout adjustments. */
+
+.page-transition,
+.page-transition > *,
+.journey-copy,
+.journey-facts,
+.page-header > div:first-child,
+.message-preview span,
+.notification-row > div {
+  min-width: 0;
+}
+
+.page-header h1,
+.journey-copy h2,
+.journey-copy p,
+.notification-row p,
+.settings-list p {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 620px) {
+  .topbar {
+    gap: 6px;
+  }
+
+  .topbar-actions {
+    flex: 0 0 auto;
+  }
+
+  .topbar-user {
+    margin-right: 2px;
+  }
+
+  .app-main,
+  .page-transition {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .journey-copy h2 {
+    font-size: 21px;
+  }
+
+  .journey-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .journey-facts strong {
+    overflow-wrap: anywhere;
+  }
+}
