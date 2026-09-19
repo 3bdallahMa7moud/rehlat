@@ -15,12 +15,18 @@ let cachedTheme: Theme | undefined;
 
 function getThemeSnapshot(): Theme {
   if (cachedTheme) return cachedTheme;
-  const saved = window.localStorage.getItem("joc-theme") as Theme | null;
-  cachedTheme = saved ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  if (typeof window === "undefined") return "light";
+  try {
+    const saved = window.localStorage.getItem("joc-theme") as Theme | null;
+    cachedTheme = saved ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  } catch {
+    cachedTheme = "light";
+  }
   return cachedTheme;
 }
 
 function subscribeToTheme(listener: () => void) {
+  if (typeof window === "undefined") return () => {};
   const onStorage = (event: StorageEvent) => {
     if (event.key === "joc-theme") {
       cachedTheme = undefined;
@@ -37,7 +43,9 @@ function subscribeToTheme(listener: () => void) {
 
 function updateTheme(nextTheme: Theme) {
   cachedTheme = nextTheme;
-  window.localStorage.setItem("joc-theme", nextTheme);
+  try {
+    window.localStorage.setItem("joc-theme", nextTheme);
+  } catch {}
   themeListeners.forEach((listener) => listener());
 }
 

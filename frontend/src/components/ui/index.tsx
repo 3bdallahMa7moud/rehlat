@@ -61,21 +61,84 @@ export function ErrorState({ title = "تعذر تحميل البيانات.", on
 export function NotificationIcon({ tone }: { tone: "success" | "warning" | "info" | "error" }) { if (tone === "success") return <CircleCheck size={20} />; if (tone === "warning" || tone === "error") return <TriangleAlert size={20} />; return <Info size={20} />; }
 export function ToastViewport({ items, onDismiss }: { items: { id: string; title: string; body?: string; tone: "success" | "warning" | "info" | "error" }[]; onDismiss: (id: string) => void }) { return <div className="toast-viewport" aria-live="polite">{items.map((toast) => <div className={cn("toast", `toast-${toast.tone}`)} key={toast.id}><NotificationIcon tone={toast.tone} /><div><strong>{toast.title}</strong>{toast.body && <p>{toast.body}</p>}</div><IconButton label="إغلاق الإشعار" onClick={() => onDismiss(toast.id)}><X size={17} /></IconButton></div>)}</div>; }
 
-export function PinInput({ value, onChange, onSubmit, error, loading, success }: { value: string; onChange: (value: string) => void; onSubmit: () => void; error?: string; loading?: boolean; success?: boolean }) {
+export function PinInput({ value, onChange, onSubmit, error, loading, success }: { value: string; onChange: (value: string) => void; onSubmit?: (code?: string) => void; error?: string; loading?: boolean; success?: boolean }) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const chars = Array.from({ length: 4 }, (_, index) => value[index] ?? "");
-  useEffect(() => { refs.current[0]?.focus(); }, []);
+  useEffect(() => {
+    const firstEmpty = chars.findIndex((c) => !c);
+    const target = firstEmpty === -1 ? 0 : firstEmpty;
+    refs.current[target]?.focus();
+  }, []);
   const update = (index: number, input: string) => {
     const digits = input.replace(/\D/g, "");
-    if (!digits) { const next = chars.slice(); next[index] = ""; onChange(next.join("")); return; }
-    const incoming = digits.slice(0, 4);
+    if (!digits) {
+      const next = chars.slice();
+      next[index] = "";
+      onChange(next.join(""));
+      return;
+    }
+    const nextChar = digits.length > 1 ? digits.slice(-1) : digits[0];
     const next = chars.slice();
-    incoming.split("").forEach((digit, offset) => { if (index + offset < 4) next[index + offset] = digit; });
+    next[index] = nextChar;
+    if (digits.length > 1 && input.length > 1) {
+      digits.slice(0, 4).split("").forEach((d, offset) => {
+        if (index + offset < 4) next[index + offset] = d;
+      });
+    }
     const joined = next.join("");
     onChange(joined);
-    const target = Math.min(index + incoming.length, 3);
-    window.setTimeout(() => refs.current[target]?.focus(), 0);
-    if (joined.length === 4) window.setTimeout(onSubmit, 40);
+    const target = Math.min(index + 1, 3);
+    refs.current[target]?.focus();
+    if (joined.length === 4) window.setTimeout(() => onSubmit?.(joined), 40);
   };
-  return <div className="pin-root"><div className="pin-inputs" dir="ltr">{chars.map((char, index) => <input key={index} ref={(element) => { refs.current[index] = element; }} aria-label={`الرقم ${index + 1}`} inputMode="numeric" pattern="[0-9]*" autoComplete={index === 0 ? "one-time-code" : "off"} value={char} onChange={(event) => update(index, event.target.value)} onPaste={(event) => { event.preventDefault(); update(0, event.clipboardData.getData("text")); }} onKeyDown={(event) => { if (event.key === "Backspace" && !chars[index] && index > 0) { refs.current[index - 1]?.focus(); } if (event.key === "Enter" && value.length === 4) onSubmit(); }} className={cn("pin-cell", error && "pin-error", success && "pin-success")} maxLength={1} disabled={loading} />)}</div>{error && <p className="field-error text-center">{error}</p>}{success && <p className="pin-success-copy"><Check size={16} /> تم التحقق بنجاح</p>}</div>;
+  return (
+    <div className="pin-root">
+      <div className="pin-inputs" dir="ltr">
+        {chars.map((char, index) => (
+          <input
+            key={index}
+            ref={(element) => { refs.current[index] = element; }}
+            aria-label={`الرقم ${index + 1}`}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete={index === 0 ? "one-time-code" : "off"}
+            value={char}
+            onChange={(event) => update(index, event.target.value)}
+            onPaste={(event) => {
+              event.preventDefault();
+              const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, 4);
+              if (pasted) {
+                onChange(pasted);
+                refs.current[Math.min(pasted.length, 3)]?.focus();
+                if (pasted.length === 4) window.setTimeout(() => onSubmit?.(pasted), 40);
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Backspace") {
+                if (!chars[index] && index > 0) {
+                  event.preventDefault();
+                  const next = chars.slice();
+                  next[index - 1] = "";
+                  onChange(next.join(""));
+                  refs.current[index - 1]?.focus();
+                }
+              } else if (event.key === "ArrowLeft" && index > 0) {
+                refs.current[index - 1]?.focus();
+              } else if (event.key === "ArrowRight" && index < 3) {
+                refs.current[index + 1]?.focus();
+              } else if (event.key === "Enter" && value.length === 4) {
+                event.preventDefault();
+                onSubmit?.(value);
+              }
+            }}
+            className={cn("pin-cell", error && "pin-error", success && "pin-success")}
+            maxLength={2}
+            disabled={loading}
+          />
+        ))}
+      </div>
+      {error && <p className="field-error text-center">{error}</p>}
+      {success && <p className="pin-success-copy"><Check size={16} /> تم التحقق بنجاح</p>}
+    </div>
+  );
 }
