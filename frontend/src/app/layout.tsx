@@ -6,6 +6,7 @@ import "@fontsource/cairo/700.css";
 import "./globals.css";
 import "./brand.css";
 import "./polish.css";
+import "./pwa.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -19,8 +20,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F7F8FC" },
-    { media: "(prefers-color-scheme: dark)", color: "#0D1020" },
+    { media: "(prefers-color-scheme: light)", color: "#F7FBFA" },
+    { media: "(prefers-color-scheme: dark)", color: "#071820" },
   ],
   colorScheme: "light dark",
 };

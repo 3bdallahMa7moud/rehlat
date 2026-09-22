@@ -3,7 +3,7 @@ import type { Achievement, RankingEntry, Title } from "@/types/models";
 export const rankingEntries: RankingEntry[] = [
   { participantId: "noura", rank: 1, name: "نورة", initials: "نو", avatarColor: "teal", score: 960, progress: 82, streak: 18 },
   { participantId: "sara", rank: 2, name: "سارة", initials: "سر", avatarColor: "mint", score: 880, progress: 74, streak: 9 },
-  { participantId: "razi", rank: 3, name: "رازي", initials: "رز", avatarColor: "violet", score: 845, progress: 68, streak: 12 },
+  { participantId: "razi", rank: 3, name: "رازي", initials: "رز", avatarColor: "navy", score: 845, progress: 68, streak: 12 },
   { participantId: "khalid", rank: 4, name: "خالد", initials: "خل", avatarColor: "amber", score: 710, progress: 54, streak: 6 },
 ];
 

@@ -1,0 +1,90 @@
+/* PWA connectivity feedback and the small project signature. */
+.offline-banner {
+  position: fixed;
+  z-index: 120;
+  top: max(12px, env(safe-area-inset-top));
+  right: 50%;
+  display: inline-flex;
+  max-width: min(560px, calc(100vw - 24px));
+  align-items: center;
+  gap: 8px;
+  transform: translateX(50%);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--primary) 18%, transparent);
+  color: var(--ink);
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.offline-banner-offline { border-color: color-mix(in srgb, var(--warning) 42%, var(--line)); background: var(--warning-soft); color: var(--warning); }
+.offline-banner-online { border-color: color-mix(in srgb, var(--success) 42%, var(--line)); background: var(--success-soft); color: var(--success); }
+.offline-banner-install { color: var(--primary); }
+.offline-banner-install button { min-height: 30px; border: 0; border-radius: 999px; background: var(--primary); color: #fff; padding: 0 10px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+
+.site-footer { border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); }
+.site-footer-inner { width: min(1280px, 100%); display: grid; grid-template-columns: minmax(0, 1.4fr) auto; align-items: center; gap: 18px 28px; margin: 0 auto; padding: 20px 32px max(20px, env(safe-area-inset-bottom)); }
+.site-footer-brand { display: flex; min-width: 0; align-items: center; gap: 10px; }
+.site-footer-brand .brand-logo-mark { width: 38px; height: 38px; }
+.site-footer-brand strong, .site-footer-brand p, .site-footer-brand small { display: block; }
+.site-footer-brand strong { color: var(--ink); font-size: 13px; }
+.site-footer-brand p, .site-footer-brand small { margin: 1px 0 0; color: var(--muted); font-size: 10px; }
+.site-footer-links { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 12px; font-size: 11px; }
+.site-footer-links a { display: inline-flex; align-items: center; gap: 4px; color: var(--primary); font-weight: 700; }
+.site-footer-links a:hover { color: var(--teal-strong); }
+.site-footer-meta { display: flex; grid-column: 1 / -1; flex-wrap: wrap; justify-content: space-between; gap: 8px 18px; border-top: 1px solid var(--line); padding-top: 12px; font-size: 10px; }
+.site-footer-signature { display: inline-flex; align-items: center; gap: 4px; color: var(--teal-strong); }
+
+/* Interactive additions kept deliberately flat and high-contrast. */
+.dashboard-header-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.task-title-link { color: inherit; text-decoration: none; }
+.task-title-link:hover { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.pin-visibility-toggle { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; border: 0; background: transparent; color: var(--primary); font-size: 11px; cursor: pointer; }
+.task-specialized-fields { margin-top: 14px; }
+.prayer-check-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.prayer-check { display: grid; gap: 4px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-raised); color: var(--ink); padding: 9px 5px; font-size: 11px; cursor: pointer; }
+.prayer-check span { color: var(--muted); font-size: 14px; }
+.prayer-check-active { border-color: var(--teal); background: var(--mint-soft); color: var(--teal-strong); }
+.counter-control { display: flex; align-items: center; gap: 12px; }
+.counter-control strong { min-width: 64px; text-align: center; font-size: 25px; }
+.task-field-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; font-size: 11px; }
+.task-field-summary span { color: var(--muted); }
+.task-field-summary strong { color: var(--ink); }
+.sleep-time-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.field-hint { margin: 0; color: var(--muted); font-size: 11px; }
+.settings-profile { display: flex; align-items: center; gap: 14px; }
+.settings-profile > div { flex: 1; }
+.settings-security-card { display: grid; gap: 14px; margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 16px; }
+.settings-security-heading { display: flex; align-items: flex-start; gap: 10px; }
+.settings-security-heading strong, .settings-security-heading p { display: block; margin: 0; }
+.settings-security-heading p { margin-top: 4px; color: var(--muted); font-size: 11px; }
+.settings-pin-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.field-error { margin: 0; color: var(--danger, #b42318); font-size: 11px; }
+.admin-overview-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.admin-overview-grid .card { display: grid; gap: 6px; }
+.admin-overview-grid strong { font-size: 28px; }
+.admin-overview-grid p { margin: 0; color: var(--muted); font-size: 11px; }
+.admin-dashboard-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: 14px; margin-bottom: 14px; }
+.admin-quick-links { display: grid; gap: 7px; }
+.admin-quick-links a { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); color: var(--primary); padding: 8px 0; font-size: 12px; }
+.admin-quick-links a:hover { color: var(--teal-strong); }
+.data-scope-card { margin-bottom: 14px; }
+
+@media (max-width: 700px) {
+  .dashboard-header-actions { width: 100%; }
+  .dashboard-header-actions .button { flex: 1; }
+  .prayer-check-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .settings-pin-grid, .admin-overview-grid, .admin-dashboard-grid { grid-template-columns: 1fr; }
+  .settings-profile { align-items: flex-start; flex-wrap: wrap; }
+  .settings-profile .button { width: 100%; }
+}
+
+@media (max-width: 620px) {
+  .offline-banner { right: 12px; left: 12px; max-width: none; justify-content: center; transform: none; text-align: center; }
+  .offline-banner span { min-width: 0; }
+  .site-footer-inner { grid-template-columns: 1fr; gap: 14px; padding-inline: 16px; }
+  .site-footer-links { justify-content: flex-start; }
+  .site-footer-meta { grid-column: auto; justify-content: flex-start; }
+}

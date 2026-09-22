@@ -1,6 +1,6 @@
 import { writeFile } from "node:fs/promises";
 
-const [path = "/dashboard", output = "page-audit.png", widthArg = "390", heightArg = "844", theme = "light"] = process.argv.slice(2);
+const [path = "/dashboard", output = "page-audit.png", widthArg = "390", heightArg = "844", theme = "light", participantId = ""] = process.argv.slice(2);
 const width = Number(widthArg);
 const height = Number(heightArg);
 const targets = await fetch("http://localhost:9222/json").then((response) => response.json());
@@ -34,13 +34,20 @@ function send(method, params = {}) {
 await send("Page.enable");
 await send("Runtime.enable");
 await send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: width <= 620, screenWidth: width, screenHeight: height });
+if (participantId) {
+  await send("Runtime.evaluate", {
+    expression: participantId === "none"
+      ? 'localStorage.removeItem("joc-session-participant")'
+      : `localStorage.setItem("joc-session-participant", ${JSON.stringify(participantId)})`,
+  });
+}
 await send("Page.navigate", { url: `http://localhost:3000${path}` });
 await new Promise((resolve) => setTimeout(resolve, 700));
 await send("Runtime.evaluate", { expression: `localStorage.setItem("joc-theme", "${theme}"); document.documentElement.classList.toggle("dark", "${theme}" === "dark"); document.documentElement.style.colorScheme = "${theme}";` });
 await new Promise((resolve) => setTimeout(resolve, 1200));
 
 const audit = await send("Runtime.evaluate", {
-  expression: `JSON.stringify({innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, bodyWidth: document.body.scrollWidth, scrollX, outside: [...document.querySelectorAll("body *")].map((element) => { const rect = element.getBoundingClientRect(); return { tag: element.tagName, className: String(element.className).slice(0, 90), left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) }; }).filter((item) => item.right > innerWidth + 1 || item.left < -1).sort((a, b) => b.width - a.width).slice(0, 20)})`,
+  expression: `JSON.stringify({url: location.pathname, innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, bodyWidth: document.body.scrollWidth, scrollX, outside: [...document.querySelectorAll("body *")].map((element) => { const rect = element.getBoundingClientRect(); return { tag: element.tagName, className: String(element.className).slice(0, 90), left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) }; }).filter((item) => item.right > innerWidth + 1 || item.left < -1).sort((a, b) => b.width - a.width).slice(0, 20)})`,
   returnByValue: true,
 });
 const screenshot = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false, fromSurface: true });

@@ -19,7 +19,7 @@ export interface Participant {
   id: string;
   name: string;
   initials: string;
-  avatarColor: "violet" | "teal" | "mint" | "amber";
+  avatarColor: "navy" | "teal" | "mint" | "amber";
   role: UserRole;
   presence: PresenceStatus;
   currentStatus: string;
@@ -30,6 +30,18 @@ export interface Participant {
   pin: string;
 }
 
+export interface TaskDetail {
+  id: string;
+  title: string;
+  target: number;
+  current: number;
+  unit: string;
+  fullPoints: number;
+  status: TaskStatus;
+  elapsedSeconds: number;
+  startedAt?: string;
+  lastStartedAt?: string;
+}
 export interface Task {
   id: string;
   title: string;
@@ -43,8 +55,13 @@ export interface Task {
   durationMinutes?: number;
   actualMinutes: number;
   status: TaskStatus;
+  fullPoints?: number;
+  partialPoints?: number;
+  awardedPoints?: number;
+  detailItems?: TaskDetail[];
   supportingText?: string;
   scheduledTime?: string;
+  details?: Record<string, string | number | boolean | string[]>;
 }
 
 export interface DailyProgress {
@@ -58,7 +75,7 @@ export interface DailyProgress {
 
 export interface StreakDay {
   date: string;
-  status: "successful" | "unsuccessful" | "today" | "future";
+  status: "successful" | "unsuccessful" | "partial" | "today" | "future";
 }
 
 export interface Streak {
@@ -138,6 +155,8 @@ export interface Report {
 export interface EncouragementMessage {
   id: string;
   sender: string;
+  senderId?: string;
+  recipientId?: string;
   initials: string;
   avatarColor: Participant["avatarColor"];
   message: string;
@@ -150,6 +169,13 @@ export interface AIMessage {
   content: string;
   createdAt: string;
   state?: "loading" | "error";
+}
+
+export interface AIConversation {
+  id: string;
+  title: string;
+  updatedAt: string;
+  messages: AIMessage[];
 }
 
 export interface AIConversationState {

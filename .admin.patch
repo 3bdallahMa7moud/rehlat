@@ -1,0 +1,11 @@
+*** Begin Patch
+*** Update File: frontend/src/components/features/AdminViews.tsx
+@@
+-import { Activity, ArrowLeft, BarChart3, ClipboardCheck, Eye, KeyRound, Pencil, Plus, Search, Trash2, TriangleAlert, Users } from "lucide-react";
+-import { TaskCard } from "@/components/features/TaskCard";
++import { Activity, ArrowLeft, BarChart3, CheckCircle2, ClipboardCheck, Clock3, Eye, Filter, KeyRound, Layers3, Pencil, Plus, Search, Target, Trash2, TriangleAlert, Users } from "lucide-react";
++import { TaskCard, TaskGlyph } from "@/components/features/TaskCard";
+@@
+-import { Badge, Button, Card, Dialog, Dropdown, EmptyState, IconButton, Input, PageHeader, ProgressBar, SectionHeader, StatusDot, UserAvatar } from "@/components/ui";
++import { Badge, Button, Card, Dialog, Dropdown, EmptyState, IconButton, Input, PageHeader, ProgressBar, SectionHeader, StatusDot, UserAvatar } from "@/components/ui";
+*** End Patch

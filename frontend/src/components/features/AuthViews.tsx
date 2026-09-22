@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import { ArrowRight, Check, Flame, KeyRound, Moon, Search, ShieldCheck, Sparkles, Sun } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, Check, Flame, KeyRound, Moon, Search, ShieldCheck, Sparkles, Sun, Eye, EyeOff, X } from "lucide-react";
 import { Button, Input, PinInput, UserAvatar } from "@/components/ui";
 import { useDemo } from "@/state/DemoContext";
 import { useTheme } from "@/state/ThemeContext";
@@ -50,6 +50,7 @@ function AuthBrandHeader() {
 export function LoginView() {
   const router = useRouter();
   const {
+    loginParticipant,
     participants,
     recentParticipantIds,
     selectedParticipantId,
@@ -62,11 +63,10 @@ export function LoginView() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+  const [hydrated] = useState(true);
 
-  const participantList = useMemo(
-    () => participants.filter((p) => p.role === "participant"),
-    [participants]
-  );
+  const participantList = useMemo(() => participants, [participants]);
 
   const selected = useMemo(() => {
     return (
@@ -75,38 +75,40 @@ export function LoginView() {
     );
   }, [participantList, selectedParticipantId]);
 
-  const visible = useMemo(() => {
-    if (!search.trim()) return participantList;
-    return participantList.filter((p) => p.name.includes(search.trim()));
-  }, [participantList, search]);
-
   const recent = useMemo(() => {
     return participantList.filter((p) => recentParticipantIds.includes(p.id));
   }, [participantList, recentParticipantIds]);
 
-  // Direct 1-Click Login for immediate demo/evaluator review
-  const instantLogin = (participantId?: string) => {
-    const targetId = participantId ?? selected?.id;
-    if (!targetId) return;
-    setSelectedParticipantId(targetId);
-    setSuccess(true);
-    window.setTimeout(() => router.push("/dashboard"), 350);
+  const visible = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase("ar");
+    const recentIds = new Set(recent.map((participant) => participant.id));
+    const matches = query
+      ? participantList.filter((participant) => participant.name.toLocaleLowerCase("ar").includes(query))
+      : participantList.filter((participant) => !recentIds.has(participant.id));
+
+    return matches.slice(0, 4);
+  }, [participantList, recent, search]);
+
+  const chooseParticipant = (participantId: string, continueToPin = false) => {
+    setSelectedParticipantId(participantId);
+    setError("");
+    if (continueToPin) setStep("pin");
   };
 
-  const verify = () => {
-    if (!selected || pin.length !== 4 || loading) return;
+  const verify = (submittedPin = pin) => {
+    if (!selected || submittedPin.length !== 4 || loading) return;
     setError("");
     setLoading(true);
 
     window.setTimeout(() => {
-      if (pin !== selected.pin) {
+      if (!loginParticipant(selected.id, submittedPin)) {
         setPin("");
         setLoading(false);
-        setError("رمز PIN غير صحيح. جرّب الرمز المعروض أسفل.");
+        setError("رمز PIN غير صحيح. تحقق منه وحاول مرة أخرى.");
         return;
       }
       setSuccess(true);
-      window.setTimeout(() => router.push("/dashboard"), 450);
+      window.setTimeout(() => router.push(selected.role === "admin" ? "/admin" : "/dashboard"), 450);
     }, 500);
   };
 
@@ -139,17 +141,52 @@ export function LoginView() {
               <p>اختر حسابك للمتابعة والاطلاع على تقدمك وسلسلتك اليومية.</p>
             </div>
 
-            {participantList.length > 4 && (
-              <div className="auth-search-box">
-                <Search size={18} />
+            {hydrated && recent.length > 0 && !search && (
+              <div className="auth-recent-block">
+                <div className="auth-list-heading">
+                  <span>دخول سريع</span>
+                  <small>آخر الحسابات المستخدمة</small>
+                </div>
+                <div className="recent-chips">
+                  {recent.slice(0, 4).map((p) => (
+                    <button
+                      type="button"
+                      key={p.id}
+                      className={cn("recent-chip-btn", selected?.id === p.id && "recent-chip-active")}
+                      onClick={() => chooseParticipant(p.id, true)}
+                    >
+                      <UserAvatar initials={p.initials} color={p.avatarColor} size="sm" />
+                      <span>{p.name}</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="auth-search-box">
+                <Search size={19} />
                 <Input
                   aria-label="البحث عن مشارك"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="ابحث بالاسم..."
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && visible[0]) chooseParticipant(visible[0].id, true);
+                  }}
+                  placeholder="اكتب اسمك هنا..."
+                  autoFocus
                 />
-              </div>
-            )}
+                {search && (
+                  <button type="button" className="auth-search-clear" onClick={() => setSearch("")} aria-label="مسح البحث">
+                    <X size={16} />
+                  </button>
+                )}
+            </div>
+
+            <div className="auth-results-meta" aria-live="polite">
+              <span>{search ? "نتائج البحث" : "اختر من الحسابات الأخرى"}</span>
+              {visible[0] && <small>{search ? "اضغط Enter لاختيار أول نتيجة" : "اضغط على اسمك للمتابعة مباشرة"}</small>}
+            </div>
 
             <div className="auth-participants-grid" role="radiogroup" aria-label="قائمة المشاركين">
               {visible.map((p) => {
@@ -164,7 +201,7 @@ export function LoginView() {
                       "participant-luxury-card",
                       isSelected && "participant-card-selected"
                     )}
-                    onClick={() => setSelectedParticipantId(p.id)}
+                    onClick={() => chooseParticipant(p.id, true)}
                   >
                     <div className="participant-card-header">
                       <UserAvatar initials={p.initials} color={p.avatarColor} size="lg" />
@@ -177,32 +214,20 @@ export function LoginView() {
                     <div className="participant-card-info">
                       <strong className="participant-name">{p.name}</strong>
                       <span className="participant-streak-pill">
-                        <Flame size={13} /> {p.streak} يوماً متواصلاً
+                        {p.role === "admin" ? <><ShieldCheck size={13} /> حساب المشرف</> : <><Flame size={13} /> {p.streak} يوماً متواصلاً</>}
                       </span>
                     </div>
                   </button>
                 );
               })}
-            </div>
-
-            {recent.length > 0 && (
-              <div className="auth-recent-strip">
-                <span className="recent-label">آخر المسجلين:</span>
-                <div className="recent-chips">
-                  {recent.map((p) => (
-                    <button
-                      type="button"
-                      key={p.id}
-                      className={cn("recent-chip-btn", selected?.id === p.id && "recent-chip-active")}
-                      onClick={() => setSelectedParticipantId(p.id)}
-                    >
-                      <UserAvatar initials={p.initials} color={p.avatarColor} size="sm" />
-                      <span>{p.name}</span>
-                    </button>
-                  ))}
+              {visible.length === 0 && (
+                <div className="auth-empty-results">
+                  <Search size={22} />
+                  <strong>لم نجد هذا الاسم</strong>
+                  <span>جرّب كتابة جزء أقصر من الاسم.</span>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             <div className="auth-actions-group">
               <Button
@@ -218,13 +243,6 @@ export function LoginView() {
                 <ArrowRight size={18} />
               </Button>
 
-              <button
-                type="button"
-                className="auth-quick-bypass-btn"
-                onClick={() => instantLogin()}
-              >
-                ⚡ دخول فوري كـ <strong>{selected?.name}</strong> (بدون رمز)
-              </button>
             </div>
           </section>
         ) : (
@@ -262,7 +280,12 @@ export function LoginView() {
                 error={error}
                 loading={loading}
                 success={success}
+                masked={!showPin}
               />
+              <button type="button" className="pin-visibility-toggle" onClick={() => setShowPin((value) => !value)} aria-pressed={showPin}>
+                {showPin ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPin ? "إخفاء PIN" : "إظهار PIN"}
+              </button>
             </div>
 
             <div className="auth-actions-group">
@@ -271,38 +294,12 @@ export function LoginView() {
                 className="auth-primary-btn"
                 loading={loading}
                 disabled={pin.length !== 4 || success}
-                onClick={verify}
+                onClick={() => verify()}
               >
                 {success ? "جارٍ تسجيل الدخول..." : "دخول إلى لوحة التحكم"}
               </Button>
 
-              <div className="auth-demo-hint-box">
-                <div className="demo-hint-content">
-                  <KeyRound size={16} className="text-amber-500" />
-                  <span>رمز PIN التجريبي لـ {selected?.name} هو:</span>
-                  <code className="demo-pin-code">{selected?.pin}</code>
-                </div>
-                <button
-                  type="button"
-                  className="quick-fill-btn"
-                  onClick={() => {
-                    if (selected?.pin) {
-                      setPin(selected.pin);
-                      setError("");
-                    }
-                  }}
-                >
-                  تعبئة تلقائية
-                </button>
-              </div>
-
-              <button
-                type="button"
-                className="auth-quick-bypass-btn"
-                onClick={() => instantLogin()}
-              >
-                ⚡ تخطي الرمز والدخول المباشر
-              </button>
+              <p className="auth-pin-security-note"><KeyRound size={15} /> لا نعرض رمز الدخول على الشاشة. استخدم PIN الذي حدده المشرف.</p>
             </div>
           </section>
         )}
@@ -313,22 +310,33 @@ export function LoginView() {
 
 export function SetupPinView() {
   const router = useRouter();
+  const { activeParticipant, isAuthenticated, setParticipantPin, pushToast } = useDemo();
   const [first, setFirst] = useState("");
   const [second, setSecond] = useState("");
   const [phase, setPhase] = useState<"first" | "confirm">("first");
   const [error, setError] = useState("");
 
-  const submit = () => {
-    if (phase === "first" && first.length === 4) {
+  useEffect(() => {
+    if (!isAuthenticated) router.replace("/login");
+  }, [isAuthenticated, router]);
+
+  const submit = (submittedCode = current) => {
+    if (phase === "first" && submittedCode.length === 4) {
+      setFirst(submittedCode);
       setPhase("confirm");
       return;
     }
-    if (second !== first) {
+    if (submittedCode !== first) {
       setSecond("");
       setError("الرمزان غير متطابقين. حاول مرة أخرى.");
       return;
     }
-    router.push("/dashboard");
+    if (!activeParticipant || !setParticipantPin(activeParticipant.id, first)) {
+      setError("تعذر حفظ الرمز. استخدم أربعة أرقام فقط.");
+      return;
+    }
+    pushToast({ tone: "success", title: "تم تحديث PIN", body: "يمكنك استخدام الرمز الجديد في تسجيل الدخول القادم." });
+    router.push(activeParticipant.role === "admin" ? "/admin" : "/dashboard");
   };
 
   const current = phase === "first" ? first : second;
@@ -370,7 +378,7 @@ export function SetupPinView() {
               size="lg"
               className="auth-primary-btn"
               disabled={current.length !== 4}
-              onClick={submit}
+              onClick={() => submit()}
             >
               {phase === "first" ? "متابعة" : "تأكيد والبدء"}
             </Button>
