@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { BookOpen, Bot, CircleDashed, Crown, Droplets, Dumbbell, Flame, Medal, Moon, Sparkles, Trophy, type LucideProps } from 'lucide-react';
+import { BookOpen, Bot, CircleDashed, Crown, Droplets, Dumbbell, Flame, Focus, Medal, Moon, Sparkles, Trophy, type LucideProps } from 'lucide-react';
 import { AppIcon } from '@/components/ui/AppIcon';
 import type { TaskType } from '@/types/models';
 
@@ -13,7 +13,7 @@ export type ActivityVisual = {
 };
 
 /** The single visual reference for activities and their related product areas. */
-export const activityVisuals: Record<TaskType | 'streak' | 'awards' | 'titles' | 'reports' | 'ai', ActivityVisual> = {
+export const activityVisuals: Record<TaskType | 'streak' | 'awards' | 'titles' | 'reports' | 'ai' | 'focus', ActivityVisual> = {
   prayer: { icon: 'mosque', label: 'الصلاة', tone: 'primary' },
   quran: { icon: 'quran', label: 'القرآن', tone: 'primary' },
   adhkar: { icon: Sparkles, label: 'الأذكار', tone: 'teal' },
@@ -27,6 +27,7 @@ export const activityVisuals: Record<TaskType | 'streak' | 'awards' | 'titles' |
   titles: { icon: Crown, label: 'الألقاب', tone: 'primary' },
   reports: { icon: Medal, label: 'التقارير', tone: 'teal' },
   ai: { icon: Bot, label: 'المساعد', tone: 'primary' },
+  focus: { icon: Focus, label: 'التركيز', tone: 'primary' },
 };
 
 export function ActivityIcon({ type, size = 24 }: { type: keyof typeof activityVisuals; size?: number }) {

@@ -29,7 +29,7 @@
 
 .historyHeader { min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-inline: 3px; }
 .historyHeader h1 { margin: 0; color: var(--ink); font-size: 17px; line-height: 1.3; }
-.historyHeader span { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; }
+.historyHeader span { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
 .historyClose { display: none; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--muted); }
 .historyClose:hover { background: var(--surface); color: var(--ink); }
 
@@ -60,15 +60,15 @@
 .historyItemActive { border-color: color-mix(in srgb, var(--teal) 28%, var(--line)); background: var(--surface); }
 .historyItemMain { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; border: 0; background: transparent; color: var(--ink); padding: 9px 8px; text-align: right; }
 .historyItemMain > span:last-child { min-width: 0; }
-.historyItemMain strong { display: block; overflow: hidden; font-size: 10px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-.historyItemMain small { display: block; margin-top: 2px; color: var(--muted-soft); font-size: 8px; }
+.historyItemMain strong { display: block; overflow: hidden; font-size: 11px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.historyItemMain small { display: block; margin-top: 2px; color: var(--muted-soft); font-size: 11px; }
 .historyItemIcon { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 8px; background: var(--surface-raised); color: var(--muted); }
 .historyItemActive .historyItemIcon { background: var(--primary-soft); color: var(--primary); }
 .historyDelete { width: 29px; height: 29px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--muted-soft); opacity: 0; transition: opacity 150ms ease, color 150ms ease, background-color 150ms ease; }
 .historyItem:hover .historyDelete, .historyItem:focus-within .historyDelete { opacity: 1; }
 .historyDelete:hover { background: var(--danger-soft); color: var(--danger); }
 .historyEmpty { margin: 28px 8px; color: var(--muted); font-size: 10px; text-align: center; }
-.historyPrivacy { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 0; border-top: 1px solid var(--line); color: var(--muted-soft); padding-top: 11px; font-size: 8px; }
+.historyPrivacy { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 0; border-top: 1px solid var(--line); color: var(--muted-soft); padding-top: 11px; font-size: 11px; }
 .historyBackdrop { display: none; }
 
 .conversation {
@@ -86,7 +86,7 @@
 .headerLead, .identity { min-width: 0; display: flex; align-items: center; gap: 10px; }
 .identity > div { min-width: 0; }
 .identity strong { display: block; overflow: hidden; color: var(--ink); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-.availability { display: flex; align-items: center; gap: 5px; margin-top: 2px; color: var(--muted); font-size: 9px; }
+.availability { display: flex; align-items: center; gap: 5px; margin-top: 2px; color: var(--muted); font-size: 11px; }
 .availability i { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
 .avatar, .messageAvatar, .fabLogo { position: relative; display: grid; flex: 0 0 auto; place-items: center; overflow: hidden; border: 1px solid var(--line); background: var(--surface-raised); }
 .avatar { width: 40px; height: 40px; border-radius: 11px; padding: 3px; }
@@ -128,11 +128,11 @@
 .userMessage .messageBody { margin-right: auto; }
 .userMessage .bubble { border-color: var(--primary); border-radius: 4px 14px 14px 14px; background: var(--primary); color: var(--surface); }
 .bubble p { margin: 0; font-size: 11px; line-height: 1.9; white-space: pre-wrap; }
-.messageMeta { min-height: 18px; display: flex; align-items: center; gap: 9px; color: var(--muted-soft); padding-inline: 3px; font-size: 8px; }
+.messageMeta { min-height: 18px; display: flex; align-items: center; gap: 9px; color: var(--muted-soft); padding-inline: 3px; font-size: 11px; }
 .userMessage .messageMeta { justify-content: flex-end; }
-.messageMeta button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--muted); padding: 1px 0; font-size: 8px; }
+.messageMeta button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--muted); padding: 1px 0; font-size: 11px; }
 .messageMeta button:hover { color: var(--primary); }
-.typingBubble { width: fit-content; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 9px; }
+.typingBubble { width: fit-content; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; }
 .typingDots { display: flex; align-items: center; gap: 3px; }
 .typingDots i { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); animation: typingDot 900ms infinite alternate ease-in-out; }
 .typingDots i:nth-child(2) { animation-delay: 140ms; }
@@ -146,11 +146,11 @@
 
 .composerArea { border-top: 1px solid var(--line); background: var(--surface); padding: 10px clamp(14px, 3vw, 28px) 9px; }
 .suggestions { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.suggestions > span { display: flex; flex: 0 0 auto; align-items: center; gap: 5px; color: var(--muted); font-size: 8px; font-weight: 600; }
+.suggestions > span { display: flex; flex: 0 0 auto; align-items: center; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 600; }
 .suggestions > span svg { color: var(--teal-strong); }
 .suggestions > div { min-width: 0; display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; }
 .suggestions > div::-webkit-scrollbar { display: none; }
-.suggestions button { min-height: 28px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); padding: 0 9px; font-size: 8px; font-weight: 600; transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease; }
+.suggestions button { min-height: 32px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); padding: 0 9px; font-size: 11px; font-weight: 600; transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease; }
 .suggestions button:hover:not(:disabled) { border-color: var(--teal); background: var(--mint-soft); color: var(--teal-strong); }
 .composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-raised); padding: 5px 6px 5px 12px; transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease; }
 .composer:focus-within { border-color: var(--teal); background: var(--surface); box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 10%, transparent); }
@@ -169,7 +169,7 @@
 .fabLogo { width: 42px; height: 42px; border-radius: 12px; background: color-mix(in srgb, #fff 92%, var(--primary-soft)); padding: 2px; }
 .fabCopy strong, .fabCopy small { display: block; }
 .fabCopy strong { font-size: 10px; }
-.fabCopy small { color: color-mix(in srgb, #fff 68%, transparent); font-size: 8px; }
+.fabCopy small { color: color-mix(in srgb, #fff 68%, transparent); font-size: 11px; }
 .fabSparkle { color: var(--gold-soft); }
 .widgetBackdrop { position: fixed; z-index: 70; inset: 0; background: color-mix(in srgb, #06141b 20%, transparent); backdrop-filter: blur(2px); animation: backdropIn 160ms ease both; }
 .widget { position: absolute; left: 24px; bottom: 90px; width: min(410px, calc(100vw - 48px)); overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: 0 28px 70px rgba(6, 20, 27, .25); animation: widgetIn 240ms cubic-bezier(.16, 1, .3, 1) both; }
@@ -194,7 +194,7 @@
   .conversationHeader { min-height: 61px; padding: 8px 9px; }
   .avatar { width: 37px; height: 37px; }
   .identity strong { font-size: 10px; }
-  .availability { font-size: 8px; }
+  .availability { font-size: 11px; }
   .resetButton { width: 35px; padding: 0; }
   .resetButton span { display: none; }
   .messages { gap: 14px; padding: 15px 11px; }
@@ -206,7 +206,7 @@
   .bubble p { font-size: 10px; }
   .composerArea { padding: 8px 9px 7px; }
   .suggestions > span { display: none; }
-  .suggestions button { min-height: 27px; font-size: 8px; }
+  .suggestions button { min-height: 32px; font-size: 11px; }
   .composer textarea { font-size: 10px; }
   .keyboardHint { display: none !important; }
   .widgetBackdrop { z-index: 95; display: flex; align-items: flex-end; background: rgba(6, 20, 27, .46); }

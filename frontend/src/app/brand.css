@@ -354,7 +354,7 @@ body {
 .notification-row-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
 .notification-row strong { font-size: 13px; }
 .notification-row p { margin: 3px 0; color: var(--muted); font-size: 12px; }
-.notification-row small { color: var(--muted-soft); font-size: 10px; }
+.notification-row small { color: var(--muted-soft); font-size: 11px; }
 
 /* Messages */
 .messages-shell {

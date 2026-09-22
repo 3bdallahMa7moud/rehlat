@@ -1297,6 +1297,24 @@ a { color: inherit; text-decoration: none; }
 .task-streak-card-head span { color: var(--muted); font-size: 10px; }
 .task-streak-metrics { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--muted); font-size: 10px; }
 .task-streak-metrics strong { color: var(--ink); }
+
+/* Important compact UI copy stays legible without changing dense admin/report tables. */
+.sidebar-label,
+.account-entry small,
+.notification-popover small,
+.assistant-title span,
+.assistant-message span,
+.morning-group,
+.task-meta,
+.task-finished-copy,
+.completion-options small,
+.honors-member small { font-size: 11px; }
+
+.assistant-suggestions button { min-height: 32px; font-size: 11px; }
+
+@media (max-width: 860px) {
+  .mobile-bottom-nav .shell-nav-link { font-size: 11px; }
+}
 .task-streak-history { display: flex; gap: 4px; min-height: 12px; }
 .task-streak-history .streak-day { width: 12px; height: 12px; flex: 0 0 12px; }
 @media (max-width: 700px) { .task-streak-grid { grid-template-columns: 1fr; } }
