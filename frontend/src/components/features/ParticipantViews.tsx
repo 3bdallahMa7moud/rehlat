@@ -12,13 +12,14 @@ import { QuranBatchReader } from "@/components/features/QuranBatchReader";
 import { PrayerTracker, ReadingTracker, ReviewTracker, SportTracker, WaterTracker } from "@/components/features/TaskTrackers";
 import { getTaskRegistryEntry } from "@/components/tasks/TaskRegistry";
 import { ActivityIcon } from "@/design/activity-visuals";
-import { formatRelativeTime } from "@/lib/date-time";
+import { formatDashboardDate, formatRelativeTime } from "@/lib/date-time";
 import { Badge, Button, Card, Dialog, EmptyState, IconButton, Input, PageHeader, ProgressBar, SectionHeader, StatusBadge, Tabs, UserAvatar } from "@/components/ui";
 import { cn } from "@/lib/cn";
-import { formatDate, formatMinutes, formatPercentage } from "@/lib/format";
+import { formatMinutes, formatPercentage } from "@/lib/format";
 import { exportReport } from "@/lib/export";
+import { PARTIAL_COMPLETION_WEIGHT } from "@/lib/progress";
 import { useDemo } from "@/state/DemoContext";
-import type { Report, TaskType } from "@/types/models";
+import type { Report, TaskStatus, TaskType } from "@/types/models";
 
 const LEVEL_NAMES = ["ناشئ", "صاعد", "بارع", "ماهر", "محترف", "متفوّق", "نخبة", "قائد", "بطل", "أسطوري", "ملحمي", "القمة"] as const;
 
@@ -31,6 +32,22 @@ const activityMeta: Record<TaskType, { title: string; description: string; detai
   water: { title: "الماء", description: "متابعة بسيطة ومتوازنة لأكواب الماء اليومية.", detail: "الأكواب المسجلة" },
   sleep: { title: "النوم", description: "نهاية اليوم الهادئة جزء من استمراريتك.", detail: "ساعات الهدف" },
   general: { title: "مهمة عامة", description: "مساحة مرنة لأي عادة أو هدف شخصي يحتاج متابعة.", detail: "التقدم اليومي" },
+};
+
+const dashboardTaskPriority: Partial<Record<TaskStatus, number>> = {
+  running: 0,
+  paused: 1,
+  partial: 2,
+  not_started: 3,
+  not_completed: 4,
+};
+
+const nextActionCopy: Partial<Record<TaskStatus, string>> = {
+  running: "متابعة المهمة",
+  paused: "استئناف المهمة",
+  partial: "أكمل المهمة",
+  not_completed: "إعادة المحاولة",
+  not_started: "ابدأ المهمة",
 };
 
 function CircleProgress({ value, label }: { value: number; label: string }) {
@@ -63,7 +80,6 @@ export function DashboardView() {
     endDay,
     finishAllTasks,
     progress,
-    reports,
     setTaskStatus,
     startDay,
     tasks,
@@ -74,6 +90,7 @@ export function DashboardView() {
   const [endOpen, setEndOpen] = useState(false);
   const [finishAllOpen, setFinishAllOpen] = useState(false);
   const [showAllMorning, setShowAllMorning] = useState(false);
+  const [progressExplanationOpen, setProgressExplanationOpen] = useState(false);
 
   const dayCopy =
     dayStatus === "not_started"
@@ -82,24 +99,14 @@ export function DashboardView() {
         ? "أغلقت محطات اليوم بنجاح."
         : "كل تقدم صغير هنا له أثره.";
   const morningTasks = tasks.filter((task) => task.group === "morning");
-  const nextTaskPriority: Record<string, number> = {
-    running: 0,
-    paused: 1,
-    partial: 2,
-    not_started: 3,
-    not_completed: 4,
-  };
-  const nextTask = [...tasks]
-    .filter((task) => task.status in nextTaskPriority)
-    .sort((first, second) => nextTaskPriority[first.status] - nextTaskPriority[second.status])[0];
+  const actionableTasks = [...tasks]
+    .filter((task) => task.status in dashboardTaskPriority)
+    .sort((first, second) => (dashboardTaskPriority[first.status] ?? Number.MAX_SAFE_INTEGER) - (dashboardTaskPriority[second.status] ?? Number.MAX_SAFE_INTEGER));
+  const nextTask = actionableTasks[0];
+  const todayTaskPreview = actionableTasks.filter((task) => task.group !== "morning").slice(0, 4);
   const nextTaskProgress = nextTask?.target
     ? Math.min(100, Math.round((nextTask.current / nextTask.target) * 100))
     : 0;
-  const weeklyDelta = Math.round(progress.percent - reports.weekly.averageProgress);
-  const weeklyComparison =
-    weeklyDelta === 0
-      ? "مثل متوسط الأسبوع"
-      : Math.abs(weeklyDelta) + "% " + (weeklyDelta > 0 ? "أعلى من الأسبوع" : "أقل من الأسبوع");
   const alertCopy =
     dayStatus === "complete"
       ? {
@@ -114,9 +121,9 @@ export function DashboardView() {
             body: nextTask ? "مهمة «" + nextTask.title + "» هي أفضل نقطة بداية الآن." : "ابدأ يومك وحدد أول محطة.",
           }
         : {
-            tone: "warning",
-            title: "السلسلة تحتاج مهمة واحدة",
-            body: "أنهِ محطة واحدة لتحافظ على سلسلة " + streakData.current + " يومًا.",
+            tone: "primary",
+            title: "واصل بخطوة واحدة",
+            body: "كل محطة تنجزها تقرّبك من إكمال رحلة اليوم.",
           };
 
   const startNextTask = () => {
@@ -127,7 +134,7 @@ export function DashboardView() {
 
   return <div className={cn("dashboard-page", "dashboard-" + dayStatus)}>
     <PageHeader
-      eyebrow={formatDate()}
+      eyebrow={formatDashboardDate()}
       title="رحلة اليوم"
       description={"أهلًا " + activeParticipant.name + "، " + dayCopy}
       actions={<div className="dashboard-header-actions">
@@ -160,15 +167,13 @@ export function DashboardView() {
             : "بقي لك " + progress.remaining + " مهام، وحققت " + progress.partial + " تقدمًا جزئيًا. اختر محطة واحدة فقط الآن."}
         </p>
       </div>
-      <CircleProgress value={progress.percent} label="تقدم اليوم" />
+      <div className="journey-progress">
+        <CircleProgress value={progress.percent} label="تقدم اليوم" />
+        <button type="button" className="progress-explainer" onClick={() => setProgressExplanationOpen(true)}>كيف تُحسب النسبة؟</button>
+      </div>
       <div className="journey-facts">
         <div><Timer size={20} /><span>الوقت الفعلي</span><strong>{formatMinutes(progress.actualMinutes)}</strong></div>
         <div><Flame size={20} /><span>السلسلة الحالية</span><strong>{streakData.current} يومًا</strong></div>
-        <div className={cn("weekly-comparison", weeklyDelta >= 0 ? "comparison-up" : "comparison-down")}>
-          {weeklyDelta >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
-          <span>مقارنة بالأسبوع</span>
-          <strong>{weeklyComparison}</strong>
-        </div>
       </div>
     </section>
 
@@ -189,15 +194,15 @@ export function DashboardView() {
         <ProgressBar value={nextTaskProgress} tone="teal" />
         <div className="next-action-footer">
           <Link href={"/tasks/" + nextTask.id} className="section-link">عرض التفاصيل <ArrowLeft size={16} /></Link>
-          <Button size="sm" onClick={startNextTask}><Play size={16} />{nextTask.status === "running" ? "متابعة المهمة" : "ابدأ الآن"}</Button>
+          <Button size="sm" onClick={startNextTask}><Play size={16} />{nextActionCopy[nextTask.status] ?? "ابدأ المهمة"}</Button>
         </div>
       </Card>}
 
       <Card className={cn("dynamic-alert-card", "dynamic-alert-" + alertCopy.tone)}>
         <span className="dynamic-alert-icon">
-          {alertCopy.tone === "success" ? <CircleCheck size={23} /> : alertCopy.tone === "warning" ? <TriangleAlert size={23} /> : <Sparkles size={23} />}
+          {alertCopy.tone === "success" ? <CircleCheck size={23} /> : <Sparkles size={23} />}
         </span>
-        <div><Badge tone={alertCopy.tone === "success" ? "success" : alertCopy.tone === "warning" ? "warning" : "primary"}>توجيه اليوم</Badge><h3>{alertCopy.title}</h3><p>{alertCopy.body}</p></div>
+        <div><Badge tone={alertCopy.tone === "success" ? "success" : "primary"}>توجيه اليوم</Badge><h3>{alertCopy.title}</h3><p>{alertCopy.body}</p></div>
       </Card>
     </div>
 
@@ -205,7 +210,17 @@ export function DashboardView() {
       <span className="day-complete-icon"><Award size={30} /></span>
       <div><p className="eyebrow">اكتمل اليوم</p><h2>خطواتك محفوظة، والرحلة مستمرة.</h2><p>أنجزت {progress.completed} من {progress.total} مهام خلال {formatMinutes(progress.actualMinutes)} وحافظت على سلسلة {streakData.current} يومًا.</p></div>
       <Link href="/history"><Button variant="outline">فتح سجل اليوم <ArrowLeft size={17} /></Button></Link>
-    </section> : <section className="dashboard-section">
+    </section> : <>
+      <section className="dashboard-section dashboard-tasks-preview">
+        <SectionHeader
+          title="مهام اليوم"
+          description="اختر محطتك التالية من أبرز المهام المتبقية."
+          action={<Link href="/tasks" className="section-link">عرض كل المهام <ArrowLeft size={16} /></Link>}
+        />
+        {todayTaskPreview.length ? <div className="dashboard-task-preview-grid">{todayTaskPreview.map((task) => <TaskCard task={task} compact key={task.id} />)}</div> : <EmptyState title="لا توجد مهام إضافية لليوم." description="تظهر مهام مجموعة الصباح بشكل مستقل أدناه." />}
+      </section>
+
+      <section className="dashboard-section">
       <SectionHeader
         title="مجموعة الصباح"
         description="روتين بداية اليوم مرتب في محطات قصيرة وواضحة."
@@ -218,7 +233,8 @@ export function DashboardView() {
         {showAllMorning ? "عرض أقل" : "عرض " + (morningTasks.length - 2) + " مهام أخرى"}
         <ChevronLeft size={16} className={cn(showAllMorning && "morning-more-open")} />
       </button>}
-    </section>}
+      </section>
+    </>}
 
     <section className="routine-shortcuts"><Link href="/tasks/adhkar" className="routine-shortcut routine-wake"><Sparkles size={20} /><span><strong>زر الاستيقاظ</strong><small>ابدأ أذكار الصباح والاستيقاظ</small></span><ArrowLeft size={17} /></Link><Link href="/tasks/adhkar-evening" className="routine-shortcut routine-sleep"><Moon size={20} /><span><strong>زر النوم</strong><small>افتح أذكار المساء وما قبل النوم</small></span><ArrowLeft size={17} /></Link></section>
 
@@ -239,6 +255,13 @@ export function DashboardView() {
     </Dialog>
     <Dialog open={finishAllOpen} onClose={() => setFinishAllOpen(false)} title="إنهاء كل المهام؟" description="سيتم تسجيل كل المهام المتبقية كإنجاز كامل وحفظها في سجل اليوم." footer={<><Button variant="outline" onClick={() => setFinishAllOpen(false)}>إلغاء</Button><Button onClick={() => { finishAllTasks(); setFinishAllOpen(false); }}>تأكيد الإنهاء</Button></>}>
       <div className="confirm-summary"><CircleCheck size={22} /><p>هذا الإجراء يحدّث {progress.remaining} مهام دفعة واحدة، ويمكنك مراجعة النتائج من صفحة المهام.</p></div>
+    </Dialog>
+    <Dialog open={progressExplanationOpen} onClose={() => setProgressExplanationOpen(false)} title="كيف تُحسب النسبة؟" description="يعتمد تقدم رحلة اليوم على نتيجة كل مهمة مسجلة.">
+      <ul className="progress-explanation-list">
+        <li><strong>إنجاز كامل</strong><span>100%</span></li>
+        <li><strong>إنجاز جزئي</strong><span>{formatPercentage(PARTIAL_COMPLETION_WEIGHT * 100)}</span></li>
+        <li><strong>غير منجز</strong><span>0%</span></li>
+      </ul>
     </Dialog>
   </div>;
 }

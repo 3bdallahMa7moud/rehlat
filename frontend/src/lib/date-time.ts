@@ -32,6 +32,16 @@ export function formatProjectDate(value: DateInput, options: Intl.DateTimeFormat
   return new Intl.DateTimeFormat("ar-EG", { timeZone: PROJECT_TIMEZONE, day: "numeric", month: "long", hour: "numeric", minute: "2-digit", ...options }).format(asDate(value));
 }
 
+/** A date-only label for the dashboard, aligned with the project's daily records. */
+export function formatDashboardDate(value: DateInput = getProjectNow()): string {
+  return new Intl.DateTimeFormat("ar-SA", {
+    timeZone: PROJECT_TIMEZONE,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(asDate(value));
+}
+
 export function formatRelativeTime(value: DateInput, now: DateInput = getProjectNow()): string {
   const date = asDate(value); const current = asDate(now);
   const deltaSeconds = Math.max(0, Math.floor((current.getTime() - date.getTime()) / 1000));
