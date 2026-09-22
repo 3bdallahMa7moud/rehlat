@@ -1346,3 +1346,13 @@ a { color: inherit; text-decoration: none; }
 .task-streak-history { display: flex; gap: 4px; min-height: 12px; }
 .task-streak-history .streak-day { width: 12px; height: 12px; flex: 0 0 12px; }
 @media (max-width: 700px) { .task-streak-grid { grid-template-columns: 1fr; } }
+
+/* Phase 5 — compact, composable task filters. */
+.tasks-filter-section { display: grid; gap: 11px; margin-bottom: 18px; }
+.tasks-filter-section .tasks-toolbar { margin-bottom: 0; }
+.task-category-filters { display: flex; gap: 8px; overflow-x: auto; overscroll-behavior-inline: contain; padding: 2px 1px 6px; scrollbar-width: thin; }
+.task-category-chip { min-height: 36px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); padding: 7px 12px; font: inherit; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.task-category-chip:hover, .task-category-chip:focus-visible { border-color: var(--teal); color: var(--teal-strong); outline: none; }
+.task-category-chip-active { border-color: var(--teal); background: var(--mint-soft); color: var(--teal-strong); box-shadow: inset 0 0 0 1px var(--teal); }
+.task-card-footer .button { min-height: 40px; }
+@media (max-width: 700px) { .tasks-filter-section .tabs { overflow-x: auto; max-width: 100%; } .task-category-filters { margin-inline: -2px; } .task-card-footer .button, .task-card-footer .icon-button { min-height: 44px; } .activity-layout { grid-template-columns: 1fr; } .activity-support-grid { grid-template-columns: 1fr; } }

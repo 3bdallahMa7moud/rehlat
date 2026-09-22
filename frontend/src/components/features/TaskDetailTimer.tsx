@@ -40,8 +40,8 @@ export function TaskDetailTimer({ task }: { task: Task }) {
   const completed = details.filter((detail) => detail.status === "completed").length;
 
   return <Card className="task-detail-timer-card">
-    <SectionHeader title="تفاصيل المهمة والوقت" description="كل تفصيل له مؤقت وحالة ونقاط مستقلة." />
-    <div className="task-detail-timer-summary"><strong>{formatDuration(totalSeconds)}</strong><span>{completed} من {details.length} تفاصيل مكتملة</span></div>
+    <SectionHeader title="وقت المهمة" description={details.length ? "الوقت الحالي للتفاصيل والوقت التراكمي محفوظان من التوقيت الحالي." : "هذا هو الوقت الإجمالي المحفوظ للمهمة."} />
+    <div className="task-detail-timer-summary"><strong dir="ltr">{formatDuration(totalSeconds)}</strong><span>{details.length ? `${completed} من ${details.length} تفاصيل مكتملة` : "الوقت الإجمالي المحفوظ"}</span></div>
     <div className="task-detail-timer-list">
       {details.map((detail) => {
         const elapsed = getTaskDetailElapsedSeconds(detail);

@@ -9,6 +9,7 @@ import { createActivityEvent } from "../src/domain/activity/activity-factory.ts"
 import { createNotification } from "../src/domain/notifications/notification-factory.ts";
 import { cancelFocusTimer, createFocusTimer, finishFocusTimer, pauseFocusTimer, resumeFocusTimer, startFocusTimer } from "../src/domain/focus/focus-domain.ts";
 import { completeTaskOutcome, deriveDayStatus, transitionTaskDetail, transitionTaskStatus, updateMeasuredTaskProgress } from "../src/domain/tasks/task-domain.ts";
+import { filterTasks, getTaskPrimaryAction } from "../src/domain/tasks/task-presentation.ts";
 import { addParticipant, changeParticipantRole, deleteParticipant, renameParticipant, setParticipantPin } from "../src/domain/participants/participant-domain.ts";
 import { MockAIAdapter } from "../src/data/ai/mock-ai-adapter.ts";
 
@@ -20,6 +21,19 @@ assert.equal(getTaskEarnedPoints(task("completed")), 10);
 assert.equal(getTaskEarnedPoints(task("partial")), 5);
 assert.equal(getTaskEarnedPoints(task("not_completed")), 0);
 assert.equal(getTaskPartialPoints(task("partial", { fullPoints: 11 })), 5.5);
+assert.equal(getTaskPrimaryAction("not_started"), "ابدأ المهمة");
+assert.equal(getTaskPrimaryAction("running"), "متابعة المهمة");
+assert.equal(getTaskPrimaryAction("closed"), "عرض التفاصيل");
+const filteredTasks = [
+  task("running", { id: "faith-morning", category: "faith", group: "morning" }),
+  task("paused", { id: "health", category: "health" }),
+  task("completed", { id: "faith-done", category: "faith", group: "morning" }),
+];
+assert.deepEqual(filterTasks(filteredTasks, "morning", "faith").map((item) => item.id), ["faith-morning", "faith-done"]);
+assert.deepEqual(filterTasks(filteredTasks, "active", "health").map((item) => item.id), ["health"]);
+const timedOutcome = task("running", { actualMinutes: 12 });
+assert.equal(completeTaskOutcome(timedOutcome, "not_completed")?.actualMinutes, 12);
+assert.equal(completeTaskOutcome(timedOutcome, "closed")?.actualMinutes, 12);
 
 const startedAt = "2026-09-22T10:00:00.000Z";
 assert.equal(getTaskDetailElapsedSeconds({ elapsedSeconds: 30, status: "running", lastStartedAt: startedAt }, Date.parse("2026-09-22T10:02:00.000Z")), 150);

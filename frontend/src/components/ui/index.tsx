@@ -27,7 +27,7 @@ export function Card({ children, className, padding = "md", ...props }: { childr
   return <section className={cn("app-card", `card-padding-${padding}`, className)} {...props}>{children}</section>;
 }
 
-const badgeLabels = { not_started: "لم يبدأ", running: "قيد التنفيذ", paused: "متوقف مؤقتًا", completed: "مكتملة", partial: "إنجاز جزئي", not_completed: "لم ينجز", closed: "مغلقة", not_started_day: "لم يبدأ", started: "بدأ اليوم", in_progress: "جارٍ الإنجاز", almost_complete: "شبه مكتمل", complete: "مكتمل" };
+const badgeLabels = { not_started: "لم تبدأ", running: "قيد التنفيذ", paused: "متوقفة مؤقتًا", completed: "مكتملة", partial: "إنجاز جزئي", not_completed: "لم تُنجز", closed: "أُغلقت بدون إنجاز", not_started_day: "لم يبدأ", started: "بدأ اليوم", in_progress: "جارٍ الإنجاز", almost_complete: "شبه مكتمل", complete: "مكتمل" };
 export function Badge({ tone = "neutral", children, className }: { tone?: "neutral" | "primary" | "teal" | "success" | "warning" | "danger"; children: ReactNode; className?: string }) { return <span className={cn("badge", `badge-${tone}`, className)}>{children}</span>; }
 export function StatusBadge({ status }: { status: keyof typeof badgeLabels }) { const tone = status === "completed" || status === "complete" ? "success" : status === "paused" || status === "almost_complete" ? "warning" : status === "running" || status === "in_progress" || status === "started" ? "primary" : status === "not_completed" ? "neutral" : "neutral"; return <Badge tone={tone}>{badgeLabels[status]}</Badge>; }
 
@@ -39,7 +39,7 @@ export function StatusDot({ status, label }: { status: PresenceStatus; label?: s
 
 export function Tooltip({ content, children }: { content: string; children: ReactNode }) { return <span className="tooltip-wrap" data-tooltip={content}>{children}</span>; }
 
-export function ProgressBar({ value, tone = "primary", className }: { value: number; tone?: "primary" | "teal" | "success" | "warning"; className?: string }) { return <div className={cn("progress-track", className)} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value)}><span className={cn("progress-fill", `progress-${tone}`)} style={{ width: `${Math.max(0, Math.min(100, value))}%` }} /></div>; }
+export function ProgressBar({ value, tone = "primary", className }: { value: number; tone?: "primary" | "teal" | "success" | "warning"; className?: string }) { const percent = Math.max(0, Math.min(100, Math.round(value))); return <div className={cn("progress-track", className)} role="progressbar" aria-label={`التقدم ${percent}%`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-valuetext={`${percent}%`}><span className={cn("progress-fill", `progress-${tone}`)} style={{ width: `${percent}%` }} /></div>; }
 
 export function SectionHeader({ title, description, action }: { title: string; description?: string; action?: ReactNode }) { return <div className="section-header"><div><h2>{title}</h2>{description && <p>{description}</p>}</div>{action}</div>; }
 export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?: string; title: string; description?: string; actions?: ReactNode }) { return <header className="page-header"><div>{eyebrow && <p className="eyebrow">{eyebrow}</p>}<h1>{title}</h1>{description && <p className="page-description">{description}</p>}</div>{actions && <div className="page-actions">{actions}</div>}</header>; }
@@ -56,6 +56,13 @@ export function Dialog({ open, onClose, title, description, children, footer }: 
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
+      if (event.key !== "Tab" || !panelRef.current) return;
+      const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>("button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])"));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
 
     document.body.style.overflow = "hidden";
