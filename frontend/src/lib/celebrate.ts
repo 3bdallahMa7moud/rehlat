@@ -4,7 +4,7 @@ export async function celebrate(kind: "task" | "day" = "task") {
   if (document.documentElement.classList.contains("reduce-motion")) return;
 
   const { default: confetti } = await import("canvas-confetti");
-  const colors = ["#542071", "#58CFC6", "#203063", "#FFFFFF"];
+  const colors = ["#163B50", "#2FAFA3", "#E9A93B", "#F7FBFA"];
 
   confetti({
     particleCount: kind === "day" ? 150 : 85,

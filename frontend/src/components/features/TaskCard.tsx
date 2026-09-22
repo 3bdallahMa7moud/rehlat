@@ -1,10 +1,10 @@
 "use client";
 
-import { BookOpen, CircleCheck, CircleDashed, CircleMinus, CircleX, Clock3, Droplets, Dumbbell, Moon, Pause, Play, Sparkles, Timer, type LucideIcon } from "lucide-react";
+import { CircleCheck, CircleDashed, CircleMinus, CircleX, Clock3, Play, Sparkles, Timer } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AppIcon } from "@/components/ui/AppIcon";
+import { ActivityIcon } from "@/design/activity-visuals";
 import { Badge, Button, Card, Dialog, IconButton, ProgressBar, StatusBadge } from "@/components/ui";
 import { celebrate } from "@/lib/celebrate";
 import { playJourneySound } from "@/lib/sound";
@@ -38,21 +38,8 @@ const categoryTone: Record<TaskCategory, "primary" | "teal" | "warning" | "succe
   character: "primary",
 };
 
-const typeIcons: Record<Task["type"], LucideIcon | "mosque" | "quran"> = {
-  prayer: "mosque",
-  quran: "quran",
-  adhkar: Sparkles,
-  reading: BookOpen,
-  sport: Dumbbell,
-  water: Droplets,
-  sleep: Moon,
-  general: CircleDashed,
-};
-
 export function TaskGlyph({ task, size = 22 }: { task: Task; size?: number }) {
-  const Icon = typeIcons[task.type];
-  if (Icon === "mosque" || Icon === "quran") return <AppIcon name={Icon} size={size} />;
-  return <Icon size={size} />;
+  return <ActivityIcon type={task.type} size={size} />;
 }
 
 function StatusGlyph({ status }: { status: TaskStatus }) {

@@ -61,7 +61,7 @@
 .settings-security-heading strong, .settings-security-heading p { display: block; margin: 0; }
 .settings-security-heading p { margin-top: 4px; color: var(--muted); font-size: 11px; }
 .settings-pin-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.field-error { margin: 0; color: var(--danger, #b42318); font-size: 11px; }
+.field-error { margin: 0; color: var(--danger); font-size: 11px; }
 .admin-overview-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
 .admin-overview-grid .card { display: grid; gap: 6px; }
 .admin-overview-grid strong { font-size: 28px; }
