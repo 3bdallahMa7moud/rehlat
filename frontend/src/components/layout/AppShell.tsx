@@ -38,6 +38,7 @@ import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Badge, IconButton, LoadingState, StatusDot, ToastViewport, Tooltip, UserAvatar } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { useDemo } from "@/state/DemoContext";
+import { formatRelativeTime } from "@/lib/date-time";
 import { useTheme } from "@/state/ThemeContext";
 import type { NotificationKind } from "@/types/models";
 
@@ -170,7 +171,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div><strong>الإشعارات</strong><Badge tone="teal">{notifications.length} إشعارات</Badge></div>
               {notifications.length ? notifications.slice(0, 3).map((notification) => <article key={notification.id}>
                 <span className={cn("notice-icon", `notice-${notification.kind}`)}><NoticeGlyph kind={notification.kind} /></span>
-                <div><strong>{notification.title}</strong><p>{notification.body}</p><small>{notification.time}</small></div>
+                <div><strong>{notification.title}</strong><p>{notification.body}</p><small>{formatRelativeTime(notification.createdAt)}</small></div>
                 <IconButton label="إغلاق الإشعار" onClick={() => dismissNotification(notification.id)}><X size={16} /></IconButton>
               </article>) : <p className="notification-popover-empty">لا توجد إشعارات جديدة.</p>}
               <Link href="/notifications" className="notification-popover-link" onClick={() => setNotificationsOpen(false)}>عرض مركز الإشعارات</Link>

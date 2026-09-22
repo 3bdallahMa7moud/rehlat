@@ -1,5 +1,6 @@
 import type { StreakDay } from "@/types/models";
-import { DEFAULT_SUCCESS_THRESHOLD, clamp } from "./progress";
+import { DEFAULT_SUCCESS_THRESHOLD, clamp } from "./progress.ts";
+import { getProjectDateKey } from "./date-time.ts";
 
 export type StreakStatus = "successful" | "partial" | "unsuccessful" | "today" | "future";
 
@@ -51,13 +52,7 @@ interface NormalizedRecord {
 }
 
 function dateKey(value: string | Date | undefined) {
-  if (value instanceof Date) {
-    if (Number.isNaN(value.getTime())) return undefined;
-    const year = value.getFullYear();
-    const month = String(value.getMonth() + 1).padStart(2, "0");
-    const day = String(value.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  }
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? undefined : getProjectDateKey(value);
   if (typeof value !== "string" || !value.trim()) return undefined;
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value.trim();
@@ -65,7 +60,7 @@ function dateKey(value: string | Date | undefined) {
   // key from the supplied components to avoid a day shift in negative offsets.
   const dateOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (dateOnly) return `${dateOnly[1]}-${dateOnly[2]}-${dateOnly[3]}`;
-  return dateKey(parsed);
+  return getProjectDateKey(parsed);
 }
 
 function localTodayKey(today: Date | string | undefined) {
@@ -73,7 +68,7 @@ function localTodayKey(today: Date | string | undefined) {
 }
 
 function parseTimestamp(key: string) {
-  const parsed = new Date(`${key}T00:00:00`);
+  const parsed = new Date(`${key}T00:00:00.000Z`);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed.getTime();
 }
 

@@ -12,6 +12,7 @@ import { QuranBatchReader } from "@/components/features/QuranBatchReader";
 import { PrayerTracker, ReadingTracker, ReviewTracker, SportTracker, WaterTracker } from "@/components/features/TaskTrackers";
 import { getTaskRegistryEntry } from "@/components/tasks/TaskRegistry";
 import { AppIcon } from "@/components/ui/AppIcon";
+import { formatRelativeTime } from "@/lib/date-time";
 import { Badge, Button, Card, Dialog, EmptyState, IconButton, Input, PageHeader, ProgressBar, SectionHeader, StatusBadge, Tabs, UserAvatar } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { formatDate, formatMinutes, formatPercentage } from "@/lib/format";
@@ -40,7 +41,7 @@ function CircleProgress({ value, label }: { value: number; label: string }) {
 
 function ActivityRows({ limit }: { limit?: number }) {
   const { activity } = useDemo();
-  return <div className="activity-list">{activity.slice(0, limit).map((event) => <article className="activity-row" key={event.id}><UserAvatar initials={event.initials} color={event.avatarColor} size="sm" /><div><p><strong>{event.participantName}</strong> {event.action} {event.task && <span>{event.task}</span>}</p><small>{event.time}</small></div><span className={cn("activity-state", `activity-${event.kind}`)} /></article>)}</div>;
+  return <div className="activity-list">{activity.slice(0, limit).map((event) => <article className="activity-row" key={event.id}><UserAvatar initials={event.initials} color={event.avatarColor} size="sm" /><div><p><strong>{event.participantName}</strong> {event.action} {event.task && <span>{event.task}</span>}</p><small>{formatRelativeTime(event.createdAt)}</small></div><span className={cn("activity-state", `activity-${event.kind}`)} /></article>)}</div>;
 }
 
 function OnlineRows() {
@@ -229,7 +230,7 @@ export function DashboardView() {
       <div className="dashboard-stack">
         <MotivationCard />
         <Card><SectionHeader title="الترتيب اليوم" action={<Link href="/competition" className="section-link">المزيد <ArrowLeft size={16} /></Link>} /><div className="ranking-mini">{rankings.slice(0, 3).map((entry) => <div key={entry.participantId}><span className={cn("rank-chip", entry.rank < 4 && "rank-" + entry.rank)}>{entry.rank}</span><UserAvatar initials={entry.initials} color={entry.avatarColor} size="sm" /><strong>{entry.name}</strong><span>{entry.score} نقطة</span></div>)}</div></Card>
-        <Card><SectionHeader title="رسائل تشجيع" action={<MessageCircle size={18} className="text-[var(--primary)]" />} /><div className="encouragement-list">{encouragements.map((message) => <article key={message.id}><UserAvatar initials={message.initials} color={message.avatarColor} size="sm" /><div><strong>{message.sender}</strong><p>{message.message}</p><small>{message.time}</small></div></article>)}</div></Card>
+        <Card><SectionHeader title="رسائل تشجيع" action={<MessageCircle size={18} className="text-[var(--primary)]" />} /><div className="encouragement-list">{encouragements.map((message) => <article key={message.id}><UserAvatar initials={message.initials} color={message.avatarColor} size="sm" /><div><strong>{message.sender}</strong><p>{message.message}</p><small>{formatRelativeTime(message.createdAt)}</small></div></article>)}</div></Card>
       </div>
     </div>
 

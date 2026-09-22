@@ -18,7 +18,7 @@ import type {
  */
 
 export const JOURNEY_STORAGE_KEY = "journey-of-change/state";
-export const JOURNEY_STORAGE_VERSION = 1;
+export const JOURNEY_STORAGE_VERSION = 2;
 
 export type ISODateTime = string;
 
@@ -419,6 +419,19 @@ const journeyMigrations: Record<number, StorageMigration> = {
       ...source,
       settings: { ...defaults.settings, ...(isRecord(source.settings) ? source.settings : {}) },
       session: { ...defaults.session, ...(isRecord(source.session) ? source.session : {}) },
+    };
+  },
+  2: (value) => {
+    const source = isRecord(value) ? value : {};
+    const migratedAt = new Date().toISOString();
+    const withCreatedAt = (items: unknown) => Array.isArray(items)
+      ? items.map((item) => isRecord(item) ? { ...item, createdAt: typeof item.createdAt === "string" ? item.createdAt : migratedAt } : item)
+      : [];
+    return {
+      ...source,
+      activity: withCreatedAt(source.activity),
+      notifications: withCreatedAt(source.notifications),
+      messages: withCreatedAt(source.messages),
     };
   },
 };

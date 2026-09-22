@@ -5,6 +5,7 @@ import { Bell, Check, CircleCheck, Info, LockKeyhole, LogOut, MessageCircle, Moo
 import { useRouter } from "next/navigation";
 import { Badge, Button, EmptyState, IconButton, Input, PageHeader, Tabs, UserAvatar } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { formatRelativeTime } from "@/lib/date-time";
 import { useDemo } from "@/state/DemoContext";
 import { useTheme } from "@/state/ThemeContext";
 import type { AppNotification } from "@/types/models";
@@ -39,7 +40,7 @@ export function NotificationsView() {
     <div className="utility-toolbar"><Tabs value={filter} onValueChange={setFilter} tabs={[{ value: "all", label: "الكل" }, { value: "unread", label: "غير المقروء" }, { value: "important", label: "المهم" }]} /></div>
     {shown.length ? <section className="notification-center" aria-live="polite">{shown.map((notification) => <article className={cn("notification-row", !notification.read && "notification-unread", notification.persistent && "notification-persistent")} key={notification.id}>
       <span className={cn("notification-glyph", `notification-${notification.kind}`)}><NotificationGlyph kind={notification.kind} /></span>
-      <div><div className="notification-row-heading"><strong>{notification.title}</strong>{notification.persistent && <Badge tone="warning">مهم</Badge>}</div><p>{notification.body}</p><small>{notification.time}</small></div>
+      <div><div className="notification-row-heading"><strong>{notification.title}</strong>{notification.persistent && <Badge tone="warning">مهم</Badge>}</div><p>{notification.body}</p><small>{formatRelativeTime(notification.createdAt)}</small></div>
       <IconButton label={`إغلاق إشعار ${notification.title}`} onClick={() => dismissNotification(notification.id)}><X size={18} /></IconButton>
     </article>)}</section> : <EmptyState title="لا توجد إشعارات ضمن هذا العرض." description="ستظهر هنا التحديثات الجديدة والتنبيهات المهمة." />}
   </>;
@@ -71,11 +72,11 @@ export function MessagesView() {
         {visibleMessages.map((message) => <button type="button" className={cn("message-preview", selected?.id === message.id && "message-preview-active")} key={message.id} onClick={() => setSelectedId(message.id)}>
           <UserAvatar initials={message.initials} color={message.avatarColor} size="md" />
           <span><strong>{message.sender}</strong><small>{message.message}</small></span>
-          <time>{message.time}</time>
+          <time>{formatRelativeTime(message.createdAt)}</time>
         </button>)}
       </div>
       {selected ? <article className="message-detail">
-        <header><UserAvatar initials={selected.initials} color={selected.avatarColor} size="lg" /><div><span>رسالة تشجيع من</span><h2>{selected.sender}</h2><time>{selected.time}</time></div><span className="message-spark"><Sparkles size={22} /></span><IconButton label="حذف الرسالة من العرض" onClick={() => { if (selected) setRemovedIds((ids) => [...ids, selected.id]); }}><X size={17} /></IconButton></header>
+        <header><UserAvatar initials={selected.initials} color={selected.avatarColor} size="lg" /><div><span>رسالة تشجيع من</span><h2>{selected.sender}</h2><time>{formatRelativeTime(selected.createdAt)}</time></div><span className="message-spark"><Sparkles size={22} /></span><IconButton label="حذف الرسالة من العرض" onClick={() => { if (selected) setRemovedIds((ids) => [...ids, selected.id]); }}><X size={17} /></IconButton></header>
         <blockquote>{selected.message}</blockquote>
         <div className="message-reply"><label htmlFor="encouragement-reply">رد قصير</label><div><textarea id="encouragement-reply" className="input" rows={3} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="اكتب ردًا لطيفًا..." /><Button onClick={sendReply} disabled={!reply.trim()}><Send size={17} />إرسال الرد</Button></div></div>
       </article> : <EmptyState title="لا توجد رسائل حتى الآن." />}

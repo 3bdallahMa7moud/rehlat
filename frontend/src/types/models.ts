@@ -93,7 +93,7 @@ export interface ActivityEvent {
   avatarColor: Participant["avatarColor"];
   action: string;
   task: string;
-  time: string;
+  createdAt: string;
   kind: "started" | "completed" | "paused" | "joined";
 }
 
@@ -102,7 +102,7 @@ export interface AppNotification {
   kind: NotificationKind;
   title: string;
   body: string;
-  time: string;
+  createdAt: string;
   persistent?: boolean;
   read?: boolean;
 }
@@ -160,7 +160,7 @@ export interface EncouragementMessage {
   initials: string;
   avatarColor: Participant["avatarColor"];
   message: string;
-  time: string;
+  createdAt: string;
 }
 
 export interface AIMessage {

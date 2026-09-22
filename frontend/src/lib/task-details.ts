@@ -1,5 +1,6 @@
 import type { Task, TaskDetail, TaskStatus, TaskType } from "@/types/models";
-import { getTaskFullPoints, withTaskPoints } from "@/lib/points";
+import { getTaskFullPoints, withTaskPoints } from "./points.ts";
+import { PARTIAL_COMPLETION_WEIGHT } from "./progress.ts";
 
 const PRAYER_DETAILS = ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"];
 
@@ -59,8 +60,7 @@ export function getTaskElapsedSeconds(task: Pick<Task, "detailItems" | "actualMi
 export function getTaskDetailEarnedPoints(detail: Pick<TaskDetail, "fullPoints" | "status" | "target" | "current">) {
   if (detail.status === "completed") return Math.max(0, detail.fullPoints);
   if (detail.status !== "partial") return 0;
-  if (detail.target <= 0) return Math.round(detail.fullPoints * 0.5);
-  return Math.min(detail.fullPoints, Math.round(detail.fullPoints * Math.max(0, Math.min(1, detail.current / detail.target))));
+  return Math.max(0, detail.fullPoints) * PARTIAL_COMPLETION_WEIGHT;
 }
 
 export function getDetailsEarnedPoints(task: Pick<Task, "detailItems">) {

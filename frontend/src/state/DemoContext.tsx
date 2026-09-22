@@ -12,6 +12,15 @@ import { calculateStreakFromProgress } from "@/lib/streak";
 import { getTaskEarnedPoints } from "@/lib/points";
 import { getTaskDetailElapsedSeconds, getTaskElapsedSeconds, normalizeTask } from "@/lib/task-details";
 import { calculateTaskStreaks, getGeneralStreakTitle, type StreakTitle, type TaskStreakEntry } from "@/lib/task-streaks";
+import { getProjectDateKey, getProjectTimestamp } from "@/lib/date-time";
+import { createLocalId } from "@/data/local-id";
+import { verifyLocalPin } from "@/features/auth/local-auth";
+import { createActivityEvent } from "@/domain/activity/activity-factory";
+import { createNotification } from "@/domain/notifications/notification-factory";
+import { changeParticipantRole, setParticipantPin as setParticipantPinInList } from "@/domain/participants/participant-domain";
+import { cancelFocusTimer, chooseFocusDuration as chooseFocusTimerDuration, createFocusTimer, finishFocusTimer, getFocusElapsedSeconds, pauseFocusTimer, resumeFocusTimer, startFocusTimer } from "@/domain/focus/focus-domain";
+import { completeAllTasks, completeTaskOutcome, deriveDayStatus, transitionTaskDetail, transitionTaskStatus, updateMeasuredTaskProgress } from "@/domain/tasks/task-domain";
+import { mockAIAdapter } from "@/data/ai/mock-ai-adapter";
 
 type CompletionOutcome = "completed" | "partial" | "not_completed" | "closed";
 type ToastTone = "success" | "warning" | "info" | "error";
@@ -159,12 +168,10 @@ function createToastId() {
   return `toast-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function localDate(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function nowIso() { return new Date().toISOString(); }
-function createLocalId(prefix: string) { return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`; }
+function localDate(date = new Date()) { return getProjectDateKey(date); }
+function nowIso() { return getProjectTimestamp(); }
+function defaultFocus(userId: string, date: string) { return createFocusTimer(userId, date, nowIso()); }
+const focusElapsed = getFocusElapsedSeconds;
 
 const AI_HISTORY_KEY = "joc-ai-history-v1";
 
@@ -217,21 +224,6 @@ function applyRecords(definitions: Task[], records: DailyTaskRecord[]) {
   });
 }
 
-function deriveDayStatus(tasks: Task[]): DayStatus {
-  if (!tasks.length || tasks.every((task) => task.status === "not_started")) return "not_started";
-  const finished = tasks.every((task) => ["completed", "partial", "not_completed", "closed"].includes(task.status));
-  if (finished) return "complete";
-  return tasks.some((task) => ["running", "paused"].includes(task.status)) ? "in_progress" : "started";
-}
-
-function focusElapsed(timer: FocusTimerSnapshot, at = Date.now()) {
-  if (timer.status !== "running" || !timer.startedAt) return timer.elapsedSeconds;
-  return Math.min(timer.durationSeconds, timer.elapsedSeconds + Math.max(0, Math.floor((at - new Date(timer.startedAt).getTime()) / 1000)));
-}
-
-function defaultFocus(userId: string, date: string): FocusTimerSnapshot {
-  return { id: `focus-${userId}-${date}`, userId, localDate: date, durationSeconds: 25 * 60, elapsedSeconds: 0, status: "idle", updatedAt: nowIso() };
-}
 
 function emptyJourneySnapshot(): JourneyPersistedState {
   return {
@@ -565,17 +557,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const recordActivity = (kind: ActivityEvent["kind"], action: string, taskTitle = "") => {
     const participant = participants.find((item) => item.id === activeParticipantId);
     if (!participant) return;
-    const event: ActivityEvent = {
-      id: createLocalId("activity"),
-      participantId: participant.id,
-      participantName: participant.name,
-      initials: participant.initials,
-      avatarColor: participant.avatarColor,
-      action,
-      task: taskTitle,
-      time: "الآن",
-      kind,
-    };
+    const event = createActivityEvent({ participant, kind, action, task: taskTitle, createdAt: nowIso() });
     setActivity((items) => [event, ...items].slice(0, 100));
     try { localRealtime.publish("activity.created", { event }); } catch { /* local-only fallback */ }
   };
@@ -583,7 +565,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const setTaskStatus = (taskId: string, status: TaskStatus) => {
     const task = tasks.find((item) => item.id === taskId);
     if (!task || task.status === status || !["running", "paused"].includes(status)) return;
-    setTasks((items) => items.map((item) => item.id === taskId ? { ...item, status } : item));
+    const timestamp = nowIso();
+    setTasks((items) => items.map((item) => item.id === taskId ? transitionTaskStatus(item, status, timestamp) : item));
     setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? {
       ...participant,
       presence: status === "running" ? "active" : "paused",
@@ -595,22 +578,13 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     pushToast({ tone: "info", title: status === "running" ? (task.status === "paused" ? "استؤنفت المهمة" : "بدأت المهمة") : "أوقفت المهمة مؤقتًا", body: "حُفظت الحالة والوقت الحاليان." });
   };
 
-  const taskFromDetails = (task: Task, detailItems: NonNullable<Task["detailItems"]>): Task => {
-    const completedCount = detailItems.filter((detail) => detail.status === "completed").length;
-    const hasPartial = detailItems.some((detail) => detail.status === "partial");
-    const hasRunning = detailItems.some((detail) => detail.status === "running" || detail.status === "paused");
-    const allCompleted = detailItems.length > 0 && completedCount === detailItems.length;
-    const current = detailItems.length === 1 ? detailItems[0].current : completedCount;
-    const status: TaskStatus = allCompleted ? "completed" : hasPartial || completedCount > 0 ? "partial" : hasRunning ? "running" : "not_started";
-    return { ...task, detailItems, current: Math.max(0, Math.min(task.target, current)), status, actualMinutes: Math.round(getTaskElapsedSeconds({ detailItems, actualMinutes: task.actualMinutes }) / 60) };
-  };
-
   const startTaskDetail = (taskId: string, detailId: string) => {
     const task = tasks.find((item) => item.id === taskId);
     const detail = task?.detailItems?.find((item) => item.id === detailId);
     if (!task || !detail || ["completed", "not_completed"].includes(detail.status)) return;
-    const detailItems = task.detailItems!.map((item) => item.id === detailId ? { ...item, status: "running" as const, lastStartedAt: item.lastStartedAt ?? nowIso() } : item);
-    setTasks((items) => items.map((item) => item.id === taskId ? taskFromDetails(item, detailItems) : item));
+    const nextTask = transitionTaskDetail(task, detailId, "start", nowIso());
+    if (!nextTask) return;
+    setTasks((items) => items.map((item) => item.id === taskId ? nextTask : item));
     recordActivity("started", "بدأ تفصيل المهمة", `${task.title} · ${detail.title}`);
   };
 
@@ -618,9 +592,9 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     const task = tasks.find((item) => item.id === taskId);
     const detail = task?.detailItems?.find((item) => item.id === detailId);
     if (!task || !detail || detail.status !== "running") return;
-    const elapsedSeconds = getTaskDetailElapsedSeconds(detail);
-    const detailItems = task.detailItems!.map((item) => item.id === detailId ? { ...item, status: "paused" as const, elapsedSeconds, lastStartedAt: undefined } : item);
-    setTasks((items) => items.map((item) => item.id === taskId ? taskFromDetails(item, detailItems) : item));
+    const nextTask = transitionTaskDetail(task, detailId, "pause", nowIso());
+    if (!nextTask) return;
+    setTasks((items) => items.map((item) => item.id === taskId ? nextTask : item));
     recordActivity("paused", "أوقف تفصيل المهمة مؤقتًا", `${task.title} · ${detail.title}`);
   };
 
@@ -633,9 +607,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       pushToast({ tone: "warning", title: "سجّل وقت الصلاة أولًا", body: "ابدأ مؤقت هذه الصلاة ثم أوقفه أو أكملها بعد تسجيل وقت." });
       return;
     }
-    const current = outcome === "completed" ? detail.target : outcome === "partial" ? Math.max(detail.current, Math.ceil(detail.target * 0.6)) : detail.current;
-    const detailItems = task.detailItems!.map((item) => item.id === detailId ? { ...item, current, status: outcome, elapsedSeconds, lastStartedAt: undefined } : item);
-    const nextTask = taskFromDetails(task, detailItems);
+    const nextTask = transitionTaskDetail(task, detailId, outcome, nowIso());
+    if (!nextTask) return;
     const pointDelta = getTaskEarnedPoints(nextTask) - getTaskEarnedPoints(task);
     setTasks((items) => items.map((item) => item.id === taskId ? { ...nextTask, awardedPoints: getTaskEarnedPoints(nextTask) } : item));
     if (pointDelta !== 0) setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? { ...participant, score: Math.max(0, participant.score + pointDelta) } : participant));
@@ -649,10 +622,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       pushToast({ tone: "info", title: "سجّل الصلوات بشكل منفصل", body: "تُحسب مهمة الصلاة تلقائيًا من الصلوات التي سُجّل لها وقت." });
       return;
     }
-    const target = outcome === "completed" ? task.target : outcome === "partial" ? Math.max(task.current, Math.ceil(task.target * 0.6)) : task.current;
-    const actualMinutes = outcome === "completed" ? Math.max(task.actualMinutes, task.durationMinutes ?? task.actualMinutes) : task.actualMinutes;
-    const completedDetails = outcome === "completed" && task.detailItems?.length ? task.detailItems.map((detail) => ({ ...detail, current: detail.target, status: "completed" as const, lastStartedAt: undefined })) : task.detailItems;
-    const nextTask = completedDetails ? taskFromDetails({ ...task, actualMinutes }, completedDetails) : { ...task, status: outcome, current: target, actualMinutes } as Task;
+    const nextTask = completeTaskOutcome(task, outcome);
+    if (!nextTask) return;
     const awardedBefore = task.awardedPoints ?? 0;
     const earnedAfter = getTaskEarnedPoints(nextTask);
     const pointDelta = earnedAfter - awardedBefore;
@@ -668,7 +639,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     } : participant));
     recordActivity("completed", outcome === "completed" ? "أكمل المهمة" : "سجل نتيجة المهمة", task.title);
     presenceAdapterRef.current?.update("idle");
-    if (outcome === "completed") setNotifications((items) => [{ id: createLocalId("notification"), kind: "success" as const, title: "إنجاز جميل", body: `أكملت ${task.title} وحصلت على ${pointDelta} نقطة.`, time: "الآن", read: false }, ...items].slice(0, 50));
+    if (outcome === "completed") setNotifications((items) => [createNotification({ kind: "success", title: "إنجاز جميل", body: `أكملت ${task.title} وحصلت على ${pointDelta} نقطة.`, createdAt: nowIso(), read: false }), ...items].slice(0, 50));
     const copy: Record<CompletionOutcome, { title: string; body: string; tone: ToastTone }> = {
       completed: { title: "إنجاز جميل", body: `أُضيفت ${pointDelta} نقطة إلى رصيدك.`, tone: "success" },
       partial: { title: "تقدم محسوب", body: `حصلت على ${pointDelta} نقطة مقابل الإنجاز الجزئي.`, tone: "info" },
@@ -708,9 +679,9 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
 
   const sendAiMessage = (message: string) => {
     if (!message.trim()) return;
-    const userMessage = { id: `user-${Date.now()}`, role: "user" as const, content: message.trim(), createdAt: "الآن" };
+    const userMessage = { id: `user-${Date.now()}`, role: "user" as const, content: message.trim(), createdAt: nowIso() };
     setAi((current) => ({ ...current, messages: [...current.messages, userMessage], isTyping: true, error: undefined }));
-    window.setTimeout(() => {
+    void mockAIAdapter.sendMessage({ message }).then(() => {
       const normalizedMessage = message.trim().toLocaleLowerCase("ar");
       const remainingTasks = tasks.filter((task) => task.status !== "completed" && task.status !== "closed");
       const nextTask = remainingTasks[0];
@@ -736,8 +707,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
           ? `أنا معك. أقترح أن نبدأ بـ «${nextTask.title}» ونقسّمها إلى خطوة لا تتجاوز عشر دقائق. ما أكثر شيء يجعل البدء صعبًا الآن؟`
           : "أحسنت، لا توجد مهام متبقية اليوم. هل تحب أن نراجع ما نجح معك أو نجهّز خطوة بسيطة للغد؟";
       }
-      setAi((current) => ({ ...current, isTyping: false, messages: [...current.messages, { id: `ai-${Date.now()}`, role: "assistant", content: response, createdAt: "الآن" }] }));
-    }, 900);
+      setAi((current) => ({ ...current, isTyping: false, messages: [...current.messages, { id: `ai-${Date.now()}`, role: "assistant", content: response, createdAt: nowIso() }] }));
+    });
   };
 
   const beginSession = (participantId: string) => {
@@ -750,9 +721,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginParticipant = (participantId: string, pin: string) => {
-    const participant = participants.find((item) => item.id === participantId);
-    if (!/^\d{4}$/.test(pin) || !participant || participant.pin !== pin) return false;
-    return beginSession(participantId);
+    return verifyLocalPin(participants, participantId, pin) && beginSession(participantId);
   };
 
   const logout = () => {
@@ -792,12 +761,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       pushToast({ tone: "info", title: "التقدم من تفاصيل الصلوات", body: "ابدأ وسجّل وقت كل صلاة من قائمة الصلوات." });
       return;
     }
-    const nextCurrent = Math.max(0, Math.min(current, task.target));
-    const nextStatus: TaskStatus = nextCurrent >= task.target ? "completed" : nextCurrent > 0 ? (task.status === "running" || task.status === "paused" ? task.status : "partial") : "not_started";
-    const syncedDetails = task.detailItems?.length === 1
-      ? task.detailItems.map((detail) => ({ ...detail, current: nextCurrent, status: nextStatus === "completed" ? "completed" as const : nextStatus === "partial" ? "partial" as const : nextStatus }))
-      : task.detailItems?.map((detail, index) => index < nextCurrent ? { ...detail, current: detail.target, status: "completed" as const } : detail.status === "completed" ? { ...detail, current: 0, status: "not_started" as const } : detail);
-    const nextTask = syncedDetails ? taskFromDetails({ ...task, current: nextCurrent, status: nextStatus } as Task, syncedDetails) : { ...task, current: nextCurrent, status: nextStatus } as Task;
+    const nextTask = updateMeasuredTaskProgress(task, current);
     const awardedBefore = task.awardedPoints ?? 0;
     const earnedAfter = getTaskEarnedPoints(nextTask);
     const pointDelta = earnedAfter - awardedBefore;
@@ -807,34 +771,35 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     }
   };
   const finishAllTasks = () => {
-    tasks.filter((task) => !["completed", "not_completed", "closed"].includes(task.status)).forEach((task) => completeTask(task.id, "completed"));
+    const completed = completeAllTasks(tasks);
+    if (completed.tasks.every((task, index) => task === tasks[index])) return;
+    const { tasks: completedTasks, scoreDelta } = completed;
+    setTasks(completedTasks);
+    if (scoreDelta) setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? { ...participant, score: Math.max(0, participant.score + scoreDelta), presence: "idle", currentTask: undefined, currentStatus: "أكمل مهام اليوم" } : participant));
     setDayStatus("complete");
+    recordActivity("completed", "أكمل كل المهام المتبقية");
+    pushToast({ tone: "success", title: "اكتملت مهام اليوم", body: `أُضيفت ${scoreDelta} نقطة وحُفظت النتائج دفعة واحدة.` });
   };
 
   const chooseFocusDuration = (minutes: number) => {
-    if (!Number.isFinite(minutes) || minutes <= 0 || focusTimer.status === "running") return;
-    setFocusTimer((timer) => ({ ...timer, durationSeconds: Math.round(minutes * 60), elapsedSeconds: 0, status: "idle", startedAt: undefined, pausedAt: undefined, finishedAt: undefined, updatedAt: nowIso() }));
+    setFocusTimer((timer) => chooseFocusTimerDuration(timer, minutes, nowIso()));
   };
   const startFocus = () => {
-    if (focusTimer.status === "running") return;
-    setFocusTimer((timer) => {
-      const fresh = timer.status === "completed" || timer.status === "cancelled" || timer.elapsedSeconds >= timer.durationSeconds;
-      return { ...timer, elapsedSeconds: fresh ? 0 : timer.elapsedSeconds, status: "running", startedAt: nowIso(), pausedAt: undefined, finishedAt: undefined, updatedAt: nowIso() };
-    });
+    setFocusTimer((timer) => startFocusTimer(timer, nowIso()));
     presenceAdapterRef.current?.update("active", { currentTaskTitle: "جلسة تركيز" });
   };
   const pauseFocus = () => {
     if (focusTimer.status !== "running") return;
-    setFocusTimer((timer) => ({ ...timer, elapsedSeconds: focusElapsed(timer), status: "paused", pausedAt: nowIso(), updatedAt: nowIso() }));
+    setFocusTimer((timer) => pauseFocusTimer(timer, nowIso()));
     presenceAdapterRef.current?.update("paused", { currentTaskTitle: "جلسة تركيز" });
   };
   const resumeFocus = () => {
     if (focusTimer.status !== "paused") return;
-    setFocusTimer((timer) => ({ ...timer, status: "running", startedAt: nowIso(), pausedAt: undefined, updatedAt: nowIso() }));
+    setFocusTimer((timer) => resumeFocusTimer(timer, nowIso()));
   };
   const finishFocus = () => {
     if (focusTimer.status === "idle" && focusTimer.elapsedSeconds === 0) return;
-    const finished: FocusTimerSnapshot = { ...focusTimer, elapsedSeconds: focusElapsed(focusTimer), status: "completed", finishedAt: nowIso(), updatedAt: nowIso() };
+    const finished = finishFocusTimer(focusTimer, nowIso());
     setFocusTimer(finished);
     const session: FocusSession = { id: createLocalId("focus-session"), userId: activeParticipantId, localDate: today, durationSeconds: finished.durationSeconds, actualSeconds: finished.elapsedSeconds, startedAt: finished.startedAt ?? nowIso(), finishedAt: finished.finishedAt ?? nowIso() };
     persist((state) => ({ ...state, focusTimers: [...state.focusTimers.filter((timer) => timer.id !== finished.id), finished], focusSessions: [...state.focusSessions, session] }), "focus.updated");
@@ -842,7 +807,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     pushToast({ tone: "success", title: "أحسنت التركيز", body: `حُفظت جلسة مدتها ${Math.round(finished.elapsedSeconds / 60)} دقيقة.` });
   };
   const cancelFocus = () => {
-    setFocusTimer((timer) => ({ ...timer, elapsedSeconds: focusElapsed(timer), status: "cancelled", updatedAt: nowIso() }));
+    setFocusTimer((timer) => cancelFocusTimer(timer, nowIso()));
     presenceAdapterRef.current?.update("idle");
   };
   useEffect(() => {
@@ -851,10 +816,10 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     persist((state) => ({ ...state, focusTimers: [...state.focusTimers.filter((timer) => timer.id !== focusTimer.id), focusTimer] }), "focus.updated");
   }, [focusTimer, activeParticipantId, hydrated, persist]);
 
-  const setParticipantRole = (id: string, role: Participant["role"]) => setParticipants((items) => items.map((participant) => participant.id === id ? { ...participant, role } : participant));
+  const setParticipantRole = (id: string, role: Participant["role"]) => setParticipants((items) => changeParticipantRole(items, id, role));
   const setParticipantPin = (id: string, pin: string) => {
     if (!/^\d{4}$/.test(pin)) return false;
-    setParticipants((items) => items.map((participant) => participant.id === id ? { ...participant, pin } : participant));
+    setParticipants((items) => setParticipantPinInList(items, id, pin));
     return true;
   };
   const changeOwnPin = (currentPin: string, nextPin: string) => {
@@ -868,9 +833,9 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     const clean = message.trim();
     const recipient = participants.find((participant) => participant.id === recipientId);
     if (!recipient || !clean || recipientId === activeParticipantId) return false;
-    const next: EncouragementMessage = { id: createLocalId("message"), sender: activeParticipant.name, senderId: activeParticipant.id, recipientId, initials: activeParticipant.initials, avatarColor: activeParticipant.avatarColor, message: clean, time: "الآن" };
+    const next: EncouragementMessage = { id: createLocalId("message"), sender: activeParticipant.name, senderId: activeParticipant.id, recipientId, initials: activeParticipant.initials, avatarColor: activeParticipant.avatarColor, message: clean, createdAt: nowIso() };
     setEncouragementMessages((items) => [next, ...items]);
-    setNotifications((items) => [{ id: createLocalId("notification"), kind: "encouragement", title: "رسالة تشجيع جديدة", body: `${activeParticipant.name} أرسل لك رسالة.`, time: "الآن", persistent: true, read: false }, ...items]);
+    setNotifications((items) => [createNotification({ kind: "encouragement", title: "رسالة تشجيع جديدة", body: `${activeParticipant.name} أرسل لك رسالة.`, createdAt: nowIso(), persistent: true, read: false }), ...items]);
     try { localRealtime.publish("message.created", { message: next, recipientId }); } catch { /* local fallback */ }
     return true;
   };

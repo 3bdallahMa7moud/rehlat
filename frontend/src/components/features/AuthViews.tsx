@@ -100,16 +100,14 @@ export function LoginView() {
     setError("");
     setLoading(true);
 
-    window.setTimeout(() => {
-      if (!loginParticipant(selected.id, submittedPin)) {
-        setPin("");
-        setLoading(false);
-        setError("رمز PIN غير صحيح. تحقق منه وحاول مرة أخرى.");
-        return;
-      }
-      setSuccess(true);
-      window.setTimeout(() => router.push(selected.role === "admin" ? "/admin" : "/dashboard"), 450);
-    }, 500);
+    if (!loginParticipant(selected.id, submittedPin)) {
+      setPin("");
+      setLoading(false);
+      setError("رمز PIN غير صحيح. تحقق منه وحاول مرة أخرى.");
+      return;
+    }
+    setSuccess(true);
+    router.push(selected.role === "admin" ? "/admin" : "/dashboard");
   };
 
   return (

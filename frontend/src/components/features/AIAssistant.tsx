@@ -7,6 +7,7 @@ import { Check, Copy, History as HistoryIcon, Lightbulb, LockKeyhole, Maximize2,
 import { useDemo } from "@/state/DemoContext";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { cn } from "@/lib/cn";
+import { formatRelativeTime } from "@/lib/date-time";
 import styles from "./AIAssistant.module.css";
 
 type AssistantConversationProps = {
@@ -167,7 +168,7 @@ export function AssistantConversation({ expanded = false, onClose, onToggleHisto
             <div className={styles.messageBody}>
               <div className={styles.bubble}><p>{message.content}</p></div>
               <div className={styles.messageMeta}>
-                <time>{message.createdAt}</time>
+                <time>{formatRelativeTime(message.createdAt)}</time>
                 {message.role === "assistant" && (
                   <button type="button" onClick={() => copyMessage(message.id, message.content)} aria-label="نسخ الرد">
                     {copiedId === message.id ? <Check size={13} /> : <Copy size={13} />}
@@ -268,15 +269,7 @@ export function AIAssistantWidget() {
   );
 }
 
-function formatConversationTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const today = new Date();
-  if (date.toDateString() === today.toDateString()) {
-    return new Intl.DateTimeFormat("ar-EG", { hour: "numeric", minute: "2-digit" }).format(date);
-  }
-  return new Intl.DateTimeFormat("ar-EG", { day: "numeric", month: "short" }).format(date);
-}
+function formatConversationTime(value: string) { return formatRelativeTime(value); }
 
 function ChatHistory({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { ai, aiConversations, activeAiConversationId, startAiConversation, selectAiConversation, deleteAiConversation } = useDemo();

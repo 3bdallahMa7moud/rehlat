@@ -1,4 +1,5 @@
 import type { Task, TaskType } from "@/types/models";
+import { PARTIAL_COMPLETION_WEIGHT } from "./progress.ts";
 
 /** Sensible defaults for tasks created before the points fields existed. */
 export const DEFAULT_TASK_POINTS: Record<TaskType, number> = {
@@ -18,14 +19,7 @@ export function getTaskFullPoints(task: Pick<Task, "type" | "fullPoints">) {
 }
 
 export function getTaskPartialPoints(task: Pick<Task, "type" | "fullPoints" | "partialPoints">) {
-  const explicit = task.partialPoints;
-  if (typeof explicit === "number" && Number.isFinite(explicit)) return Math.max(0, Math.min(getTaskFullPoints(task), Math.round(explicit)));
-  return Math.round(getTaskFullPoints(task) * 0.5);
-}
-
-export function taskProgressRatio(task: Pick<Task, "target" | "current">) {
-  if (task.target <= 0) return task.current > 0 ? 1 : 0;
-  return Math.max(0, Math.min(1, task.current / task.target));
+  return getTaskFullPoints(task) * PARTIAL_COMPLETION_WEIGHT;
 }
 
 /** Points earned by a task result; active states intentionally earn nothing. */
@@ -33,20 +27,15 @@ export function getTaskEarnedPoints(task: Pick<Task, "type" | "fullPoints" | "pa
   if (task.detailItems?.length) return task.detailItems.reduce((sum, detail) => {
     if (detail.status === "completed") return sum + detail.fullPoints;
     if (detail.status !== "partial") return sum;
-    const ratio = detail.target > 0 ? Math.max(0, Math.min(1, detail.current / detail.target)) : 0.5;
-    return sum + Math.min(detail.fullPoints, Math.round(detail.fullPoints * ratio));
+    return sum + detail.fullPoints * PARTIAL_COMPLETION_WEIGHT;
   }, 0);
   const full = getTaskFullPoints(task);
   if (task.status === "completed") return full;
   if (task.status !== "partial") return 0;
-  const ratio = taskProgressRatio(task);
-  if (ratio <= 0) return getTaskPartialPoints(task);
-  const proportional = Math.round(full * ratio);
-  return Math.min(full, proportional);
+  return getTaskPartialPoints(task);
 }
 
 export function withTaskPoints(task: Task): Task {
   const fullPoints = getTaskFullPoints(task);
   return { ...task, fullPoints, partialPoints: getTaskPartialPoints({ ...task, fullPoints }), awardedPoints: task.awardedPoints ?? 0 };
 }
-

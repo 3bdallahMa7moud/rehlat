@@ -5,7 +5,9 @@ import type { DailyProgress, Task, TaskStatus } from "@/types/models";
  * Keep this value in one place so the dashboard, reports and ranking never
  * drift apart when the business rule changes.
  */
-export const DEFAULT_PARTIAL_PROGRESS_WEIGHT = 0.55;
+export const PARTIAL_COMPLETION_WEIGHT = 0.5;
+/** @deprecated Use PARTIAL_COMPLETION_WEIGHT. */
+export const DEFAULT_PARTIAL_PROGRESS_WEIGHT = PARTIAL_COMPLETION_WEIGHT;
 export const DEFAULT_SUCCESS_THRESHOLD = 90;
 
 export type ProgressTaskStatus = TaskStatus | "unknown";
@@ -138,4 +140,3 @@ export const calculateDailyProgress = calculateProgress;
 export function getProgressPercentage(tasks: readonly Task[] = [], options: ProgressCalculationOptions = {}) {
   return calculateProgress(tasks, options).percent;
 }
-
