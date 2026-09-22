@@ -13,8 +13,9 @@ export function deriveDayStatus(tasks: readonly Task[]): DayStatus {
 export function taskFromDetails(task: Task, detailItems: TaskDetail[]): Task {
   const completedCount = detailItems.filter((detail) => detail.status === "completed").length;
   const hasPartial = detailItems.some((detail) => detail.status === "partial");
-  const hasRunning = detailItems.some((detail) => detail.status === "running" || detail.status === "paused");
-  const status: TaskStatus = completedCount === detailItems.length && detailItems.length > 0 ? "completed" : hasPartial || completedCount > 0 ? "partial" : hasRunning ? "running" : "not_started";
+  const hasRunning = detailItems.some((detail) => detail.status === "running");
+  const hasPaused = detailItems.some((detail) => detail.status === "paused");
+  const status: TaskStatus = completedCount === detailItems.length && detailItems.length > 0 ? "completed" : hasPartial || completedCount > 0 ? "partial" : hasRunning ? "running" : hasPaused ? "paused" : "not_started";
   const current = detailItems.length === 1 ? detailItems[0].current : completedCount;
   return { ...task, detailItems, current: Math.max(0, Math.min(task.target, current)), status, actualMinutes: Math.round(getTaskElapsedSeconds({ detailItems, actualMinutes: task.actualMinutes }) / 60) };
 }
@@ -53,7 +54,13 @@ export function completeTaskOutcome(task: Task, outcome: TaskOutcome): Task | nu
 
 export function updateMeasuredTaskProgress(task: Task, current: number): Task {
   const nextCurrent = Math.max(0, Math.min(current, task.target));
-  const status: TaskStatus = nextCurrent >= task.target ? "completed" : task.status === "completed" ? "not_started" : task.status;
+  const status: TaskStatus = nextCurrent <= 0
+    ? "not_started"
+    : nextCurrent >= task.target
+      ? "completed"
+      : task.status === "running" || task.status === "paused"
+        ? task.status
+        : "partial";
   const details = task.detailItems?.length === 1
     ? task.detailItems.map((detail) => ({ ...detail, current: nextCurrent, status: status === "completed" ? "completed" as const : status }))
     : task.detailItems?.map((detail, index) => index < nextCurrent ? { ...detail, current: detail.target, status: "completed" as const } : detail.status === "completed" ? { ...detail, current: 0, status: "not_started" as const } : detail);

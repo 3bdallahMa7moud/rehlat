@@ -17,10 +17,12 @@ import { createLocalId } from "@/data/local-id";
 import { verifyLocalPin } from "@/features/auth/local-auth";
 import { createActivityEvent } from "@/domain/activity/activity-factory";
 import { createNotification } from "@/domain/notifications/notification-factory";
-import { changeParticipantRole, setParticipantPin as setParticipantPinInList } from "@/domain/participants/participant-domain";
+import { addParticipant as addParticipantToList, changeParticipantRole, deleteParticipant as deleteParticipantFromList, renameParticipant, setParticipantPin as setParticipantPinInList } from "@/domain/participants/participant-domain";
 import { cancelFocusTimer, chooseFocusDuration as chooseFocusTimerDuration, createFocusTimer, finishFocusTimer, getFocusElapsedSeconds, pauseFocusTimer, resumeFocusTimer, startFocusTimer } from "@/domain/focus/focus-domain";
 import { completeAllTasks, completeTaskOutcome, deriveDayStatus, transitionTaskDetail, transitionTaskStatus, updateMeasuredTaskProgress } from "@/domain/tasks/task-domain";
 import { mockAIAdapter } from "@/data/ai/mock-ai-adapter";
+import { readLocalAiHistory, writeLocalAiHistory } from "@/data/ai/local-ai-history";
+import { getLocalSessionParticipantId, setLocalSessionParticipantId, subscribeToLocalSession } from "@/data/session/local-session";
 
 type CompletionOutcome = "completed" | "partial" | "not_completed" | "closed";
 type ToastTone = "success" | "warning" | "info" | "error";
@@ -123,8 +125,6 @@ interface DemoContextValue {
 }
 
 const DemoContext = createContext<DemoContextValue | undefined>(undefined);
-const sessionListeners = new Set<() => void>();
-let cachedSessionParticipantId: string | null | undefined;
 
 export interface TaskDefinitionInput {
   title: string;
@@ -136,33 +136,6 @@ export interface TaskDefinitionInput {
   partialPoints?: number;
 }
 
-function getSessionSnapshot(): string | null | undefined {
-  if (cachedSessionParticipantId !== undefined) return cachedSessionParticipantId;
-  cachedSessionParticipantId = window.localStorage.getItem("joc-session-participant");
-  return cachedSessionParticipantId;
-}
-
-function subscribeToSession(listener: () => void) {
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === "joc-session-participant") {
-      cachedSessionParticipantId = undefined;
-      listener();
-    }
-  };
-  sessionListeners.add(listener);
-  window.addEventListener("storage", onStorage);
-  return () => {
-    sessionListeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
-  };
-}
-
-function updateSessionParticipant(participantId: string | null) {
-  cachedSessionParticipantId = participantId;
-  if (participantId) window.localStorage.setItem("joc-session-participant", participantId);
-  else window.localStorage.removeItem("joc-session-participant");
-  sessionListeners.forEach((listener) => listener());
-}
 
 function createToastId() {
   return `toast-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -173,8 +146,6 @@ function nowIso() { return getProjectTimestamp(); }
 function defaultFocus(userId: string, date: string) { return createFocusTimer(userId, date, nowIso()); }
 const focusElapsed = getFocusElapsedSeconds;
 
-const AI_HISTORY_KEY = "joc-ai-history-v1";
-
 function newAiConversation(messages = initialAiMessages): AIConversation {
   return {
     id: createLocalId("chat"),
@@ -184,29 +155,6 @@ function newAiConversation(messages = initialAiMessages): AIConversation {
   };
 }
 
-function readAiHistory(participantId: string): { conversations: AIConversation[]; activeId: string } | null {
-  try {
-    const stored = window.localStorage.getItem(AI_HISTORY_KEY);
-    if (!stored) return null;
-    const allHistories = JSON.parse(stored) as Record<string, { conversations: AIConversation[]; activeId: string }>;
-    const history = allHistories[participantId];
-    if (!history?.conversations?.length) return null;
-    return history;
-  } catch {
-    return null;
-  }
-}
-
-function writeAiHistory(participantId: string, conversations: AIConversation[], activeId: string) {
-  try {
-    const stored = window.localStorage.getItem(AI_HISTORY_KEY);
-    const allHistories = stored ? JSON.parse(stored) as Record<string, { conversations: AIConversation[]; activeId: string }> : {};
-    allHistories[participantId] = { conversations, activeId };
-    window.localStorage.setItem(AI_HISTORY_KEY, JSON.stringify(allHistories));
-  } catch {
-    // The chat still works if private browsing blocks local storage.
-  }
-}
 
 function recordsFor(state: JourneyPersistedState, userId: string, date: string) {
   return state.dailyTaskRecords.filter((record) => record.userId === userId && record.localDate === date);
@@ -247,7 +195,7 @@ function emptyJourneySnapshot(): JourneyPersistedState {
 export function DemoProvider({ children }: { children: React.ReactNode }) {
   const [participants, setParticipants] = useState(initialParticipants);
   const [selectedParticipantId, setSelectedParticipantId] = useState("razi");
-  const sessionParticipantId = useSyncExternalStore(subscribeToSession, getSessionSnapshot, () => undefined);
+  const sessionParticipantId = useSyncExternalStore(subscribeToLocalSession, getLocalSessionParticipantId, () => undefined);
   const sessionReady = sessionParticipantId !== undefined;
   const [hydrated, setHydrated] = useState(false);
   const [dayStatus, setDayStatus] = useState<DayStatus>("in_progress");
@@ -291,7 +239,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     aiHistoryOwnerRef.current = null;
     setAiHistoryReady(false);
-    const saved = readAiHistory(activeParticipantId);
+    const saved = readLocalAiHistory(activeParticipantId);
     const fallback = newAiConversation(initialAiMessages);
     const conversations = saved?.conversations?.length ? saved.conversations : [fallback];
     const activeId = conversations.some((conversation) => conversation.id === saved?.activeId)
@@ -326,7 +274,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!aiHistoryReady || aiHistoryOwnerRef.current !== activeParticipantId) return;
-    writeAiHistory(activeParticipantId, aiConversations, activeAiConversationId);
+    writeLocalAiHistory(activeParticipantId, { conversations: aiConversations, activeId: activeAiConversationId });
   }, [activeAiConversationId, activeParticipantId, aiConversations, aiHistoryReady]);
 
   useEffect(() => {
@@ -352,7 +300,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setDailyTaskRecords(source.dailyTaskRecords);
     const savedStreak = source.streaks.find((item) => item.userId === participantId);
     if (savedStreak) setStreakData({ current: savedStreak.current, best: savedStreak.best, successfulDays: savedStreak.successfulDays, history: savedStreak.history.filter((day) => day.status !== "partial") });
-    if (source.session.participantId) updateSessionParticipant(source.session.participantId);
+    if (source.session.participantId) setLocalSessionParticipantId(source.session.participantId);
     setHydrated(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -681,40 +629,23 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     if (!message.trim()) return;
     const userMessage = { id: `user-${Date.now()}`, role: "user" as const, content: message.trim(), createdAt: nowIso() };
     setAi((current) => ({ ...current, messages: [...current.messages, userMessage], isTyping: true, error: undefined }));
-    void mockAIAdapter.sendMessage({ message }).then(() => {
-      const normalizedMessage = message.trim().toLocaleLowerCase("ar");
-      const remainingTasks = tasks.filter((task) => task.status !== "completed" && task.status !== "closed");
-      const nextTask = remainingTasks[0];
-      let response: string;
-
-      if (normalizedMessage.includes("تقدّم") || normalizedMessage.includes("تقدم") || normalizedMessage.includes("راجع")) {
-        response = `أنجزت ${progress.completed} من ${progress.total} مهام، ووصل تقدّمك إلى ${progress.percent}٪. ${progress.remaining ? `بقيت ${progress.remaining} مهام؛ اختر واحدة فقط للخطوة التالية.` : "أكملت يومك، وهذا يستحق الاحتفاء."}`;
-      } else if (normalizedMessage.includes("رتّب") || normalizedMessage.includes("رتب") || normalizedMessage.includes("تبقّى") || normalizedMessage.includes("تبقى")) {
-        const plan = remainingTasks.slice(0, 3).map((task, index) => `${index + 1}. ${task.title}`).join("\n");
-        response = remainingTasks.length
-          ? `أكيد يا ${activeParticipant.name.split(" ")[0]}. هذه أولوياتك ببساطة:\n${plan}\n\nابدأ بالأولى فقط، ولا تفكّر في الباقي حتى تنتهي منها.`
-          : "يومك مكتمل بالفعل 👏 خذ دقيقة لتقدّر ما أنجزته، ثم أغلق اليوم بهدوء.";
-      } else if (normalizedMessage.includes("أصغر") || normalizedMessage.includes("ابدأ")) {
-        response = nextTask
-          ? `لنصغّرها جدًا: افتح مهمة «${nextTask.title}» وامنحها دقيقتين فقط. لا تحتاج لإنهائها الآن؛ المطلوب هو أن تبدأ.`
-          : "لا توجد مهمة متبقية الآن. اختر شيئًا بسيطًا للعناية بنفسك: ماء، تنفّس هادئ، أو استراحة قصيرة.";
-      } else if (normalizedMessage.includes("سلسل")) {
-        response = `سلسلتك الآن ${streakData.current} يومًا 🔥 حافظ عليها بإنجاز الحد الأدنى من مهمة واحدة اليوم. الاستمرارية أهم من المثالية.`;
-      } else if (normalizedMessage.includes("رياض")) {
-        response = "اجعل البداية خفيفة: ارتدِ ملابس الرياضة وابدأ بعشر دقائق فقط. بعد العشر دقائق قرّر إن كنت تريد الاستمرار.";
-      } else {
-        response = nextTask
-          ? `أنا معك. أقترح أن نبدأ بـ «${nextTask.title}» ونقسّمها إلى خطوة لا تتجاوز عشر دقائق. ما أكثر شيء يجعل البدء صعبًا الآن؟`
-          : "أحسنت، لا توجد مهام متبقية اليوم. هل تحب أن نراجع ما نجح معك أو نجهّز خطوة بسيطة للغد؟";
-      }
-      setAi((current) => ({ ...current, isTyping: false, messages: [...current.messages, { id: `ai-${Date.now()}`, role: "assistant", content: response, createdAt: nowIso() }] }));
+    void mockAIAdapter.sendMessage({
+      message: message.trim(),
+      participant: activeParticipant,
+      tasks,
+      progress,
+      streak: streakData.current,
+    }).then(({ content }) => {
+      setAi((current) => ({ ...current, isTyping: false, messages: [...current.messages, { id: `ai-${Date.now()}`, role: "assistant", content, createdAt: nowIso() }] }));
+    }).catch(() => {
+      setAi((current) => ({ ...current, isTyping: false, error: "تعذر تجهيز الرد. حاول مرة أخرى." }));
     });
   };
 
   const beginSession = (participantId: string) => {
     if (!participants.some((participant) => participant.id === participantId)) return false;
     setSelectedParticipantId(participantId);
-    updateSessionParticipant(participantId);
+    setLocalSessionParticipantId(participantId);
     persist((state) => ({ ...state, session: { participantId, signedInAt: nowIso() } }), "session.updated");
     try { localRealtime.publish("session.updated", { participantId }); } catch { /* local fallback */ }
     return true;
@@ -725,7 +656,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
-    updateSessionParticipant(null);
+    setLocalSessionParticipantId(null);
     persist((state) => ({ ...state, session: { participantId: null } }), "session.updated");
     presenceAdapterRef.current?.disconnect();
   };
@@ -994,39 +925,25 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     toggleSound: () => setSoundEnabled((value) => !value),
     setQuranAyahsPerPage: (value) => setQuranAyahsPerPageState(Math.max(1, Math.min(20, Math.round(value) || 1))),
     addParticipant: (name, pin = "1234") => {
-      const cleanName = name.trim();
-      if (!cleanName || !/^\d{4}$/.test(pin) || participants.length >= 30) return;
-      const initials = cleanName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("");
-      setParticipants((items) => [...items, {
-        id: createLocalId("participant"),
-        name: cleanName,
-        initials,
-        avatarColor: "teal",
-        role: "participant",
-        presence: "offline",
-        currentStatus: "لم يبدأ اليوم",
-        progress: 0,
-        streak: 0,
-        score: 0,
-        pin,
-      }]);
+      const next = addParticipantToList(participants, name, pin);
+      if (next.length === participants.length) return;
+      setParticipants(next);
       pushToast({ tone: "success", title: "تمت إضافة المشارك", body: "يمكنه الآن تسجيل الدخول بالـPIN الذي حدده المشرف." });
     },
     editParticipantName: (id, name) => {
-      const cleanName = name.trim();
-      if (!cleanName) return;
-      const initials = cleanName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("");
-      setParticipants((items) => items.map((participant) => participant.id === id ? { ...participant, name: cleanName, initials } : participant));
+      const next = renameParticipant(participants, id, name);
+      if (next === participants) return;
+      setParticipants(next);
       pushToast({ tone: "success", title: "تم حفظ الاسم", body: "سيظهر الاسم الجديد في اللوحة والترتيب والنشاط." });
     },
     setParticipantRole,
     deleteParticipant: (id) => {
-      setParticipants((items) => items.filter((participant) => participant.id !== id));
-      if (sessionParticipantId === id) updateSessionParticipant(null);
+      setParticipants((items) => deleteParticipantFromList(items, id));
+      if (sessionParticipantId === id) setLocalSessionParticipantId(null);
       pushToast({ tone: "warning", title: "حُذف المشارك", body: "أزيلت بياناته من قائمة المجموعة المحلية." });
     },
     resetParticipantPin: (id) => {
-      setParticipants((items) => items.map((item) => item.id === id ? { ...item, pin: "0000" } : item));
+      setParticipants((items) => setParticipantPinInList(items, id, "0000"));
       pushToast({ tone: "success", title: "تمت إعادة تعيين PIN", body: "أصبح رمز الدخول المؤقت 0000 ويمكن تغييره من الإعدادات." });
     },
     setParticipantPin,

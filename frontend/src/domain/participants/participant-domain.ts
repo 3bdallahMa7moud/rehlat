@@ -11,7 +11,7 @@ export function addParticipant(participants: readonly Participant[], name: strin
 
 export function renameParticipant(participants: readonly Participant[], id: string, name: string): Participant[] {
   const cleanName = name.trim();
-  return cleanName ? participants.map((participant) => participant.id === id ? { ...participant, name: cleanName, initials: initials(cleanName) } : participant) : [...participants];
+  return cleanName ? participants.map((participant) => participant.id === id ? { ...participant, name: cleanName, initials: initials(cleanName) } : participant) : participants as Participant[];
 }
 
 export function changeParticipantRole(participants: readonly Participant[], id: string, role: Participant["role"]): Participant[] { return participants.map((participant) => participant.id === id ? { ...participant, role } : participant); }
