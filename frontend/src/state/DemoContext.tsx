@@ -7,12 +7,16 @@ import type { AIConversation, AIConversationState, Achievement, ActivityEvent, A
 import { journeyStorage, type DailyTaskRecord, type FocusSession, type FocusTimerSnapshot, type JourneyPersistedState } from "@/lib/storage";
 import { createLocalPresenceAdapter, localRealtime, type PresenceRecord, type RealtimeStatus } from "@/lib/realtime";
 import { calculateProgress } from "@/lib/progress";
+import { getAchievementFeedback, getUnseenAchievementFeedback } from "@/lib/achievement-feedback";
+import { celebrate } from "@/lib/celebrate";
+import { getDayCompletionFeedback, getTaskOutcomeFeedback, toToastTone } from "@/lib/feedback";
 import { calculateReports } from "@/lib/reports";
 import { calculateStreakFromProgress } from "@/lib/streak";
 import { getTaskEarnedPoints } from "@/lib/points";
 import { getTaskDetailElapsedSeconds, getTaskElapsedSeconds, normalizeTask } from "@/lib/task-details";
 import { calculateTaskStreaks, getGeneralStreakTitle, type StreakTitle, type TaskStreakEntry } from "@/lib/task-streaks";
 import { getProjectDateKey, getProjectTimestamp } from "@/lib/date-time";
+import { playJourneySound } from "@/lib/sound";
 import { createLocalId } from "@/data/local-id";
 import { verifyLocalPin } from "@/features/auth/local-auth";
 import { createActivityEvent } from "@/domain/activity/activity-factory";
@@ -32,6 +36,7 @@ export interface ToastItem {
   title: string;
   body?: string;
   tone: ToastTone;
+  icon?: "achievement" | "milestone" | "title";
 }
 
 interface FocusState {
@@ -184,6 +189,7 @@ function emptyJourneySnapshot(): JourneyPersistedState {
     streaks: [],
     dayStatuses: [],
     notifications: initialNotifications,
+    seenFeedbackIds: [],
     messages: encouragements,
     activity: activityEvents,
     settings: { soundEnabled: true, quranAyahsPerPage: 5, theme: "light" },
@@ -203,6 +209,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState(() => initialTasks.map(normalizeTask));
   const [tasksOwnerId, setTasksOwnerId] = useState("razi");
   const [notifications, setNotifications] = useState(initialNotifications);
+  const [seenFeedbackIds, setSeenFeedbackIds] = useState<string[]>([]);
   const [activity, setActivity] = useState(activityEvents);
   const [encouragementMessages, setEncouragementMessages] = useState(encouragements);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -291,6 +298,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setTasksOwnerId(participantId);
     setDayStatus(source.dayStatuses.find((item) => item.userId === participantId && item.localDate === today)?.status ?? deriveDayStatus(initialForUser));
     setNotifications(source.notifications);
+    setSeenFeedbackIds(source.seenFeedbackIds);
     setActivity(source.activity);
     setEncouragementMessages(source.messages);
     setSoundEnabled(source.settings.soundEnabled);
@@ -364,6 +372,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       });
       if (event.payload.changedDomains.includes("participants")) setParticipants(next.participants);
       if (event.payload.changedDomains.includes("notification.created")) setNotifications(next.notifications);
+      if (event.payload.changedDomains.includes("feedback.updated")) setSeenFeedbackIds(next.seenFeedbackIds);
       if (event.payload.changedDomains.includes("activity.created")) setActivity(next.activity);
       if (event.payload.changedDomains.includes("message.created")) setEncouragementMessages(next.messages);
       if (event.payload.changedDomains.includes("settings.changed")) { setSoundEnabled(next.settings.soundEnabled); setQuranAyahsPerPageState(Math.max(1, Math.min(20, next.settings.quranAyahsPerPage ?? 5))); }
@@ -502,6 +511,28 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     window.setTimeout(() => setToasts((items) => items.filter((item) => item.id !== id)), 4200);
   }, []);
 
+  const announceDayCompletion = useCallback(() => {
+    const feedback = getDayCompletionFeedback();
+    pushToast({ tone: feedback.tone, title: feedback.title, body: feedback.body });
+    playJourneySound(feedback.sound, soundEnabled);
+    void celebrate(feedback.celebrate);
+  }, [pushToast, soundEnabled]);
+
+  const announceAchievementFeedback = useCallback((feedbackItems: ReturnType<typeof getAchievementFeedback>, delay = 0) => {
+    const unseen = getUnseenAchievementFeedback(feedbackItems, seenFeedbackIds, activeParticipantId);
+    if (!unseen.length) return;
+    const ids = unseen.map((item) => `${activeParticipantId}:${item.id}`);
+    setSeenFeedbackIds((items) => [...new Set([...items, ...ids])]);
+    persist((state) => ({ ...state, seenFeedbackIds: [...new Set([...state.seenFeedbackIds, ...ids]) ] }), "feedback.updated");
+
+    const priority = { title: 3, milestone: 2, achievement: 1 } as const;
+    const item = [...unseen].sort((left, right) => priority[right.kind] - priority[left.kind])[0];
+    window.setTimeout(() => {
+      pushToast({ tone: "success", title: item.title, body: item.body, icon: item.kind });
+      setNotifications((items) => [createNotification({ kind: "success", title: item.title, body: item.body, persistent: true, createdAt: nowIso(), read: false }), ...items].slice(0, 50));
+    }, delay);
+  }, [activeParticipantId, persist, pushToast, seenFeedbackIds]);
+
   const recordActivity = (kind: ActivityEvent["kind"], action: string, taskTitle = "") => {
     const participant = participants.find((item) => item.id === activeParticipantId);
     if (!participant) return;
@@ -561,7 +592,10 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setTasks((items) => items.map((item) => item.id === taskId ? { ...nextTask, awardedPoints: getTaskEarnedPoints(nextTask) } : item));
     if (pointDelta !== 0) setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? { ...participant, score: Math.max(0, participant.score + pointDelta) } : participant));
     recordActivity("completed", outcome === "completed" ? "أكمل تفصيل المهمة" : "سجل نتيجة تفصيل المهمة", `${task.title} · ${detail.title}`);
-    pushToast({ tone: outcome === "completed" ? "success" : outcome === "partial" ? "info" : "warning", title: outcome === "completed" ? "تم إنجاز التفصيل" : outcome === "partial" ? "تم تسجيل الإنجاز الجزئي" : "تم تسجيل عدم الإنجاز", body: `${detail.title}: ${Math.max(0, pointDelta)} نقطة · ${Math.floor(elapsedSeconds / 60)} دقيقة و${elapsedSeconds % 60} ثانية.` });
+    const feedback = getTaskOutcomeFeedback(outcome);
+    pushToast({ tone: toToastTone(feedback.tone), title: feedback.title, body: feedback.body });
+    if (feedback.sound) playJourneySound(feedback.sound, soundEnabled);
+    if (feedback.celebrate) void celebrate(feedback.celebrate);
   };
   const completeTask = (taskId: string, outcome: CompletionOutcome) => {
     const task = tasks.find((item) => item.id === taskId);
@@ -575,7 +609,18 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     const awardedBefore = task.awardedPoints ?? 0;
     const earnedAfter = getTaskEarnedPoints(nextTask);
     const pointDelta = earnedAfter - awardedBefore;
-    setTasks((items) => items.map((item) => item.id === taskId ? { ...nextTask, awardedPoints: earnedAfter } : item));
+    const nextTasks = tasks.map((item) => item.id === taskId ? { ...nextTask, awardedPoints: earnedAfter } : item);
+    const nextDayStatus = deriveDayStatus(nextTasks);
+    const didCompleteDay = dayStatus !== "complete" && nextDayStatus === "complete";
+    const nextProgress = calculateProgress(nextTasks);
+    const nextStreak = calculateStreakFromProgress(progressDays.map((day) => ({
+      date: day.date,
+      progress: day.date === today ? nextProgress.percent : day.progress,
+      status: day.date === today && !didCompleteDay ? "today" as const : undefined,
+    })), { today }).current;
+    const hasCompletedTaskBefore = tasks.some((item) => item.status === "completed")
+      || dailyTaskRecords.some((record) => record.status === "completed");
+    setTasks(nextTasks);
     if (pointDelta !== 0) {
       setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? { ...participant, score: Math.max(0, participant.score + pointDelta) } : participant));
     }
@@ -587,14 +632,22 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     } : participant));
     recordActivity("completed", outcome === "completed" ? "أكمل المهمة" : "سجل نتيجة المهمة", task.title);
     presenceAdapterRef.current?.update("idle");
-    if (outcome === "completed") setNotifications((items) => [createNotification({ kind: "success", title: "إنجاز جميل", body: `أكملت ${task.title} وحصلت على ${pointDelta} نقطة.`, createdAt: nowIso(), read: false }), ...items].slice(0, 50));
-    const copy: Record<CompletionOutcome, { title: string; body: string; tone: ToastTone }> = {
-      completed: { title: "إنجاز جميل", body: `أُضيفت ${pointDelta} نقطة إلى رصيدك.`, tone: "success" },
-      partial: { title: "تقدم محسوب", body: `حصلت على ${pointDelta} نقطة مقابل الإنجاز الجزئي.`, tone: "info" },
-      not_completed: { title: "تم تسجيل الحالة", body: "غدًا فرصة جديدة من دون جلد للذات.", tone: "warning" },
-      closed: { title: "أُغلقت المهمة", body: "لن تدخل في إنجاز اليوم.", tone: "info" },
-    };
-    pushToast(copy[outcome]);
+    const feedback = getTaskOutcomeFeedback(outcome);
+    if (didCompleteDay) {
+      setDayStatus("complete");
+      announceDayCompletion();
+    } else {
+      pushToast({ tone: toToastTone(feedback.tone), title: feedback.title, body: feedback.body });
+      if (feedback.sound) playJourneySound(feedback.sound, soundEnabled);
+      if (feedback.celebrate) void celebrate(feedback.celebrate);
+    }
+    if (outcome === "completed" || didCompleteDay) {
+      announceAchievementFeedback(getAchievementFeedback({
+        hasCompletedTaskBefore,
+        previousStreak: calculatedStreak.current,
+        nextStreak,
+      }), didCompleteDay ? 900 : 280);
+    }
   };
   const startAiConversation = () => {
     if (ai.isTyping) return;
@@ -709,7 +762,16 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     if (scoreDelta) setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? { ...participant, score: Math.max(0, participant.score + scoreDelta), presence: "idle", currentTask: undefined, currentStatus: "أكمل مهام اليوم" } : participant));
     setDayStatus("complete");
     recordActivity("completed", "أكمل كل المهام المتبقية");
-    pushToast({ tone: "success", title: "اكتملت مهام اليوم", body: `أُضيفت ${scoreDelta} نقطة وحُفظت النتائج دفعة واحدة.` });
+    if (dayStatus !== "complete") {
+      announceDayCompletion();
+      const hasCompletedTaskBefore = tasks.some((task) => task.status === "completed")
+        || dailyTaskRecords.some((record) => record.status === "completed");
+      const nextStreak = calculateStreakFromProgress(progressDays.map((day) => ({
+        date: day.date,
+        progress: day.date === today ? 100 : day.progress,
+      })), { today }).current;
+      announceAchievementFeedback(getAchievementFeedback({ hasCompletedTaskBefore, previousStreak: calculatedStreak.current, nextStreak }), 900);
+    }
   };
 
   const chooseFocusDuration = (minutes: number) => {
@@ -778,10 +840,21 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   };
 
   const endDay = () => {
-    setDayStatus(progress.percent >= 100 ? "complete" : "almost_complete");
+    const didCompleteDay = dayStatus !== "complete" && progress.percent >= 100;
+    setDayStatus(didCompleteDay ? "complete" : "almost_complete");
     if (focusTimer.status === "running") pauseFocus();
     recordActivity("joined", "أنهى متابعة اليوم");
-    pushToast({ tone: "success", title: "أُغلقت رحلة اليوم", body: "حُفظ التقدم ويمكنك العودة إلى السجل." });
+    if (didCompleteDay) {
+      announceDayCompletion();
+      const nextStreak = calculateStreakFromProgress(progressDays.map((day) => ({ date: day.date, progress: day.date === today ? progress.percent : day.progress })), { today }).current;
+      announceAchievementFeedback(getAchievementFeedback({
+        hasCompletedTaskBefore: tasks.some((task) => task.status === "completed") || dailyTaskRecords.some((record) => record.status === "completed"),
+        previousStreak: calculatedStreak.current,
+        nextStreak,
+      }), 900);
+      return;
+    }
+    pushToast({ tone: "info", title: "تم حفظ رحلة اليوم", body: "حُفظ التقدم ويمكنك العودة إلى السجل." });
   };
 
   const clearData = (scope: "day" | "week" | "month" | "history" | "participant" | "all", participantId = activeParticipantId) => {

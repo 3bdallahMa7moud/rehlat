@@ -12,6 +12,9 @@ import { completeTaskOutcome, deriveDayStatus, transitionTaskDetail, transitionT
 import { filterTasks, getTaskPrimaryAction } from "../src/domain/tasks/task-presentation.ts";
 import { addParticipant, changeParticipantRole, deleteParticipant, renameParticipant, setParticipantPin } from "../src/domain/participants/participant-domain.ts";
 import { MockAIAdapter } from "../src/data/ai/mock-ai-adapter.ts";
+import { dailyReflections, getDailyReflection, getDailyReflectionIndex } from "../src/lib/daily-reflection.ts";
+import { getTaskOutcomeFeedback } from "../src/lib/feedback.ts";
+import { getNewStreakMilestones, getUnseenAchievementFeedback } from "../src/lib/achievement-feedback.ts";
 
 const task = (status, overrides = {}) => ({ id: status, status, target: 10, current: 3, actualMinutes: 0, type: "general", fullPoints: 10, ...overrides });
 
@@ -42,6 +45,19 @@ assert.equal(getTaskDetailElapsedSeconds({ elapsedSeconds: 150, status: "paused"
 assert.equal(getProjectDateKey("2026-09-21T21:30:00.000Z"), "2026-09-22");
 assert.equal(getProjectDayStart("2026-09-22").toISOString(), "2026-09-21T21:00:00.000Z");
 assert.equal(formatRelativeTime("2026-09-22T09:58:00.000Z", "2026-09-22T10:00:00.000Z"), "منذ 2 دقيقة");
+
+assert.equal(getDailyReflection("2026-09-22").id, getDailyReflection("2026-09-22").id);
+assert.notEqual(getDailyReflectionIndex("2026-09-22"), getDailyReflectionIndex("2026-09-23"));
+assert.equal(dailyReflections.length >= 7, true);
+assert.equal(getTaskOutcomeFeedback("completed").tone, "success");
+assert.equal(getTaskOutcomeFeedback("partial").tone, "info");
+assert.equal(getTaskOutcomeFeedback("not_completed").tone, "neutral");
+assert.equal(getTaskOutcomeFeedback("closed").tone, "neutral");
+assert.deepEqual(getNewStreakMilestones(2, 3), [3]);
+assert.deepEqual(getNewStreakMilestones(3, 3), []);
+assert.deepEqual(getNewStreakMilestones(6, 7), [7]);
+assert.deepEqual(getNewStreakMilestones(7, 8), []);
+assert.equal(getUnseenAchievementFeedback([{ id: "first-task" }], ["razi:first-task"], "razi").length, 0);
 
 assert.equal(calculateStreak([
   { date: "2026-09-20", status: "successful" },

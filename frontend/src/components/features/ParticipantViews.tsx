@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Activity, ArrowLeft, Award, BarChart3, CalendarDays, ChevronLeft, CircleCheck, Clock3, Crown, FileSpreadsheet, FileText, Flame, Focus, Lightbulb, Medal, MessageCircle, Minus, Moon, MoreHorizontal, Play, Sparkles, Target, Timer, TrendingDown, TrendingUp, TriangleAlert, Trophy, Users } from "lucide-react";
 import { AIAssistantHero } from "@/components/features/AIAssistant";
 import { TaskCard, TaskGlyph } from "@/components/features/TaskCard";
@@ -13,7 +13,8 @@ import { QuranBatchReader } from "@/components/features/QuranBatchReader";
 import { PrayerTracker, ReadingTracker, ReviewTracker, SportTracker, WaterTracker } from "@/components/features/TaskTrackers";
 import { getTaskRegistryEntry } from "@/components/tasks/TaskRegistry";
 import { ActivityIcon } from "@/design/activity-visuals";
-import { formatDashboardDate, formatRelativeTime } from "@/lib/date-time";
+import { formatDashboardDate, formatRelativeTime, getProjectDateKey } from "@/lib/date-time";
+import { getDailyReflection } from "@/lib/daily-reflection";
 import { Badge, Button, Card, Dialog, EmptyState, IconButton, Input, PageHeader, ProgressBar, SectionHeader, StatusBadge, Tabs, UserAvatar } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { formatMinutes, formatPercentage } from "@/lib/format";
@@ -71,7 +72,16 @@ function OnlineRows() {
 }
 
 function MotivationCard() {
-  return <Card padding="none" className="motivation-card"><Image src="/images/daily-coffee.png" alt="فنجان قهوة ودفتر في الصباح" width={128} height={128} /><div><Badge tone="teal">لمحة اليوم</Badge><h3>ابدأ بأصغر خطوة</h3><p>ليس المطلوب يومًا مثاليًا؛ المطلوب أن تبقى قريبًا من الطريق.</p></div></Card>;
+  const [dateKey, setDateKey] = useState(() => getProjectDateKey());
+  useEffect(() => {
+    const timer = window.setInterval(() => setDateKey((current) => {
+      const next = getProjectDateKey();
+      return current === next ? current : next;
+    }), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const reflection = getDailyReflection(dateKey);
+  return <Card padding="none" className="motivation-card"><Image src="/images/daily-coffee.png" alt="فنجان قهوة ودفتر في الصباح" width={128} height={128} sizes="112px" priority={false} /><div><Badge tone="teal">لمحة اليوم</Badge><h3>{reflection.title}</h3><p>{reflection.body}</p></div></Card>;
 }
 
 export function DashboardView() {

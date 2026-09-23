@@ -6,8 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ActivityIcon } from "@/design/activity-visuals";
 import { Badge, Button, Card, Dialog, IconButton, ProgressBar, StatusBadge } from "@/components/ui";
-import { celebrate } from "@/lib/celebrate";
-import { playJourneySound } from "@/lib/sound";
 import { cn } from "@/lib/cn";
 import { formatMinutes } from "@/lib/format";
 import { PARTIAL_COMPLETION_WEIGHT } from "@/lib/progress";
@@ -30,7 +28,7 @@ function StatusGlyph({ status }: { status: TaskStatus }) {
 type CompletionOutcome = "completed" | "partial" | "not_completed" | "closed";
 
 export function TaskCard({ task, compact = false, openOnClick = false }: { task: Task; compact?: boolean; openOnClick?: boolean }) {
-  const { setTaskStatus, completeTask, soundEnabled } = useDemo();
+  const { setTaskStatus, completeTask } = useDemo();
   const router = useRouter();
   const [completionOpen, setCompletionOpen] = useState(false);
   const [selectedOutcome, setSelectedOutcome] = useState<CompletionOutcome | null>(null);
@@ -43,8 +41,6 @@ export function TaskCard({ task, compact = false, openOnClick = false }: { task:
     completeTask(task.id, outcome);
     setCompletionOpen(false);
     setSelectedOutcome(null);
-    playJourneySound(outcome === "completed" ? "celebration" : outcome === "partial" ? "success" : outcome === "closed" ? "toggle" : "warning", soundEnabled);
-    if (outcome === "completed") void celebrate("task");
   };
   const openTask = (status?: TaskStatus) => {
     if (status) setTaskStatus(task.id, status);

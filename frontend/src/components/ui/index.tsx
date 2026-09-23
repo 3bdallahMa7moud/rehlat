@@ -2,7 +2,7 @@
 
 import { forwardRef, useEffect, useId, useRef, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, CircleCheck, Info, LoaderCircle, SearchX, TriangleAlert, X } from "lucide-react";
+import { Award, Check, ChevronDown, CircleCheck, Crown, Flame, Info, LoaderCircle, SearchX, TriangleAlert, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { PresenceStatus } from "@/types/models";
 
@@ -107,7 +107,7 @@ export function EmptyState({ title, description, action }: { title: string; desc
 export function ErrorState({ title = "تعذر تحميل البيانات.", onRetry }: { title?: string; onRetry?: () => void }) { return <div className="state-box state-error"><TriangleAlert className="text-[var(--danger)]" size={30} /><strong>{title}</strong>{onRetry && <Button size="sm" variant="outline" onClick={onRetry}>إعادة المحاولة</Button>}</div>; }
 
 export function NotificationIcon({ tone }: { tone: "success" | "warning" | "info" | "error" }) { if (tone === "success") return <CircleCheck size={20} />; if (tone === "warning" || tone === "error") return <TriangleAlert size={20} />; return <Info size={20} />; }
-export function ToastViewport({ items, onDismiss }: { items: { id: string; title: string; body?: string; tone: "success" | "warning" | "info" | "error" }[]; onDismiss: (id: string) => void }) { return <div className="toast-viewport" aria-live="polite">{items.map((toast) => <div className={cn("toast", `toast-${toast.tone}`)} key={toast.id}><NotificationIcon tone={toast.tone} /><div><strong>{toast.title}</strong>{toast.body && <p>{toast.body}</p>}</div><IconButton label="إغلاق الإشعار" onClick={() => onDismiss(toast.id)}><X size={17} /></IconButton></div>)}</div>; }
+export function ToastViewport({ items, onDismiss }: { items: { id: string; title: string; body?: string; tone: "success" | "warning" | "info" | "error"; icon?: "achievement" | "milestone" | "title" }[]; onDismiss: (id: string) => void }) { return <div className="toast-viewport" aria-live="polite">{items.map((toast) => <div className={cn("toast", `toast-${toast.tone}`)} key={toast.id}>{toast.icon === "achievement" ? <Award size={20} aria-hidden="true" /> : toast.icon === "milestone" ? <Flame size={20} aria-hidden="true" /> : toast.icon === "title" ? <Crown size={20} aria-hidden="true" /> : <NotificationIcon tone={toast.tone} />}<div><strong>{toast.title}</strong>{toast.body && <p>{toast.body}</p>}</div><IconButton label="إغلاق الإشعار" onClick={() => onDismiss(toast.id)}><X size={17} /></IconButton></div>)}</div>; }
 
 export function PinInput({ value, onChange, onSubmit, error, loading, success, masked = true }: { value: string; onChange: (value: string) => void; onSubmit?: (code?: string) => void; error?: string; loading?: boolean; success?: boolean; masked?: boolean }) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);

@@ -18,7 +18,7 @@ import type {
  */
 
 export const JOURNEY_STORAGE_KEY = "journey-of-change/state";
-export const JOURNEY_STORAGE_VERSION = 2;
+export const JOURNEY_STORAGE_VERSION = 3;
 
 export type ISODateTime = string;
 
@@ -132,6 +132,8 @@ export interface JourneyPersistedState {
   streaks: StreakSnapshot[];
   dayStatuses: DayStatusSnapshot[];
   notifications: AppNotification[];
+  /** Feedback already shown to the participant, keyed by stable domain IDs. */
+  seenFeedbackIds: string[];
   messages: EncouragementMessage[];
   activity: ActivityEvent[];
   settings: JourneySettings;
@@ -261,6 +263,7 @@ export function createEmptyJourneyState(): JourneyPersistedState {
     streaks: [],
     dayStatuses: [],
     notifications: [],
+    seenFeedbackIds: [],
     messages: [],
     activity: [],
     settings: { soundEnabled: true, quranAyahsPerPage: 5, theme: "light" },
@@ -432,6 +435,15 @@ const journeyMigrations: Record<number, StorageMigration> = {
       activity: withCreatedAt(source.activity),
       notifications: withCreatedAt(source.notifications),
       messages: withCreatedAt(source.messages),
+    };
+  },
+  3: (value) => {
+    const source = isRecord(value) ? value : {};
+    return {
+      ...source,
+      seenFeedbackIds: Array.isArray(source.seenFeedbackIds)
+        ? source.seenFeedbackIds.filter((id): id is string => typeof id === "string")
+        : [],
     };
   },
 };
