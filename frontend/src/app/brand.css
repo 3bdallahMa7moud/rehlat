@@ -1645,6 +1645,12 @@ body {
 .streak-celebration > b { color: var(--warning); font-size: 16px; white-space: nowrap; }
 @media (max-width: 620px) { .streak-celebration { grid-template-columns: auto 1fr; } .streak-celebration > b { grid-column: 2; } }.report-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 240px)); gap: 10px; margin: 14px 0; }
 @media (max-width: 620px) { .report-filters { grid-template-columns: 1fr; } }.book-preview-frame { width: 100%; height: 420px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
+.report-task-list, .admin-report-participants { display: grid; gap: 8px; }
+.report-task-list article, .admin-report-participants article { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; border-top: 1px solid var(--line); padding: 10px 0; }
+.report-task-list article:first-child, .admin-report-participants article:first-child { border-top: 0; }
+.report-task-list article > div { min-width: 0; display: grid; gap: 3px; }
+.report-task-list span, .admin-report-participants span { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 620px) { .report-task-list article, .admin-report-participants article { grid-template-columns: 1fr; gap: 6px; } .report-task-list article > strong, .admin-report-participants .badge { justify-self: start; } }
 .ai-report-card { display: flex; align-items: center; justify-content: space-between; gap: 14px; border-right: 3px solid var(--primary); background: linear-gradient(110deg, var(--primary-soft), var(--surface)); margin: 14px 0; }
 .ai-report-card > div { display: grid; gap: 5px; }
 .ai-report-card h3 { margin: 0; font-size: 15px; }

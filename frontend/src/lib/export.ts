@@ -1,5 +1,4 @@
 import type { Report } from "@/types/models";
-import * as XLSX from "xlsx";
 
 export type ExportFormat = "json" | "csv" | "excel" | "xlsx" | "pdf";
 
@@ -107,18 +106,9 @@ export function serializeExcel(data: unknown, options: Pick<ExportOptions, "colu
   return `<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="${title.slice(0, 31)}"><Table>${metadata}${header}${body}</Table></Worksheet></Workbook>`;
 }
 
-function createXlsxBuffer(options: Pick<ExportOptions, "data" | "columns" | "metadata" | "title" | "sheets">) {
-  const workbook = XLSX.utils.book_new();
-  const sourceSheets = options.sheets ?? { [options.title ?? "التقرير"]: options.data };
-  Object.entries(sourceSheets).forEach(([name, data]) => {
-    const rows = rowsFromData(data);
-    const columns = name === Object.keys(sourceSheets)[0] && options.columns?.length ? columnsForRows(rows, options.columns) : columnsForRows(rows);
-    const values: Array<Record<string, string | number | boolean>> = rows.map((row) => Object.fromEntries(columns.map((column) => [column.header, cellValue(row, column)])));
-    if (name === Object.keys(sourceSheets)[0] && options.metadata) values.unshift(Object.fromEntries(Object.entries(options.metadata).map(([key, value]) => [key, displayValue(value)])));
-    const sheet = XLSX.utils.json_to_sheet(values);
-    XLSX.utils.book_append_sheet(workbook, sheet, name.slice(0, 31) || "التقرير");
-  });
-  return XLSX.write(workbook, { bookType: "xlsx", type: "array" }) as ArrayBuffer;
+function createXlsxBuffer(_options: Pick<ExportOptions, "data" | "columns" | "metadata" | "title" | "sheets">): never {
+  void _options;
+  throw new Error("XLSX export is loaded on demand from xlsx-export.ts");
 }
 
 function pdfSafe(value: unknown) {
@@ -168,7 +158,7 @@ export function createExportArtifact<T>(options: ExportOptions<T>): ExportArtifa
   switch (format) {
     case "json": body = serializeJson(options.data, options.metadata); break;
     case "csv": body = `\uFEFF${serializeCsv(options.data, options)}`; break;
-    case "excel":
+    case "excel": body = serializeExcel(options.data, options); break;
     case "xlsx": body = createXlsxBuffer(options); break;
     case "pdf": body = serializePdf(options.data, options); break;
     default: body = serializeJson(options.data, options.metadata);

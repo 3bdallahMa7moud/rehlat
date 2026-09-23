@@ -20,7 +20,7 @@ import { getEarnedTitleCards, getHonorHighlights, getPersonalHonorSummary } from
 import { calculateRankings, calculateRankingScore } from "../src/lib/ranking.ts";
 import { getDayCompletionPresentation, getTaskStreakPresentation } from "../src/lib/streak-presentation.ts";
 import { queryReport } from "../src/lib/report-query.ts";
-import { createExportArtifact, serializePdf } from "../src/lib/export.ts";
+import { serializePdf } from "../src/lib/export.ts";
 
 const task = (status, overrides = {}) => ({ id: status, status, target: 10, current: 3, actualMinutes: 0, type: "general", fullPoints: 10, ...overrides });
 
@@ -236,12 +236,21 @@ assert.equal(groupReport.totalMinutes, 162);
 assert.equal(groupReport.participantRows.length, 2);
 assert.equal(groupReport.topParticipant, "A");
 const monthlyReport = queryReport(reportInput, { period: "monthly", participantId: "all", taskId: "all" });
-assert.equal(monthlyReport.points[monthlyReport.points.length - 1].label, "الأسبوع 4");
+assert.equal(monthlyReport.points[monthlyReport.points.length - 1].label, "الأسبوع 5");
 assert.equal(queryReport({ ...reportInput, dailyTaskRecords: [] }, { period: "daily", participantId: "a", taskId: "all" }).hasData, false);
-const xlsxArtifact = createExportArtifact({ data: [{ "نسبة الإنجاز": 100 }], format: "xlsx", filename: "test-report" });
+const xlsxArtifact = await (await import("../src/lib/xlsx-export.ts")).exportXlsxReport({ summary: [{ "ملخص": 100 }], timeline: [], tasks: [] }, "test-report");
 assert.equal(xlsxArtifact.filename.endsWith(".xlsx"), true);
 assert.equal(xlsxArtifact.mimeType, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 assert.equal((await xlsxArtifact.blob.arrayBuffer()).byteLength > 100, true);
 assert.equal(serializePdf([{ title: "تقرير عربي" }], { title: "تقرير عربي" }).includes("?"), false);
+
+const untouchedToday = queryReport({ ...reportInput, dailyTaskRecords: [], progress: [{ userId: "a", localDate: "2026-09-22", percent: 0, completed: 0, partial: 0, remaining: 2, total: 2, actualMinutes: 0, updatedAt: clock }], dayStatuses: [{ userId: "a", localDate: "2026-09-22", status: "not_started", updatedAt: clock }] }, { period: "daily", participantId: "a", taskId: "all" });
+assert.equal(untouchedToday.hasData, false);
+const startedToday = queryReport({ ...reportInput, dailyTaskRecords: [], progress: [{ userId: "a", localDate: "2026-09-22", percent: 0, completed: 0, partial: 0, remaining: 2, total: 2, actualMinutes: 0, updatedAt: clock }], dayStatuses: [{ userId: "a", localDate: "2026-09-22", status: "started", updatedAt: clock }] }, { period: "daily", participantId: "a", taskId: "all" });
+assert.equal(startedToday.hasData, true); assert.equal(startedToday.completionRate, 0);
+const snapshotTruth = queryReport({ ...reportInput, dailyTaskRecords: [{ userId: "a", taskId: "reading", localDate: "2026-09-22", status: "completed", current: 1, actualMinutes: 1, updatedAt: clock }], progress: [{ userId: "a", localDate: "2026-09-22", percent: 73, completed: 1, partial: 0, remaining: 1, total: 2, actualMinutes: 44, updatedAt: clock }] }, { period: "daily", participantId: "a", taskId: "all" });
+assert.equal(snapshotTruth.completionRate, 73); assert.equal(snapshotTruth.totalMinutes, 44);
+assert.equal(queryReport(reportInput, { period: "weekly", participantId: "a", taskId: "sport" }).completionRate, 0);
+assert.equal(queryReport(reportInput, { period: "weekly", participantId: "a", taskId: "sport" }).totalMinutes, 12);
 
 console.log("logic tests passed");

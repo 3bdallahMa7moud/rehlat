@@ -483,10 +483,13 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     tasks: taskDefinitions,
     dailyTaskRecords,
     progress: progressHistory,
+    dayStatuses: stateSnapshotRef.current.dayStatuses,
     currentTasks: tasks,
     currentParticipantId: activeParticipantId,
+    currentDayStatus: dayStatus,
+    currentProgress: progress,
     today,
-  }, filters), [activeParticipantId, dailyTaskRecords, participants, progressHistory, taskDefinitions, tasks, today]);
+  }, filters), [activeParticipantId, dailyTaskRecords, dayStatus, participants, progress, progressHistory, taskDefinitions, tasks, today]);
 
   useEffect(() => {
     if (!hydrated || tasksOwnerId !== activeParticipantId) return;
