@@ -238,12 +238,15 @@ export function isJourneyPersistedState(value: unknown): value is JourneyPersist
     "streaks",
     "dayStatuses",
     "notifications",
+    "seenFeedbackIds",
     "messages",
     "activity",
     "presence",
   ] as const;
 
   if (arrayKeys.some((key) => !Array.isArray(value[key]))) return false;
+  const seenFeedbackIds = value.seenFeedbackIds;
+  if (!Array.isArray(seenFeedbackIds) || !seenFeedbackIds.every((id): id is string => typeof id === "string")) return false;
   if (!isRecord(value.settings) || !isRecord(value.session)) return false;
   if (typeof value.settings.soundEnabled !== "boolean") return false;
   if (value.settings.theme !== "light" && value.settings.theme !== "dark" && value.settings.theme !== "system") {

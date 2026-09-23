@@ -18,6 +18,20 @@ export function getUnseenAchievementFeedback<T extends { id: string }>(items: re
   return items.filter((item) => !seen.has(`${participantId}:${item.id}`));
 }
 
+export function hasParticipantCompletedTask<T extends { userId: string; status: string }>(records: readonly T[], participantId: string) {
+  return records.some((record) => record.userId === participantId && record.status === "completed");
+}
+
+export function planAchievementFeedbackDelivery(items: readonly AchievementFeedback[]) {
+  const priority = { title: 3, milestone: 2, achievement: 1 } as const;
+  const delivered = [...items].sort((left, right) => priority[right.kind] - priority[left.kind]);
+  return {
+    toast: delivered[0],
+    notifications: delivered.slice(1),
+    delivered,
+  };
+}
+
 export function getAchievementFeedback(input: {
   hasCompletedTaskBefore: boolean;
   previousStreak: number;

@@ -12,9 +12,10 @@ import { completeTaskOutcome, deriveDayStatus, transitionTaskDetail, transitionT
 import { filterTasks, getTaskPrimaryAction } from "../src/domain/tasks/task-presentation.ts";
 import { addParticipant, changeParticipantRole, deleteParticipant, renameParticipant, setParticipantPin } from "../src/domain/participants/participant-domain.ts";
 import { MockAIAdapter } from "../src/data/ai/mock-ai-adapter.ts";
+import { createEmptyJourneyState, isJourneyPersistedState } from "../src/lib/storage.ts";
 import { dailyReflections, getDailyReflection, getDailyReflectionIndex } from "../src/lib/daily-reflection.ts";
-import { getTaskDetailOutcomeFeedback, getTaskOutcomeFeedback } from "../src/lib/feedback.ts";
-import { getNewStreakMilestones, getUnseenAchievementFeedback } from "../src/lib/achievement-feedback.ts";
+import { getDetailCompletionFeedbackPriority, getTaskDetailOutcomeFeedback, getTaskOutcomeFeedback, isFullDayCompletion } from "../src/lib/feedback.ts";
+import { getAchievementFeedback, getNewStreakMilestones, getUnseenAchievementFeedback, hasParticipantCompletedTask, planAchievementFeedbackDelivery } from "../src/lib/achievement-feedback.ts";
 
 const task = (status, overrides = {}) => ({ id: status, status, target: 10, current: 3, actualMinutes: 0, type: "general", fullPoints: 10, ...overrides });
 
@@ -55,6 +56,33 @@ assert.equal(getTaskOutcomeFeedback("not_completed").tone, "neutral");
 assert.equal(getTaskOutcomeFeedback("closed").tone, "neutral");
 assert.equal(getTaskDetailOutcomeFeedback("completed", "الفجر").celebrate, null);
 assert.equal(getTaskDetailOutcomeFeedback("completed", "الفجر").sound, null);
+assert.equal(hasParticipantCompletedTask([{ userId: "user-a", status: "completed" }], "user-b"), false);
+assert.equal(hasParticipantCompletedTask([{ userId: "user-a", status: "completed" }], "user-a"), true);
+assert.equal(getAchievementFeedback({ hasCompletedTaskBefore: hasParticipantCompletedTask([{ userId: "user-a", status: "completed" }], "user-b"), previousStreak: 0, nextStreak: 0 }).some((item) => item.id === "achievement:first-task"), true);
+assert.equal(isFullDayCompletion("in_progress", 100), true);
+assert.equal(isFullDayCompletion("in_progress", 50), false);
+assert.equal(isFullDayCompletion("complete", 100), false);
+assert.equal(isFullDayCompletion("in_progress", calculateProgress([task("completed"), task("completed")]).percent), true);
+assert.equal(isFullDayCompletion("in_progress", calculateProgress([task("partial"), task("closed")]).percent), false);
+assert.equal(isFullDayCompletion("in_progress", calculateProgress([task("not_completed"), task("closed")]).percent), false);
+assert.equal(getDetailCompletionFeedbackPriority({ parentBecameCompleted: false, dayStatus: "in_progress", nextProgressPercent: 100 }), "detail");
+assert.equal(getDetailCompletionFeedbackPriority({ parentBecameCompleted: true, dayStatus: "in_progress", nextProgressPercent: 80 }), "task");
+assert.equal(getDetailCompletionFeedbackPriority({ parentBecameCompleted: true, dayStatus: "in_progress", nextProgressPercent: 100 }), "day");
+const delivery = planAchievementFeedbackDelivery([
+  { id: "achievement", kind: "achievement", title: "A", body: "A" },
+  { id: "milestone", kind: "milestone", title: "M", body: "M" },
+  { id: "title", kind: "title", title: "T", body: "T" },
+]);
+assert.equal(delivery.toast?.id, "title");
+assert.equal(delivery.notifications.length, 2);
+assert.equal(delivery.delivered.length, 3);
+assert.deepEqual(delivery.delivered.map((item) => item.id).sort(), ["achievement", "milestone", "title"]);
+const validStorage = createEmptyJourneyState();
+assert.equal(isJourneyPersistedState(validStorage), true);
+const storageWithoutSeenFeedbackIds = { ...validStorage };
+delete storageWithoutSeenFeedbackIds.seenFeedbackIds;
+assert.equal(isJourneyPersistedState(storageWithoutSeenFeedbackIds), false);
+assert.equal(isJourneyPersistedState({ ...validStorage, seenFeedbackIds: [123] }), false);
 assert.deepEqual(getNewStreakMilestones(2, 3), [3]);
 assert.deepEqual(getNewStreakMilestones(3, 3), []);
 assert.deepEqual(getNewStreakMilestones(6, 7), [7]);

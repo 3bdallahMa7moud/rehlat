@@ -7,9 +7,9 @@ import type { AIConversation, AIConversationState, Achievement, ActivityEvent, A
 import { journeyStorage, type DailyTaskRecord, type FocusSession, type FocusTimerSnapshot, type JourneyPersistedState } from "@/lib/storage";
 import { createLocalPresenceAdapter, localRealtime, type PresenceRecord, type RealtimeStatus } from "@/lib/realtime";
 import { calculateProgress } from "@/lib/progress";
-import { getAchievementFeedback, getUnseenAchievementFeedback } from "@/lib/achievement-feedback";
+import { getAchievementFeedback, getUnseenAchievementFeedback, hasParticipantCompletedTask, planAchievementFeedbackDelivery } from "@/lib/achievement-feedback";
 import { celebrate } from "@/lib/celebrate";
-import { getDayCompletionFeedback, getTaskDetailOutcomeFeedback, getTaskOutcomeFeedback, toToastTone } from "@/lib/feedback";
+import { getDayCompletionFeedback, getDetailCompletionFeedbackPriority, getTaskDetailOutcomeFeedback, getTaskOutcomeFeedback, isFullDayCompletion, toToastTone } from "@/lib/feedback";
 import { calculateReports } from "@/lib/reports";
 import { calculateStreakFromProgress } from "@/lib/streak";
 import { getTaskEarnedPoints } from "@/lib/points";
@@ -521,15 +521,16 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const announceAchievementFeedback = useCallback((feedbackItems: ReturnType<typeof getAchievementFeedback>, delay = 0) => {
     const unseen = getUnseenAchievementFeedback(feedbackItems, seenFeedbackIds, activeParticipantId);
     if (!unseen.length) return;
-    const ids = unseen.map((item) => `${activeParticipantId}:${item.id}`);
-    setSeenFeedbackIds((items) => [...new Set([...items, ...ids])]);
-    persist((state) => ({ ...state, seenFeedbackIds: [...new Set([...state.seenFeedbackIds, ...ids]) ] }), "feedback.updated");
-
-    const priority = { title: 3, milestone: 2, achievement: 1 } as const;
-    const item = [...unseen].sort((left, right) => priority[right.kind] - priority[left.kind])[0];
+    const delivery = planAchievementFeedbackDelivery(unseen);
     window.setTimeout(() => {
-      pushToast({ tone: "success", title: item.title, body: item.body, icon: item.kind });
-      setNotifications((items) => [createNotification({ kind: "success", title: item.title, body: item.body, persistent: true, createdAt: nowIso(), read: false }), ...items].slice(0, 50));
+      if (delivery.toast) pushToast({ tone: "success", title: delivery.toast.title, body: delivery.toast.body, icon: delivery.toast.kind });
+      if (delivery.notifications.length) setNotifications((items) => [
+        ...delivery.notifications.map((item) => createNotification({ kind: "success", title: item.title, body: item.body, persistent: true, createdAt: nowIso(), read: false })),
+        ...items,
+      ].slice(0, 50));
+      const ids = delivery.delivered.map((item) => `${activeParticipantId}:${item.id}`);
+      setSeenFeedbackIds((items) => [...new Set([...items, ...ids])]);
+      persist((state) => ({ ...state, seenFeedbackIds: [...new Set([...state.seenFeedbackIds, ...ids]) ] }), "feedback.updated");
     }, delay);
   }, [activeParticipantId, persist, pushToast, seenFeedbackIds]);
 
@@ -590,15 +591,44 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     if (!nextTask) return;
     const didCompleteParentTask = task.status !== "completed" && nextTask.status === "completed";
     const pointDelta = getTaskEarnedPoints(nextTask) - getTaskEarnedPoints(task);
-    setTasks((items) => items.map((item) => item.id === taskId ? { ...nextTask, awardedPoints: getTaskEarnedPoints(nextTask) } : item));
+    const earnedAfter = getTaskEarnedPoints(nextTask);
+    const nextTasks = tasks.map((item) => item.id === taskId ? { ...nextTask, awardedPoints: earnedAfter } : item);
+    const nextProgress = calculateProgress(nextTasks);
+    const nextDayStatus = deriveDayStatus(nextTasks);
+    const reachedTerminalDay = dayStatus !== "complete" && nextDayStatus === "complete";
+    const feedbackPriority = getDetailCompletionFeedbackPriority({
+      parentBecameCompleted: didCompleteParentTask,
+      dayStatus,
+      nextProgressPercent: nextProgress.percent,
+    });
+    const nextStreak = calculateStreakFromProgress(progressDays.map((day) => ({
+      date: day.date,
+      progress: day.date === today ? nextProgress.percent : day.progress,
+      status: day.date === today && feedbackPriority !== "day" ? "today" as const : undefined,
+    })), { today }).current;
+    const hasCompletedTaskBefore = tasks.some((item) => item.status === "completed")
+      || hasParticipantCompletedTask(dailyTaskRecords, activeParticipantId);
+    setTasks(nextTasks);
     if (pointDelta !== 0) setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? { ...participant, score: Math.max(0, participant.score + pointDelta) } : participant));
     recordActivity("completed", outcome === "completed" ? "أكمل تفصيل المهمة" : "سجل نتيجة تفصيل المهمة", `${task.title} · ${detail.title}`);
-    const feedback = didCompleteParentTask
-      ? getTaskOutcomeFeedback("completed")
-      : getTaskDetailOutcomeFeedback(outcome, detail.title);
-    pushToast({ tone: toToastTone(feedback.tone), title: feedback.title, body: feedback.body });
-    if (feedback.sound) playJourneySound(feedback.sound, soundEnabled);
-    if (feedback.celebrate) void celebrate(feedback.celebrate);
+    if (reachedTerminalDay || feedbackPriority === "day") setDayStatus("complete");
+    if (feedbackPriority === "day") {
+      announceDayCompletion();
+    } else {
+      const feedback = feedbackPriority === "task"
+        ? getTaskOutcomeFeedback("completed")
+        : getTaskDetailOutcomeFeedback(outcome, detail.title);
+      pushToast({ tone: toToastTone(feedback.tone), title: feedback.title, body: feedback.body });
+      if (feedback.sound) playJourneySound(feedback.sound, soundEnabled);
+      if (feedback.celebrate) void celebrate(feedback.celebrate);
+    }
+    if (feedbackPriority === "task" || feedbackPriority === "day") {
+      announceAchievementFeedback(getAchievementFeedback({
+        hasCompletedTaskBefore,
+        previousStreak: calculatedStreak.current,
+        nextStreak,
+      }), feedbackPriority === "day" ? 900 : 280);
+    }
   };
   const completeTask = (taskId: string, outcome: CompletionOutcome) => {
     const task = tasks.find((item) => item.id === taskId);
@@ -614,15 +644,16 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     const pointDelta = earnedAfter - awardedBefore;
     const nextTasks = tasks.map((item) => item.id === taskId ? { ...nextTask, awardedPoints: earnedAfter } : item);
     const nextDayStatus = deriveDayStatus(nextTasks);
-    const didCompleteDay = dayStatus !== "complete" && nextDayStatus === "complete";
     const nextProgress = calculateProgress(nextTasks);
+    const reachedTerminalDay = dayStatus !== "complete" && nextDayStatus === "complete";
+    const didCompleteDay = isFullDayCompletion(dayStatus, nextProgress.percent);
     const nextStreak = calculateStreakFromProgress(progressDays.map((day) => ({
       date: day.date,
       progress: day.date === today ? nextProgress.percent : day.progress,
       status: day.date === today && !didCompleteDay ? "today" as const : undefined,
     })), { today }).current;
     const hasCompletedTaskBefore = tasks.some((item) => item.status === "completed")
-      || dailyTaskRecords.some((record) => record.status === "completed");
+      || hasParticipantCompletedTask(dailyTaskRecords, activeParticipantId);
     setTasks(nextTasks);
     if (pointDelta !== 0) {
       setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? { ...participant, score: Math.max(0, participant.score + pointDelta) } : participant));
@@ -636,8 +667,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     recordActivity("completed", outcome === "completed" ? "أكمل المهمة" : "سجل نتيجة المهمة", task.title);
     presenceAdapterRef.current?.update("idle");
     const feedback = getTaskOutcomeFeedback(outcome);
+    if (reachedTerminalDay || didCompleteDay) setDayStatus("complete");
     if (didCompleteDay) {
-      setDayStatus("complete");
       announceDayCompletion();
     } else {
       pushToast({ tone: toToastTone(feedback.tone), title: feedback.title, body: feedback.body });
@@ -768,7 +799,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     if (dayStatus !== "complete") {
       announceDayCompletion();
       const hasCompletedTaskBefore = tasks.some((task) => task.status === "completed")
-        || dailyTaskRecords.some((record) => record.status === "completed");
+        || hasParticipantCompletedTask(dailyTaskRecords, activeParticipantId);
       const nextStreak = calculateStreakFromProgress(progressDays.map((day) => ({
         date: day.date,
         progress: day.date === today ? 100 : day.progress,
@@ -851,7 +882,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       announceDayCompletion();
       const nextStreak = calculateStreakFromProgress(progressDays.map((day) => ({ date: day.date, progress: day.date === today ? progress.percent : day.progress })), { today }).current;
       announceAchievementFeedback(getAchievementFeedback({
-        hasCompletedTaskBefore: tasks.some((task) => task.status === "completed") || dailyTaskRecords.some((record) => record.status === "completed"),
+        hasCompletedTaskBefore: tasks.some((task) => task.status === "completed") || hasParticipantCompletedTask(dailyTaskRecords, activeParticipantId),
         previousStreak: calculatedStreak.current,
         nextStreak,
       }), 900);
@@ -907,6 +938,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setFocusTimer(next.focusTimers.find((timer) => timer.userId === activeParticipantId && timer.localDate === today) ?? defaultFocus(activeParticipantId, today));
     setActivity(next.activity);
     setNotifications(next.notifications);
+    setSeenFeedbackIds(next.seenFeedbackIds);
     setEncouragementMessages(next.messages);
     setStreakData(streak);
     pushToast({ tone: "warning", title: "تم مسح البيانات", body: scope === "all" ? "تم مسح السجلات مع الإبقاء على الحسابات والمهام." : "تم تطبيق النطاق المحدد على البيانات المحلية." });
@@ -926,6 +958,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setFocusTimer(clearBackup.focusTimers.find((timer) => timer.userId === activeParticipantId && timer.localDate === today) ?? defaultFocus(activeParticipantId, today));
     setActivity(clearBackup.activity);
     setNotifications(clearBackup.notifications);
+    setSeenFeedbackIds(clearBackup.seenFeedbackIds);
     setEncouragementMessages(clearBackup.messages);
     const savedStreak = clearBackup.streaks.find((item) => item.userId === activeParticipantId);
     setStreakData(savedStreak ? { current: savedStreak.current, best: savedStreak.best, successfulDays: savedStreak.successfulDays, history: savedStreak.history } : streak);

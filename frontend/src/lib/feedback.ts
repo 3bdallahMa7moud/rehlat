@@ -1,5 +1,6 @@
 import type { JourneySound } from "./sound";
 import type { TaskOutcome } from "@/domain/tasks/task-domain";
+import { PARTIAL_COMPLETION_WEIGHT } from "./progress.ts";
 
 export type FeedbackTone = "success" | "info" | "neutral";
 
@@ -11,12 +12,26 @@ export type TaskOutcomeFeedback = {
   celebrate: "task" | null;
 };
 
+export function isFullDayCompletion(dayStatus: string, nextProgressPercent: number) {
+  return dayStatus !== "complete" && nextProgressPercent >= 100;
+}
+
+export function getDetailCompletionFeedbackPriority(input: {
+  parentBecameCompleted: boolean;
+  dayStatus: string;
+  nextProgressPercent: number;
+}): "day" | "task" | "detail" {
+  if (input.parentBecameCompleted && isFullDayCompletion(input.dayStatus, input.nextProgressPercent)) return "day";
+  return input.parentBecameCompleted ? "task" : "detail";
+}
+
 export function getTaskOutcomeFeedback(outcome: TaskOutcome): TaskOutcomeFeedback {
+  const partialPercent = Math.round(PARTIAL_COMPLETION_WEIGHT * 100);
   switch (outcome) {
     case "completed":
       return { tone: "success", title: "تم إنجاز المهمة", body: "تم حفظ الإنجاز والوقت الفعلي.", sound: "celebration", celebrate: "task" };
     case "partial":
-      return { tone: "info", title: "تم حفظ الإنجاز الجزئي", body: "احتُسب 50% من المهمة في تقدم اليوم، مع حفظ الوقت الفعلي.", sound: null, celebrate: null };
+      return { tone: "info", title: "تم حفظ الإنجاز الجزئي", body: `احتُسب ${partialPercent}% من المهمة في تقدم اليوم، مع حفظ الوقت الفعلي.`, sound: null, celebrate: null };
     case "not_completed":
       return { tone: "neutral", title: "تم حفظ حالة المهمة", body: "الوقت محفوظ، ويمكنك المحاولة مرة أخرى لاحقًا.", sound: null, celebrate: null };
     case "closed":
