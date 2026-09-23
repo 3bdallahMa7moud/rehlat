@@ -9,7 +9,7 @@ import { createLocalPresenceAdapter, localRealtime, type PresenceRecord, type Re
 import { calculateProgress } from "@/lib/progress";
 import { getAchievementFeedback, getUnseenAchievementFeedback } from "@/lib/achievement-feedback";
 import { celebrate } from "@/lib/celebrate";
-import { getDayCompletionFeedback, getTaskOutcomeFeedback, toToastTone } from "@/lib/feedback";
+import { getDayCompletionFeedback, getTaskDetailOutcomeFeedback, getTaskOutcomeFeedback, toToastTone } from "@/lib/feedback";
 import { calculateReports } from "@/lib/reports";
 import { calculateStreakFromProgress } from "@/lib/streak";
 import { getTaskEarnedPoints } from "@/lib/points";
@@ -588,11 +588,14 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     }
     const nextTask = transitionTaskDetail(task, detailId, outcome, nowIso());
     if (!nextTask) return;
+    const didCompleteParentTask = task.status !== "completed" && nextTask.status === "completed";
     const pointDelta = getTaskEarnedPoints(nextTask) - getTaskEarnedPoints(task);
     setTasks((items) => items.map((item) => item.id === taskId ? { ...nextTask, awardedPoints: getTaskEarnedPoints(nextTask) } : item));
     if (pointDelta !== 0) setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? { ...participant, score: Math.max(0, participant.score + pointDelta) } : participant));
     recordActivity("completed", outcome === "completed" ? "أكمل تفصيل المهمة" : "سجل نتيجة تفصيل المهمة", `${task.title} · ${detail.title}`);
-    const feedback = getTaskOutcomeFeedback(outcome);
+    const feedback = didCompleteParentTask
+      ? getTaskOutcomeFeedback("completed")
+      : getTaskDetailOutcomeFeedback(outcome, detail.title);
     pushToast({ tone: toToastTone(feedback.tone), title: feedback.title, body: feedback.body });
     if (feedback.sound) playJourneySound(feedback.sound, soundEnabled);
     if (feedback.celebrate) void celebrate(feedback.celebrate);

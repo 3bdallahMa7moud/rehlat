@@ -24,6 +24,16 @@ export function getTaskOutcomeFeedback(outcome: TaskOutcome): TaskOutcomeFeedbac
   }
 }
 
+export function getTaskDetailOutcomeFeedback(outcome: Exclude<TaskOutcome, "closed">, detailTitle: string): TaskOutcomeFeedback {
+  if (outcome === "completed") {
+    return { tone: "success", title: "تم حفظ التفصيل", body: `${detailTitle}: تم حفظ الوقت والنتيجة.`, sound: null, celebrate: null };
+  }
+  if (outcome === "partial") {
+    return { tone: "info", title: "تم حفظ الإنجاز الجزئي", body: `${detailTitle}: تم حفظ التقدم والوقت الفعلي.`, sound: null, celebrate: null };
+  }
+  return { tone: "neutral", title: "تم حفظ حالة التفصيل", body: `${detailTitle}: الوقت محفوظ ويمكنك المحاولة لاحقًا.`, sound: null, celebrate: null };
+}
+
 export function getDayCompletionFeedback() {
   return {
     tone: "success" as const,

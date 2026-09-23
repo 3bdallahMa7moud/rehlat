@@ -13,7 +13,7 @@ import { filterTasks, getTaskPrimaryAction } from "../src/domain/tasks/task-pres
 import { addParticipant, changeParticipantRole, deleteParticipant, renameParticipant, setParticipantPin } from "../src/domain/participants/participant-domain.ts";
 import { MockAIAdapter } from "../src/data/ai/mock-ai-adapter.ts";
 import { dailyReflections, getDailyReflection, getDailyReflectionIndex } from "../src/lib/daily-reflection.ts";
-import { getTaskOutcomeFeedback } from "../src/lib/feedback.ts";
+import { getTaskDetailOutcomeFeedback, getTaskOutcomeFeedback } from "../src/lib/feedback.ts";
 import { getNewStreakMilestones, getUnseenAchievementFeedback } from "../src/lib/achievement-feedback.ts";
 
 const task = (status, overrides = {}) => ({ id: status, status, target: 10, current: 3, actualMinutes: 0, type: "general", fullPoints: 10, ...overrides });
@@ -53,6 +53,8 @@ assert.equal(getTaskOutcomeFeedback("completed").tone, "success");
 assert.equal(getTaskOutcomeFeedback("partial").tone, "info");
 assert.equal(getTaskOutcomeFeedback("not_completed").tone, "neutral");
 assert.equal(getTaskOutcomeFeedback("closed").tone, "neutral");
+assert.equal(getTaskDetailOutcomeFeedback("completed", "الفجر").celebrate, null);
+assert.equal(getTaskDetailOutcomeFeedback("completed", "الفجر").sound, null);
 assert.deepEqual(getNewStreakMilestones(2, 3), [3]);
 assert.deepEqual(getNewStreakMilestones(3, 3), []);
 assert.deepEqual(getNewStreakMilestones(6, 7), [7]);
@@ -64,6 +66,10 @@ assert.equal(calculateStreak([
   { date: "2026-09-21", status: "successful" },
   { date: "2026-09-22", status: "successful" },
 ], { today: "2026-09-22" }).current, 3);
+const parentCompletedFromDetail = transitionTaskDetail(task("running", {
+  detailItems: [{ id: "only-detail", title: "detail", target: 1, current: 0, unit: "step", fullPoints: 10, status: "running", elapsedSeconds: 30 }],
+}), "only-detail", "completed", "2026-09-22T10:00:00.000Z");
+assert.equal(parentCompletedFromDetail?.status, "completed");
 assert.ok(activityEvents.every((event) => !Number.isNaN(new Date(event.createdAt).getTime())));
 
 const clock = "2026-09-22T10:00:00.000Z";
