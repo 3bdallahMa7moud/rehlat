@@ -34,6 +34,7 @@ export function transitionTaskStatus(task: Task, status: TaskStatus, updatedAt: 
 }
 
 export function transitionTaskDetail(task: Task, detailId: string, action: "start" | "pause" | TaskOutcome, updatedAt: string): Task | null {
+  if (["completed", "not_completed", "closed"].includes(task.status)) return null;
   const detail = task.detailItems?.find((item) => item.id === detailId);
   if (!detail || ["completed", "not_completed"].includes(detail.status)) return null;
   if (action === "start") return taskFromDetails(task, task.detailItems!.map((item) => item.id === detailId ? { ...item, status: "running" as const, lastStartedAt: updatedAt } : item));
@@ -43,15 +44,26 @@ export function transitionTaskDetail(task: Task, detailId: string, action: "star
   return taskFromDetails(task, task.detailItems!.map((item) => item.id === detailId ? { ...item, current, status: action, elapsedSeconds, lastStartedAt: undefined } : item));
 }
 
-export function completeTaskOutcome(task: Task, outcome: TaskOutcome): Task | null {
+export function completeTaskOutcome(task: Task, outcome: TaskOutcome, now = Date.now()): Task | null {
   if (["completed", "not_completed", "closed"].includes(task.status)) return null;
   if (task.type === "prayer" && task.detailItems?.length && !["not_completed", "closed"].includes(outcome)) return null;
-  const actualMinutes = outcome === "completed" ? Math.max(task.actualMinutes, task.durationMinutes ?? task.actualMinutes) : task.actualMinutes;
-  const details = outcome === "completed" && task.detailItems?.length ? task.detailItems.map((detail) => ({ ...detail, current: detail.target, status: "completed" as const, lastStartedAt: undefined })) : task.detailItems;
-  const next = details ? taskFromDetails({ ...task, actualMinutes }, details) : { ...task, status: outcome, current: outcome === "completed" ? task.target : task.current, actualMinutes };
+  const frozenDetails = task.detailItems?.map((detail) => detail.status === "running"
+    ? { ...detail, status: "paused" as const, elapsedSeconds: getTaskDetailElapsedSeconds(detail, now), lastStartedAt: undefined }
+    : detail);
+  const details = outcome === "completed" && frozenDetails
+    ? frozenDetails.map((detail) => ({ ...detail, current: detail.target, status: "completed" as const, lastStartedAt: undefined }))
+    : frozenDetails;
+  const measuredSeconds = details ? getTaskElapsedSeconds({ detailItems: details, actualMinutes: task.actualMinutes }, now) : Math.round(task.actualMinutes * 60);
+  const actualMinutes = Math.max(Math.max(0, task.actualMinutes), Math.round(measuredSeconds / 60));
+  const next: Task = {
+    ...task,
+    status: outcome,
+    current: outcome === "completed" ? task.target : task.current,
+    actualMinutes,
+    ...(details ? { detailItems: details } : {}),
+  };
   return { ...next, awardedPoints: getTaskEarnedPoints(next) };
 }
-
 export function updateMeasuredTaskProgress(task: Task, current: number): Task {
   const nextCurrent = Math.max(0, Math.min(current, task.target));
   const status: TaskStatus = nextCurrent <= 0

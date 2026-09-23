@@ -1,7 +1,7 @@
 import type { DailyProgress, Task, TaskStatus } from "@/types/models";
 
 /**
- * The product currently treats a partial task as 55% of a completed task.
+ * The product currently treats a partial task as 50% of a completed task.
  * Keep this value in one place so the dashboard, reports and ranking never
  * drift apart when the business rule changes.
  */

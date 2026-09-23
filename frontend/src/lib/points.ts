@@ -24,17 +24,17 @@ export function getTaskPartialPoints(task: Pick<Task, "type" | "fullPoints" | "p
 
 /** Points earned by a task result; active states intentionally earn nothing. */
 export function getTaskEarnedPoints(task: Pick<Task, "type" | "fullPoints" | "partialPoints" | "status" | "target" | "current" | "detailItems">) {
+  const full = getTaskFullPoints(task);
+  if (task.status === "not_completed" || task.status === "closed") return 0;
+  if (task.status === "completed") return full;
+  if (task.status === "partial" && task.type !== "prayer") return full * PARTIAL_COMPLETION_WEIGHT;
   if (task.detailItems?.length) return task.detailItems.reduce((sum, detail) => {
     if (detail.status === "completed") return sum + detail.fullPoints;
     if (detail.status !== "partial") return sum;
     return sum + detail.fullPoints * PARTIAL_COMPLETION_WEIGHT;
   }, 0);
-  const full = getTaskFullPoints(task);
-  if (task.status === "completed") return full;
-  if (task.status !== "partial") return 0;
-  return getTaskPartialPoints(task);
+  return 0;
 }
-
 export function withTaskPoints(task: Task): Task {
   const fullPoints = getTaskFullPoints(task);
   return { ...task, fullPoints, partialPoints: getTaskPartialPoints({ ...task, fullPoints }), awardedPoints: task.awardedPoints ?? 0 };

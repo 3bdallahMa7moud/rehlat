@@ -38,6 +38,7 @@ export function TaskDetailTimer({ task }: { task: Task }) {
   if (!details.length) return null;
   const totalSeconds = details.reduce((sum, detail) => sum + getTaskDetailElapsedSeconds(detail), 0);
   const completed = details.filter((detail) => detail.status === "completed").length;
+  const parentTerminal = ["completed", "partial", "not_completed", "closed"].includes(task.status);
 
   return <Card className="task-detail-timer-card">
     <SectionHeader title="وقت المهمة" description={details.length ? "الوقت الحالي للتفاصيل والوقت التراكمي محفوظان من التوقيت الحالي." : "هذا هو الوقت الإجمالي المحفوظ للمهمة."} />
@@ -46,7 +47,7 @@ export function TaskDetailTimer({ task }: { task: Task }) {
       {details.map((detail) => {
         const elapsed = getTaskDetailElapsedSeconds(detail);
         const earned = getTaskDetailEarnedPoints(detail);
-        const finished = ["completed", "not_completed"].includes(detail.status);
+        const finished = parentTerminal || ["completed", "not_completed"].includes(detail.status);
         const requiresRecordedTime = task.type === "prayer" && elapsed < 1;
         return <article className="task-detail-timer-row" key={detail.id}>
           <div className="task-detail-timer-copy"><strong>{detail.title}</strong><span>{detail.current} / {detail.target} {detail.unit} · {earned} / {detail.fullPoints} نقطة</span></div>

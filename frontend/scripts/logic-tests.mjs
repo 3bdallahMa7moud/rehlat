@@ -73,6 +73,38 @@ assert.equal(transitionTaskStatus(timedTask, "running", clock).status, "running"
 assert.equal(transitionTaskDetail(timedTask, "detail", "start", clock)?.detailItems?.[0].status, "running");
 assert.equal(completeTaskOutcome(task("partial"), "partial")?.current, 3);
 assert.equal(deriveDayStatus([task("completed"), task("partial")]), "complete");
+const detailOutcomeTask = task("running", {
+  id: "detail-outcome",
+  current: 4,
+  actualMinutes: 2,
+  durationMinutes: 45,
+  detailItems: [{ id: "running-detail", title: "Session", target: 10, current: 4, unit: "step", fullPoints: 10, status: "running", elapsedSeconds: 90, lastStartedAt: "2026-09-22T10:00:00.000Z" }],
+});
+const finalizedAt = Date.parse("2026-09-22T10:02:30.000Z");
+const partialDetailOutcome = completeTaskOutcome(detailOutcomeTask, "partial", finalizedAt);
+assert.equal(partialDetailOutcome?.status, "partial");
+assert.equal(partialDetailOutcome?.current, 4);
+assert.equal(partialDetailOutcome?.detailItems?.[0].elapsedSeconds, 240);
+assert.equal(partialDetailOutcome?.detailItems?.[0].lastStartedAt, undefined);
+assert.equal(partialDetailOutcome?.actualMinutes, 4);
+assert.equal(partialDetailOutcome?.awardedPoints, 5);
+const notCompletedDetailOutcome = completeTaskOutcome(detailOutcomeTask, "not_completed", finalizedAt);
+assert.equal(notCompletedDetailOutcome?.status, "not_completed");
+assert.equal(notCompletedDetailOutcome?.actualMinutes, 4);
+assert.equal(notCompletedDetailOutcome?.detailItems?.[0].lastStartedAt, undefined);
+assert.equal(notCompletedDetailOutcome?.awardedPoints, 0);
+const closedDetailOutcome = completeTaskOutcome(detailOutcomeTask, "closed", finalizedAt);
+assert.equal(closedDetailOutcome?.status, "closed");
+assert.equal(closedDetailOutcome?.detailItems?.[0].elapsedSeconds, 240);
+assert.equal(closedDetailOutcome?.detailItems?.[0].lastStartedAt, undefined);
+assert.equal(closedDetailOutcome?.awardedPoints, 0);
+const completedDetailOutcome = completeTaskOutcome(detailOutcomeTask, "completed", finalizedAt);
+assert.equal(completedDetailOutcome?.status, "completed");
+assert.equal(completedDetailOutcome?.detailItems?.[0].status, "completed");
+assert.equal(completedDetailOutcome?.detailItems?.[0].lastStartedAt, undefined);
+assert.equal(completedDetailOutcome?.actualMinutes, 4);
+assert.equal(completedDetailOutcome?.actualMinutes < (detailOutcomeTask.durationMinutes ?? Infinity), true);
+assert.equal(transitionTaskDetail(closedDetailOutcome, "running-detail", "start", "2026-09-22T10:03:00.000Z"), null);
 
 assert.equal(updateMeasuredTaskProgress(task("not_started"), 3).status, "partial");
 assert.equal(updateMeasuredTaskProgress(task("partial"), 0).status, "not_started");
