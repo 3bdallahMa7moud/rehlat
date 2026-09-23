@@ -16,6 +16,7 @@ import { createEmptyJourneyState, isJourneyPersistedState } from "../src/lib/sto
 import { dailyReflections, getDailyReflection, getDailyReflectionIndex } from "../src/lib/daily-reflection.ts";
 import { getDetailCompletionFeedbackPriority, getTaskDetailOutcomeFeedback, getTaskOutcomeFeedback, isFullDayCompletion } from "../src/lib/feedback.ts";
 import { getAchievementFeedback, getNewStreakMilestones, getUnseenAchievementFeedback, hasParticipantCompletedTask, planAchievementFeedbackDelivery } from "../src/lib/achievement-feedback.ts";
+import { getEarnedTitleCards, getHonorHighlights, getPersonalHonorSummary } from "../src/lib/honors.ts";
 
 const task = (status, overrides = {}) => ({ id: status, status, target: 10, current: 3, actualMinutes: 0, type: "general", fullPoints: 10, ...overrides });
 
@@ -88,6 +89,22 @@ assert.deepEqual(getNewStreakMilestones(3, 3), []);
 assert.deepEqual(getNewStreakMilestones(6, 7), [7]);
 assert.deepEqual(getNewStreakMilestones(7, 8), []);
 assert.equal(getUnseenAchievementFeedback([{ id: "first-task" }], ["razi:first-task"], "razi").length, 0);
+
+const honorsRankings = [
+  { participantId: "a", rank: 1, name: "A", initials: "A", avatarColor: "teal", score: 100, streak: 3, progress: 70 },
+  { participantId: "b", rank: 2, name: "B", initials: "B", avatarColor: "mint", score: 80, streak: 8, progress: 90 },
+];
+const honorsHighlights = getHonorHighlights(honorsRankings);
+assert.equal(honorsHighlights.find((item) => item.id === "score")?.leaders[0].participantId, "a");
+assert.equal(honorsHighlights.find((item) => item.id === "streak")?.leaders[0].participantId, "b");
+assert.equal(honorsHighlights.find((item) => item.id === "progress")?.leaders[0].participantId, "b");
+assert.equal(getHonorHighlights([{ ...honorsRankings[0] }, { ...honorsRankings[0], participantId: "c", name: "C" }])[0].leaders.length, 2);
+const honorTitles = getEarnedTitleCards({ generalStreak: 5, quranTaskId: "quran", taskStreaks: [{ taskId: "quran", current: 6 }] });
+assert.equal(honorTitles.find((item) => item.id === "emerald")?.earned, true);
+assert.equal(honorTitles.find((item) => item.id === "continuity")?.earned, false);
+assert.equal(honorTitles.find((item) => item.id === "quran")?.earned, false);
+assert.equal(getEarnedTitleCards({ generalStreak: 7, quranTaskId: "quran", taskStreaks: [{ taskId: "quran", current: 7 }] }).every((item) => item.earned), true);
+assert.equal(getPersonalHonorSummary({ generalStreakTitle: { label: "ملتزم", days: 7, nextMilestone: 14, progress: 0 }, successfulDays: 7, historyDays: [{ progress: 100 }] }).title.label, "ملتزم");
 
 assert.equal(calculateStreak([
   { date: "2026-09-20", status: "successful" },

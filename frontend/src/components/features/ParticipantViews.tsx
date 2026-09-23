@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Activity, ArrowLeft, Award, BarChart3, CalendarDays, ChevronLeft, CircleCheck, Clock3, Crown, FileSpreadsheet, FileText, Flame, Focus, Lightbulb, Medal, MessageCircle, Minus, Moon, MoreHorizontal, Play, Sparkles, Target, Timer, TrendingDown, TrendingUp, TriangleAlert, Trophy, Users } from "lucide-react";
+import { Activity, ArrowLeft, Award, BarChart3, CalendarDays, ChevronLeft, CircleCheck, Clock3, FileSpreadsheet, FileText, Flame, Focus, Lightbulb, Medal, MessageCircle, Moon, MoreHorizontal, Play, Sparkles, Target, Timer, TriangleAlert, Trophy, Users } from "lucide-react";
 import { AIAssistantHero } from "@/components/features/AIAssistant";
 import { TaskCard, TaskGlyph } from "@/components/features/TaskCard";
 import { filterTasks, getTaskGuideCopy, isActiveTask, taskCategories, taskCategoryNames } from "@/domain/tasks/task-presentation";
@@ -20,10 +20,9 @@ import { cn } from "@/lib/cn";
 import { formatMinutes, formatPercentage } from "@/lib/format";
 import { exportReport } from "@/lib/export";
 import { PARTIAL_COMPLETION_WEIGHT } from "@/lib/progress";
+import { getEarnedTitleCards, getHonorHighlights, getPersonalHonorSummary } from "@/lib/honors";
 import { useDemo } from "@/state/DemoContext";
 import type { Report, TaskCategory, TaskStatus, TaskType } from "@/types/models";
-
-const LEVEL_NAMES = ["ناشئ", "صاعد", "بارع", "ماهر", "محترف", "متفوّق", "نخبة", "قائد", "بطل", "أسطوري", "ملحمي", "القمة"] as const;
 
 const activityMeta: Record<TaskType, { title: string; description: string; detail: string }> = {
   quran: { title: "القرآن", description: "وردك اليومي، هدف واضح وخطوة قابلة للقياس.", detail: "مقروء اليوم" },
@@ -357,62 +356,13 @@ export function CompetitionView() {
 
 export function HonorsView() {
   const { activeParticipant, rankings } = useDemo();
-  const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">("weekly");
-  const periodFactor = period === "daily" ? .86 : period === "monthly" ? 1.12 : 1;
-  const ranked = rankings.map((entry) => ({
-    ...entry,
-    score: Math.round(entry.score * periodFactor),
-    progress: Math.min(100, Math.round(entry.progress * (period === "daily" ? .94 : period === "monthly" ? 1.08 : 1))),
-  }));
-  const leaders = [ranked[1], ranked[0], ranked[2]].filter(Boolean);
-  const levelIndex = Math.min(LEVEL_NAMES.length - 1, Math.floor(activeParticipant.progress / 100 * LEVEL_NAMES.length));
-  const nextLevel = LEVEL_NAMES[Math.min(LEVEL_NAMES.length - 1, levelIndex + 1)];
-
+  const leaders = [rankings[1], rankings[0], rankings[2]].filter(Boolean);
   return <div className="honors-page">
-    <section className="levels-hero"><div className="levels-badge"><Trophy size={24} /></div><div><span className="eyebrow">مستواك الحالي</span><h2>{LEVEL_NAMES[levelIndex]}</h2><p>{nextLevel === LEVEL_NAMES[levelIndex] ? "وصلت إلى أعلى مستوى حاليًا." : `تبقى ${Math.max(0, Math.round(((levelIndex + 1) / LEVEL_NAMES.length) * 100) - activeParticipant.progress)}% للوصول إلى ${nextLevel}`}</p></div><div className="levels-track"><ProgressBar value={activeParticipant.progress} tone="teal" /><small>{activeParticipant.progress}% من معادلة المستوى</small></div></section>
-    <div className="levels-ladder" aria-label="سلم المستويات">{LEVEL_NAMES.map((name, index) => <span className={cn(index === levelIndex && "levels-ladder-active")} key={name}>{name}</span>)}</div>
-    <div className="honors-heading-row">
-      <PageHeader eyebrow="تميّز المجموعة" title="لوحة الشرف" description="احتفاء بالاجتهاد والاستمرارية؛ تابع أصحاب الأثر الجميل واستلهم من تقدّمهم." />
-      <Tabs value={period} onValueChange={setPeriod} tabs={[{ value: "daily", label: "اليوم" }, { value: "weekly", label: "هذا الأسبوع" }, { value: "monthly", label: "هذا الشهر" }]} />
-    </div>
-
-    <section className="honors-podium" aria-label="أصحاب المراكز الثلاثة الأولى">
-      {leaders.map((entry) => {
-        const sparkPoints = entry.rank === 1 ? "0,38 32,31 64,34 96,16 128,23 160,4" : entry.rank === 2 ? "0,36 32,31 64,42 96,23 128,33 160,16" : "0,27 32,37 64,23 96,31 128,16 160,30";
-        return <article key={entry.participantId} className={cn("honor-place", `honor-place-${entry.rank}`)}>
-          <div className="honor-avatar-wrap">
-            <UserAvatar initials={entry.initials} color={entry.avatarColor} size="xl" />
-            <span className="honor-rank-badge">{entry.rank === 1 ? <Trophy size={17} /> : entry.rank}</span>
-          </div>
-          <div className="honor-person"><strong>{entry.name}</strong>{entry.rank === 1 && <Crown size={17} aria-label="متصدر لوحة الشرف" />}</div>
-          <p>{entry.rank === 1 ? "صاحب الأثر الأبرز هذا الأسبوع" : entry.rank === 2 ? "يتقدّم بثبات نحو الصدارة" : "حضور مميز واستمرارية رائعة"}</p>
-          <div className="honor-metrics"><span><b>{entry.progress}%</b> إنجاز</span><span><Flame size={13} /><b>{entry.streak}</b> يومًا</span></div>
-          <svg className="honor-spark" viewBox="0 0 160 48" preserveAspectRatio="none" aria-hidden="true"><polyline points={sparkPoints} /></svg>
-        </article>;
-      })}
-    </section>
-
-    <Card className="honors-ranking-card">
-      <div className="honors-table-title"><div><span className="honors-title-icon"><Medal size={20} /></span><div><h2>الترتيب العام</h2><p>يُحدّث تلقائيًا حسب إنجازات الفترة المختارة.</p></div></div><span>{ranked.length} مشاركين</span></div>
-      <div className="honors-table-head" aria-hidden="true"><span>المركز</span><span>المشارك</span><span>معدل الإنجاز</span><span>النقاط</span><span>السلسلة</span><span>الاتجاه</span></div>
-      <div className="honors-ranking-list">
-        {ranked.map((entry, index) => {
-          const isCurrent = entry.participantId === activeParticipant.id;
-          const trend = index % 3;
-          return <article key={entry.participantId} className={cn(isCurrent && "honors-current-user")}>
-            <strong className={cn("honors-rank-number", entry.rank <= 3 && `honors-rank-${entry.rank}`)}>{entry.rank}</strong>
-            <div className="honors-member"><UserAvatar initials={entry.initials} color={entry.avatarColor} size="md" /><span><strong>{isCurrent ? `${entry.name} (أنت)` : entry.name}</strong><small>{isCurrent ? "حسابك الحالي" : "عضو في رحلة التغيير"}</small></span></div>
-            <div className="honors-progress"><span><b>{entry.progress}%</b><small>إنجاز</small></span><ProgressBar value={entry.progress} tone={entry.rank === 1 ? "warning" : "teal"} /></div>
-            <strong className="honors-score">{entry.score.toLocaleString("ar-EG")}</strong>
-            <span className="honors-streak"><Flame size={15} />{entry.streak} أيام</span>
-            <span className={cn("honors-trend", trend === 0 ? "trend-up" : trend === 2 ? "trend-down" : "trend-steady")}>{trend === 0 ? <TrendingUp size={18} /> : trend === 2 ? <TrendingDown size={18} /> : <Minus size={18} />}</span>
-          </article>;
-        })}
-      </div>
-    </Card>
+    <div className="honors-heading-row"><PageHeader eyebrow="تميّز المجموعة" title="لوحة الشرف" description="احتفاء هادئ بالاستمرارية والإنجازات المسجلة فعليًا." /></div>
+    <section className="honors-podium" aria-label="تكريمات المجموعة الحالية">{leaders.map((entry) => <article key={entry.participantId} className={cn("honor-place", `honor-place-${entry.rank}`)}><div className="honor-avatar-wrap"><UserAvatar initials={entry.initials} color={entry.avatarColor} size="xl" /><span className="honor-rank-badge">{entry.rank}</span></div><div className="honor-person"><strong>{entry.name}</strong></div><p>{entry.rank === 1 ? "الأعلى نقاطًا حاليًا" : "تكريم من بيانات المجموعة الحالية"}</p><div className="honor-metrics"><span><b>{entry.score.toLocaleString("ar-EG")}</b> نقطة</span><span><Flame size={13} /><b>{entry.streak}</b> أيام</span></div></article>)}</section>
+    <Card className="honors-ranking-card"><div className="honors-table-title"><div><span className="honors-title-icon"><Medal size={20} /></span><div><h2>الترتيب العام</h2><p>يعرض النقاط والتقدم المسجلين حاليًا دون تعديل.</p></div></div><span>{rankings.length} مشاركين</span></div><div className="honors-table-head" aria-hidden="true"><span>المركز</span><span>المشارك</span><span>معدل الإنجاز</span><span>النقاط</span><span>السلسلة</span><span /></div><div className="honors-ranking-list">{rankings.map((entry) => { const isCurrent = entry.participantId === activeParticipant.id; return <article key={entry.participantId} className={cn(isCurrent && "honors-current-user")}><strong className={cn("honors-rank-number", entry.rank <= 3 && `honors-rank-${entry.rank}`)}>{entry.rank}</strong><div className="honors-member"><UserAvatar initials={entry.initials} color={entry.avatarColor} size="md" /><span><strong>{isCurrent ? `${entry.name} (أنت)` : entry.name}</strong><small>{isCurrent ? "حسابك الحالي" : "عضو في رحلة التغيير"}</small></span></div><div className="honors-progress"><span><b>{entry.progress}%</b><small>إنجاز</small></span><ProgressBar value={entry.progress} tone={entry.rank === 1 ? "warning" : "teal"} /></div><strong className="honors-score">{entry.score.toLocaleString("ar-EG")}</strong><span className="honors-streak"><Flame size={15} />{entry.streak} أيام</span><span /></article>; })}</div></Card>
   </div>;
 }
-
 function ReportChart({ report }: { report: Report }) { const max = Math.max(...report.points.map((point) => point.progress)); return <div className="report-chart" aria-label="رسم تقدم الفترة">{report.points.map((point) => <div className="chart-column" key={point.label}><span className="chart-value">{point.progress}%</span><i style={{ height: `${Math.max(12, (point.progress / max) * 100)}%` }} /><small>{point.label}</small></div>)}</div>; }
 
 export function AnalyticsView() {
