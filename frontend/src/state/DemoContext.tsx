@@ -11,6 +11,7 @@ import { getAchievementFeedback, getUnseenAchievementFeedback, hasParticipantCom
 import { celebrate } from "@/lib/celebrate";
 import { getDayCompletionFeedback, getDetailCompletionFeedbackPriority, getTaskDetailOutcomeFeedback, getTaskOutcomeFeedback, isFullDayCompletion, toToastTone } from "@/lib/feedback";
 import { calculateReports } from "@/lib/reports";
+import { queryReport, type ReportDataset, type ReportFilters } from "@/lib/report-query";
 import { calculateStreakFromProgress } from "@/lib/streak";
 // Ranking source is centralized in lib/ranking.
 import { calculateRankings } from "@/lib/ranking";
@@ -64,6 +65,7 @@ interface DemoContextValue {
   activity: ActivityEvent[];
   rankings: RankingEntry[];
   reports: Record<Report["period"], Report>;
+  getReport: (filters: ReportFilters) => ReportDataset;
   historyDays: Array<{ date: string; label: string; progress: number; minutes: number; status: string; streak: number }>;
   streakData: Streak;
   generalStreakTitle: StreakTitle;
@@ -475,6 +477,16 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     weekly: { dailyResults: progressDays.slice(-7) },
     monthly: { dailyResults: progressDays.slice(-30) },
   }), [currentRankings, progress, progressDays, tasks]);
+
+  const getReport = useCallback((filters: ReportFilters) => queryReport({
+    participants,
+    tasks: taskDefinitions,
+    dailyTaskRecords,
+    progress: progressHistory,
+    currentTasks: tasks,
+    currentParticipantId: activeParticipantId,
+    today,
+  }, filters), [activeParticipantId, dailyTaskRecords, participants, progressHistory, taskDefinitions, tasks, today]);
 
   useEffect(() => {
     if (!hydrated || tasksOwnerId !== activeParticipantId) return;
@@ -972,6 +984,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     activity,
     rankings: currentRankings,
     reports: currentReports,
+    getReport,
     historyDays,
     streakData,
     generalStreakTitle,

@@ -8,39 +8,11 @@ import { Badge, Button, Card, Dialog, Dropdown, EmptyState, IconButton, Input, P
 import { exportReport } from "@/lib/export";
 import { formatMinutes } from "@/lib/format";
 import { formatRelativeTime } from "@/lib/date-time";
-import { reports as sampleReports } from "@/mocks/reports";
 import { useDemo } from "@/state/DemoContext";
 
-import type { Report, Task, TaskCategory, TaskStatus, TaskType } from "@/types/models";
+import type { Report, TaskCategory, TaskType } from "@/types/models";
 const adminTaskCategoryLabels: Record<TaskCategory, string> = { faith: "دين", culture: "ثقافة", sport: "رياضة", growth: "تطوير الذات", skill: "مهارة", life: "حياة", family: "أهل وبيت", health: "صحة", character: "سلوك" };
 
-type AdminReportTaskSample = { status: TaskStatus; ratio: number; minutes: number };
-
-const adminReportTaskSamples: Record<string, Record<string, AdminReportTaskSample>> = {
-  noura: {
-    prayer: { status: "completed", ratio: 1, minutes: 24 }, quran: { status: "completed", ratio: 1, minutes: 28 }, adhkar: { status: "completed", ratio: 1, minutes: 8 }, reading: { status: "completed", ratio: 1, minutes: 35 }, sport: { status: "completed", ratio: 1, minutes: 30 }, water: { status: "partial", ratio: .75, minutes: 0 }, skill: { status: "running", ratio: .65, minutes: 29 }, family: { status: "completed", ratio: 1, minutes: 20 }, sleep: { status: "not_started", ratio: 0, minutes: 0 },
-  },
-  sara: {
-    prayer: { status: "completed", ratio: 1, minutes: 22 }, quran: { status: "completed", ratio: 1, minutes: 24 }, adhkar: { status: "completed", ratio: 1, minutes: 7 }, reading: { status: "partial", ratio: .7, minutes: 25 }, sport: { status: "completed", ratio: 1, minutes: 30 }, water: { status: "partial", ratio: .65, minutes: 0 }, skill: { status: "paused", ratio: .45, minutes: 18 }, family: { status: "completed", ratio: 1, minutes: 20 }, sleep: { status: "not_started", ratio: 0, minutes: 0 },
-  },
-  razi: {
-    prayer: { status: "completed", ratio: 1, minutes: 20 }, quran: { status: "paused", ratio: .65, minutes: 18 }, adhkar: { status: "completed", ratio: 1, minutes: 8 }, reading: { status: "partial", ratio: .6, minutes: 22 }, sport: { status: "not_started", ratio: 0, minutes: 0 }, water: { status: "partial", ratio: .6, minutes: 0 }, skill: { status: "running", ratio: .4, minutes: 18 }, family: { status: "completed", ratio: 1, minutes: 20 }, sleep: { status: "not_started", ratio: 0, minutes: 0 },
-  },
-  khalid: {
-    prayer: { status: "partial", ratio: .6, minutes: 15 }, quran: { status: "not_started", ratio: 0, minutes: 0 }, adhkar: { status: "completed", ratio: 1, minutes: 8 }, reading: { status: "paused", ratio: .35, minutes: 12 }, sport: { status: "not_started", ratio: 0, minutes: 0 }, water: { status: "partial", ratio: .4, minutes: 0 }, skill: { status: "not_started", ratio: 0, minutes: 0 }, family: { status: "completed", ratio: 1, minutes: 20 }, sleep: { status: "not_started", ratio: 0, minutes: 0 },
-  },
-};
-
-function tasksWithAdminReportSample(participantId: string, tasks: Task[]) {
-  const hasRecordedWork = tasks.some((task) => task.status !== "not_started" || task.current > 0 || task.actualMinutes > 0);
-  const samples = adminReportTaskSamples[participantId];
-  if (hasRecordedWork || !samples) return tasks;
-  return tasks.map((task) => {
-    const sample = samples[task.id];
-    if (!sample) return task;
-    return { ...task, status: sample.status, current: Math.round(task.target * sample.ratio), actualMinutes: sample.minutes };
-  });
-}
 
 export function AdminDashboardView() {
   const { activity, participants, rankings, reports } = useDemo();
@@ -191,12 +163,12 @@ export function AdminAnalyticsView() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const liveReport = reports[period];
-  const report = liveReport.points.length > 1 && liveReport.averageProgress > 0 ? liveReport : sampleReports[period];
+  const report = liveReport;
   const group = participants.filter((participant) => participant.role === "participant");
   const periodLabels: Record<Report["period"], string> = { daily: "اليوم", weekly: "هذا الأسبوع", monthly: "هذا الشهر" };
 
   const rows = group.map((participant) => {
-    const tasks = tasksWithAdminReportSample(participant.id, getParticipantTasks(participant.id));
+    const tasks = getParticipantTasks(participant.id);
     const completed = tasks.filter((task) => task.status === "completed").length;
     const partial = tasks.filter((task) => ["partial", "running", "paused"].includes(task.status)).length;
     const pending = Math.max(0, tasks.length - completed - partial);

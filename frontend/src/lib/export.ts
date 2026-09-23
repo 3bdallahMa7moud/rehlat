@@ -1,4 +1,5 @@
 import type { Report } from "@/types/models";
+import * as XLSX from "xlsx";
 
 export type ExportFormat = "json" | "csv" | "excel" | "xlsx" | "pdf";
 
@@ -15,6 +16,7 @@ export interface ExportOptions<T = unknown> {
   title?: string;
   columns?: readonly ExportColumn<Record<string, unknown>>[];
   metadata?: Readonly<Record<string, unknown>>;
+  sheets?: Readonly<Record<string, unknown>>;
 }
 
 export interface ExportArtifact {
@@ -28,11 +30,11 @@ const MIME_TYPES: Record<ExportFormat, string> = {
   json: "application/json;charset=utf-8",
   csv: "text/csv;charset=utf-8",
   excel: "application/vnd.ms-excel;charset=utf-8",
-  xlsx: "application/vnd.ms-excel;charset=utf-8",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   pdf: "application/pdf",
 };
 
-const EXTENSIONS: Record<ExportFormat, string> = { json: "json", csv: "csv", excel: "xls", xlsx: "xls", pdf: "pdf" };
+const EXTENSIONS: Record<ExportFormat, string> = { json: "json", csv: "csv", excel: "xls", xlsx: "xlsx", pdf: "pdf" };
 
 type Row = Record<string, unknown>;
 
@@ -105,8 +107,25 @@ export function serializeExcel(data: unknown, options: Pick<ExportOptions, "colu
   return `<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="${title.slice(0, 31)}"><Table>${metadata}${header}${body}</Table></Worksheet></Workbook>`;
 }
 
+function createXlsxBuffer(options: Pick<ExportOptions, "data" | "columns" | "metadata" | "title" | "sheets">) {
+  const workbook = XLSX.utils.book_new();
+  const sourceSheets = options.sheets ?? { [options.title ?? "التقرير"]: options.data };
+  Object.entries(sourceSheets).forEach(([name, data]) => {
+    const rows = rowsFromData(data);
+    const columns = name === Object.keys(sourceSheets)[0] && options.columns?.length ? columnsForRows(rows, options.columns) : columnsForRows(rows);
+    const values: Array<Record<string, string | number | boolean>> = rows.map((row) => Object.fromEntries(columns.map((column) => [column.header, cellValue(row, column)])));
+    if (name === Object.keys(sourceSheets)[0] && options.metadata) values.unshift(Object.fromEntries(Object.entries(options.metadata).map(([key, value]) => [key, displayValue(value)])));
+    const sheet = XLSX.utils.json_to_sheet(values);
+    XLSX.utils.book_append_sheet(workbook, sheet, name.slice(0, 31) || "التقرير");
+  });
+  return XLSX.write(workbook, { bookType: "xlsx", type: "array" }) as ArrayBuffer;
+}
+
 function pdfSafe(value: unknown) {
-  return String(displayValue(value)).replace(/[^\x20-\x7E]/g, "?").replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");
+  // Keep Arabic text intact. The UI uses the browser's RTL print path for PDF;
+  // this legacy serializer remains available for non-print callers without
+  // replacing readable text with question marks.
+  return String(displayValue(value)).replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");
 }
 
 /** Create a small, valid PDF without pulling a heavy client-side PDF library. */
@@ -145,12 +164,12 @@ function normalizedFilename(filename: string | undefined, format: ExportFormat) 
 
 export function createExportArtifact<T>(options: ExportOptions<T>): ExportArtifact {
   const { format } = options;
-  let body: string;
+  let body: string | ArrayBuffer;
   switch (format) {
     case "json": body = serializeJson(options.data, options.metadata); break;
     case "csv": body = `\uFEFF${serializeCsv(options.data, options)}`; break;
     case "excel":
-    case "xlsx": body = serializeExcel(options.data, options); break;
+    case "xlsx": body = createXlsxBuffer(options); break;
     case "pdf": body = serializePdf(options.data, options); break;
     default: body = serializeJson(options.data, options.metadata);
   }
@@ -184,9 +203,22 @@ export function exportReport<T>(data: T | Report, format: ExportFormat, options:
   return artifact;
 }
 
+/** Opens a printable, RTL Arabic report using the same dataset shown on screen. */
+export function printReport<T>(data: T, options: Omit<ExportOptions<T>, "data" | "format"> = {}) {
+  if (typeof window === "undefined" || typeof document === "undefined") return false;
+  const rows = rowsFromData(data);
+  const columns = columnsForRows(rows, options.columns);
+  const metadata = Object.entries(options.metadata ?? {}).map(([key, value]) => `<p><b>${xmlEscape(key)}</b>: ${xmlEscape(displayValue(value))}</p>`).join("");
+  const table = `<table><thead><tr>${columns.map((column) => `<th>${xmlEscape(column.header)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${columns.map((column) => `<td>${xmlEscape(cellValue(row, column))}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  const popup = window.open("", "journey-report-print", "noopener,noreferrer,width=900,height=700");
+  if (!popup) return false;
+  popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${xmlEscape(options.title ?? "تقرير رحلة التغيير")}</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#102a43}table{width:100%;border-collapse:collapse}th,td{border:1px solid #cbd5e1;padding:8px;text-align:right}th{background:#e2e8f0}h1{margin-bottom:20px}@media print{body{padding:0}}</style></head><body><h1>${xmlEscape(options.title ?? "تقرير رحلة التغيير")}</h1>${metadata}${table}<script>window.onload=()=>window.print()<\/script></body></html>`);
+  popup.document.close();
+  return true;
+}
+
 export const exportData = exportReport;
 export const exportToJson = (data: unknown, options: Omit<ExportOptions, "data" | "format"> = {}) => createExportArtifact({ ...options, data, format: "json" });
 export const exportToCsv = (data: unknown, options: Omit<ExportOptions, "data" | "format"> = {}) => createExportArtifact({ ...options, data, format: "csv" });
 export const exportToExcel = (data: unknown, options: Omit<ExportOptions, "data" | "format"> = {}) => createExportArtifact({ ...options, data, format: "excel" });
 export const exportToPdf = (data: unknown, options: Omit<ExportOptions, "data" | "format"> = {}) => createExportArtifact({ ...options, data, format: "pdf" });
-

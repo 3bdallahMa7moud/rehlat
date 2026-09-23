@@ -19,6 +19,8 @@ import { getAchievementFeedback, getNewStreakMilestones, getUnseenAchievementFee
 import { getEarnedTitleCards, getHonorHighlights, getPersonalHonorSummary } from "../src/lib/honors.ts";
 import { calculateRankings, calculateRankingScore } from "../src/lib/ranking.ts";
 import { getDayCompletionPresentation, getTaskStreakPresentation } from "../src/lib/streak-presentation.ts";
+import { queryReport } from "../src/lib/report-query.ts";
+import { createExportArtifact, serializePdf } from "../src/lib/export.ts";
 
 const task = (status, overrides = {}) => ({ id: status, status, target: 10, current: 3, actualMinutes: 0, type: "general", fullPoints: 10, ...overrides });
 
@@ -216,5 +218,30 @@ assert.equal(pausedMeasuredDetail.detailItems?.[0].status, "paused");
 
 const aiResponse = await new MockAIAdapter(0).sendMessage({ message: "رتب يومي", participant, tasks: [task("not_started", { title: "قراءة" })], progress: { percent: 0, completed: 0, total: 1, remaining: 1 }, streak: 2 });
 assert.ok(aiResponse.content.includes("قراءة"));
+
+const reportParticipants = [{ ...participant, id: "a", name: "A" }, { ...participant, id: "b", name: "B" }];
+const reportTasks = [task("not_started", { id: "reading", title: "Reading" }), task("not_started", { id: "sport", title: "Sport" })];
+const reportRecords = [
+  { userId: "a", taskId: "reading", localDate: "2026-09-22", status: "completed", current: 1, actualMinutes: 100, updatedAt: clock },
+  { userId: "a", taskId: "sport", localDate: "2026-09-22", status: "closed", current: 0, actualMinutes: 12, updatedAt: clock },
+  { userId: "b", taskId: "reading", localDate: "2026-09-21", status: "partial", current: 1, actualMinutes: 50, updatedAt: clock },
+];
+const reportInput = { participants: reportParticipants, tasks: reportTasks, dailyTaskRecords: reportRecords, progress: [], today: "2026-09-22" };
+const filteredReport = queryReport(reportInput, { period: "weekly", participantId: "a", taskId: "reading" });
+assert.equal(filteredReport.totalMinutes, 100);
+assert.equal(filteredReport.completionRate, 100);
+assert.equal(filteredReport.taskRows.length, 1);
+const groupReport = queryReport(reportInput, { period: "weekly", participantId: "all", taskId: "all" });
+assert.equal(groupReport.totalMinutes, 162);
+assert.equal(groupReport.participantRows.length, 2);
+assert.equal(groupReport.topParticipant, "A");
+const monthlyReport = queryReport(reportInput, { period: "monthly", participantId: "all", taskId: "all" });
+assert.equal(monthlyReport.points[monthlyReport.points.length - 1].label, "الأسبوع 4");
+assert.equal(queryReport({ ...reportInput, dailyTaskRecords: [] }, { period: "daily", participantId: "a", taskId: "all" }).hasData, false);
+const xlsxArtifact = createExportArtifact({ data: [{ "نسبة الإنجاز": 100 }], format: "xlsx", filename: "test-report" });
+assert.equal(xlsxArtifact.filename.endsWith(".xlsx"), true);
+assert.equal(xlsxArtifact.mimeType, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+assert.equal((await xlsxArtifact.blob.arrayBuffer()).byteLength > 100, true);
+assert.equal(serializePdf([{ title: "تقرير عربي" }], { title: "تقرير عربي" }).includes("?"), false);
 
 console.log("logic tests passed");
