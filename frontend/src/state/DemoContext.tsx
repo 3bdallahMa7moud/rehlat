@@ -12,6 +12,8 @@ import { celebrate } from "@/lib/celebrate";
 import { getDayCompletionFeedback, getDetailCompletionFeedbackPriority, getTaskDetailOutcomeFeedback, getTaskOutcomeFeedback, isFullDayCompletion, toToastTone } from "@/lib/feedback";
 import { calculateReports } from "@/lib/reports";
 import { calculateStreakFromProgress } from "@/lib/streak";
+// Ranking source is centralized in lib/ranking.
+import { calculateRankings } from "@/lib/ranking";
 import { getTaskEarnedPoints } from "@/lib/points";
 import { getTaskDetailElapsedSeconds, getTaskElapsedSeconds, normalizeTask } from "@/lib/task-details";
 import { calculateTaskStreaks, getGeneralStreakTitle, type StreakTitle, type TaskStreakEntry } from "@/lib/task-streaks";
@@ -307,7 +309,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setProgressHistory(source.progress);
     setDailyTaskRecords(source.dailyTaskRecords);
     const savedStreak = source.streaks.find((item) => item.userId === participantId);
-    if (savedStreak) setStreakData({ current: savedStreak.current, best: savedStreak.best, successfulDays: savedStreak.successfulDays, history: savedStreak.history.filter((day) => day.status !== "partial") });
+    if (savedStreak) setStreakData({ current: savedStreak.current, best: savedStreak.best, successfulDays: savedStreak.successfulDays, history: savedStreak.history });
     if (source.session.participantId) setLocalSessionParticipantId(source.session.participantId);
     setHydrated(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -425,19 +427,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
 
   const progress = useMemo(() => calculateProgress(tasks), [tasks]);
 
-  const currentRankings = useMemo(() => [...participants]
-    .filter((participant) => participant.role === "participant")
-    .sort((a, b) => b.score - a.score)
-    .map((participant, index) => ({
-      participantId: participant.id,
-      rank: index + 1,
-      name: participant.name,
-      initials: participant.initials,
-      avatarColor: participant.avatarColor,
-      score: participant.score,
-      progress: participant.progress,
-      streak: participant.streak,
-    })), [participants]);
+  const currentRankings = useMemo(() => calculateRankings(participants), [participants]);
 
   const progressDays = useMemo(() => {
     const byDate = new Map(progressHistory

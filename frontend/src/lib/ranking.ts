@@ -1,5 +1,5 @@
 import type { Participant, RankingEntry, Task } from "@/types/models";
-import { clamp } from "./progress";
+import { clamp } from "./progress.ts";
 
 export interface RankingMetrics {
   participantId: string;
@@ -72,8 +72,7 @@ function getMetrics(participant: ParticipantLike, options: RankingCalculationOpt
  */
 export function calculateRankingScore(metrics: RankingMetrics, weights: Partial<RankingWeights> = {}) {
   const merged = { ...DEFAULT_RANKING_WEIGHTS, ...weights };
-  const score = finite(metrics.score);
-  if (score > 0) return score * merged.score;
+  if (metrics.score !== undefined && Number.isFinite(metrics.score)) return metrics.score * merged.score;
   return clamp(finite(metrics.progress)) * merged.progress
     + Math.max(0, finite(metrics.streak)) * merged.streak
     + Math.max(0, finite(metrics.actualMinutes)) * merged.actualMinutes;
@@ -89,7 +88,7 @@ export function calculateRankings(
     .map((participant) => {
       const metrics = getMetrics(participant, options);
       const rankScore = calculateRankingScore(metrics, weights);
-      const score = metrics.score && metrics.score > 0 ? metrics.score : Math.round(rankScore);
+      const score = metrics.score !== undefined && Number.isFinite(metrics.score) ? metrics.score : Math.round(rankScore);
       return {
         participantId: participant.id,
         rank: 0,

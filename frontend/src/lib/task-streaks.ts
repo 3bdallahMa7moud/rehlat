@@ -14,6 +14,9 @@ export interface TaskStreakEntry {
   nextMilestone?: number;
   milestoneProgress: number;
   isTodaySuccessful: boolean;
+  isTodayPending: boolean;
+  isAtRisk: boolean;
+  reason: string;
 }
 
 export interface StreakTitle {
@@ -61,6 +64,9 @@ function taskStreakFromRecords(task: Task, records: Array<{ localDate: string; s
     nextMilestone: title.nextMilestone,
     milestoneProgress: title.progress,
     isTodaySuccessful: calculated.isTodaySuccessful,
+    isTodayPending: calculated.isTodayPending,
+    isAtRisk: calculated.isAtRisk,
+    reason: calculated.reason,
   };
 }
 

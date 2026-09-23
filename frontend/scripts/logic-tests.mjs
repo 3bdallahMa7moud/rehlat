@@ -17,10 +17,25 @@ import { dailyReflections, getDailyReflection, getDailyReflectionIndex } from ".
 import { getDetailCompletionFeedbackPriority, getTaskDetailOutcomeFeedback, getTaskOutcomeFeedback, isFullDayCompletion } from "../src/lib/feedback.ts";
 import { getAchievementFeedback, getNewStreakMilestones, getUnseenAchievementFeedback, hasParticipantCompletedTask, planAchievementFeedbackDelivery } from "../src/lib/achievement-feedback.ts";
 import { getEarnedTitleCards, getHonorHighlights, getPersonalHonorSummary } from "../src/lib/honors.ts";
+import { calculateRankings, calculateRankingScore } from "../src/lib/ranking.ts";
+import { getDayCompletionPresentation, getTaskStreakPresentation } from "../src/lib/streak-presentation.ts";
 
 const task = (status, overrides = {}) => ({ id: status, status, target: 10, current: 3, actualMinutes: 0, type: "general", fullPoints: 10, ...overrides });
 
 assert.equal(PARTIAL_COMPLETION_WEIGHT, 0.5);
+assert.equal(calculateRankingScore({ participantId: "zero", score: 0, progress: 80, streak: 4, actualMinutes: 60 }), 0);
+assert.equal(calculateRankingScore({ participantId: "points", score: 845, progress: 0, streak: 0, actualMinutes: 0 }), 845);
+const rankingFixture = calculateRankings([
+  { id: "admin", name: "Admin", initials: "A", avatarColor: "teal", role: "admin", score: 9999, progress: 100, streak: 99 },
+  { id: "a", name: "A", initials: "A", avatarColor: "teal", role: "participant", score: 100, progress: 70, streak: 4 },
+  { id: "b", name: "B", initials: "B", avatarColor: "teal", role: "participant", score: 100, progress: 80, streak: 2 },
+]);
+assert.deepEqual(rankingFixture.map((entry) => entry.participantId), ["b", "a"]);
+assert.equal(getTaskStreakPresentation({ current: 4, isTodaySuccessful: false, isAtRisk: false }).tone, "teal");
+assert.equal(getTaskStreakPresentation({ current: 4, isTodaySuccessful: false, isAtRisk: true }).tone, "warning");
+assert.equal(getDayCompletionPresentation("complete", 100).kind, "full");
+assert.equal(getDayCompletionPresentation("complete", 50).kind, "terminal-incomplete");
+assert.equal(getDayCompletionPresentation("in_progress", 50).kind, "active");
 assert.equal(calculateProgress([task("completed"), task("partial"), task("not_completed")]).percent, 50);
 assert.equal(getTaskEarnedPoints(task("completed")), 10);
 assert.equal(getTaskEarnedPoints(task("partial")), 5);
