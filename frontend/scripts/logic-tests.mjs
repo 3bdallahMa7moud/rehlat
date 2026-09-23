@@ -32,6 +32,8 @@ const rankingFixture = calculateRankings([
   { id: "b", name: "B", initials: "B", avatarColor: "teal", role: "participant", score: 100, progress: 80, streak: 2 },
 ]);
 assert.deepEqual(rankingFixture.map((entry) => entry.participantId), ["b", "a"]);
+const rankingFallback = calculateRankings([{ id: "fallback", name: "Fallback", initials: "F", avatarColor: "teal", role: "participant", progress: 80, streak: 4, actualMinutes: 60 }]);
+assert.equal(rankingFallback[0].rankScore > 0, true);
 assert.equal(getTaskStreakPresentation({ current: 4, isTodaySuccessful: false, isAtRisk: false }).tone, "teal");
 assert.deepEqual(getTaskStreakPresentation({ current: 4, isTodaySuccessful: false, isAtRisk: true }), { tone: "warning", body: "لم يُسجل نجاح هذه المهمة لليوم بعد." });
 assert.equal(getTaskStreakPresentation({ current: 4, isTodaySuccessful: true, isAtRisk: false }).tone, "success");

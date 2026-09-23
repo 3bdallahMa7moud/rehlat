@@ -1327,8 +1327,8 @@ a { color: inherit; text-decoration: none; }
 .task-streak-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .task-streak-card-head div { display: grid; gap: 3px; min-width: 0; }
 .task-streak-card-head strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.task-streak-card-head span { color: var(--muted); font-size: 10px; }
-.task-streak-metrics { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--muted); font-size: 10px; }
+.task-streak-card-head span { color: var(--muted); font-size: 12px; }
+.task-streak-metrics { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--muted); font-size: 12px; }
 .task-streak-metrics strong { color: var(--ink); }
 
 /* Important compact UI copy stays legible without changing dense admin/report tables. */
@@ -1366,3 +1366,5 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 620px) { .honors-hero { display: grid; }.honors-next-milestone { min-width: 0; }.honors-real-achievement { grid-template-columns: auto 1fr; }.honors-real-achievement .badge { grid-column: 2; justify-self: start; } }
 
 .task-streak-state { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }.ranking-current-label { color: var(--muted); font-size: 12px; font-weight: 600; }.day-terminal-incomplete .day-complete-icon { background: var(--mint-soft); color: var(--teal-strong); }
+
+.streak-next-milestone { display: grid; gap: 5px; margin-top: 7px; color: var(--muted); font-size: 12px; }.ranking-streak { display: inline-flex; align-items: center; gap: 4px; color: var(--teal-strong); font-size: 12px; white-space: nowrap; }
