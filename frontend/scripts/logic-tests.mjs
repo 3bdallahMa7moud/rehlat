@@ -25,6 +25,7 @@ const task = (status, overrides = {}) => ({ id: status, status, target: 10, curr
 assert.equal(PARTIAL_COMPLETION_WEIGHT, 0.5);
 assert.equal(calculateRankingScore({ participantId: "zero", score: 0, progress: 80, streak: 4, actualMinutes: 60 }), 0);
 assert.equal(calculateRankingScore({ participantId: "points", score: 845, progress: 0, streak: 0, actualMinutes: 0 }), 845);
+assert.equal(calculateRankingScore({ participantId: "fallback", progress: 80, streak: 4, actualMinutes: 60 }) > 0, true);
 const rankingFixture = calculateRankings([
   { id: "admin", name: "Admin", initials: "A", avatarColor: "teal", role: "admin", score: 9999, progress: 100, streak: 99 },
   { id: "a", name: "A", initials: "A", avatarColor: "teal", role: "participant", score: 100, progress: 70, streak: 4 },
@@ -32,7 +33,8 @@ const rankingFixture = calculateRankings([
 ]);
 assert.deepEqual(rankingFixture.map((entry) => entry.participantId), ["b", "a"]);
 assert.equal(getTaskStreakPresentation({ current: 4, isTodaySuccessful: false, isAtRisk: false }).tone, "teal");
-assert.equal(getTaskStreakPresentation({ current: 4, isTodaySuccessful: false, isAtRisk: true }).tone, "warning");
+assert.deepEqual(getTaskStreakPresentation({ current: 4, isTodaySuccessful: false, isAtRisk: true }), { tone: "warning", body: "لم يُسجل نجاح هذه المهمة لليوم بعد." });
+assert.equal(getTaskStreakPresentation({ current: 4, isTodaySuccessful: true, isAtRisk: false }).tone, "success");
 assert.equal(getDayCompletionPresentation("complete", 100).kind, "full");
 assert.equal(getDayCompletionPresentation("complete", 50).kind, "terminal-incomplete");
 assert.equal(getDayCompletionPresentation("in_progress", 50).kind, "active");

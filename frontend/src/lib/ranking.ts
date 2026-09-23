@@ -56,9 +56,10 @@ function getMetrics(participant: ParticipantLike, options: RankingCalculationOpt
     ? options.metrics.find((metric) => metric.participantId === participant.id)
       : metricMap?.[participant.id];
   const tasksMinutes = options.tasksByParticipant?.[participant.id]?.reduce((total, task) => total + Math.max(0, finite(task.actualMinutes)), 0);
+  const rawScore = source?.score ?? participant.score;
   return {
     participantId: participant.id,
-    score: finite(source?.score ?? participant.score),
+    score: typeof rawScore === "number" && Number.isFinite(rawScore) ? rawScore : undefined,
     progress: clamp(source?.progress ?? participant.progress),
     streak: Math.max(0, finite(source?.streak ?? participant.streak)),
     actualMinutes: Math.max(0, finite(source?.actualMinutes ?? participant.actualMinutes ?? tasksMinutes)),

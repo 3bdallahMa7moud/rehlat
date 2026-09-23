@@ -107,8 +107,10 @@ export function DashboardView() {
   const dayCopy =
     dayStatus === "not_started"
       ? "اليوم ينتظر أول خطوة منك."
-      : dayStatus === "complete"
+      : dayCompletion.kind === "full"
         ? "أغلقت محطات اليوم بنجاح."
+        : dayCompletion.kind === "terminal-incomplete"
+          ? "تم حفظ رحلة اليوم ونتائجها."
         : "كل تقدم صغير هنا له أثره.";
   const morningTasks = tasks.filter((task) => task.group === "morning");
   const actionableTasks = [...tasks]
@@ -120,7 +122,7 @@ export function DashboardView() {
     ? Math.min(100, Math.round((nextTask.current / nextTask.target) * 100))
     : 0;
   const alertCopy =
-    dayStatus === "complete"
+    dayCompletion.kind === "full"
       ? {
           tone: "success",
           title: "يومك محفوظ بالكامل",
@@ -171,13 +173,17 @@ export function DashboardView() {
         <h2>
           {dayStatus === "not_started"
             ? "خذ البداية على مهل."
-            : dayStatus === "complete"
+            : dayCompletion.kind === "full"
               ? "أحسنت، أغلقت رحلة اليوم."
+              : dayCompletion.kind === "terminal-incomplete"
+                ? "تم حفظ رحلة اليوم."
               : "أنت تمشي في الاتجاه الصحيح."}
         </h2>
         <p>
-          {dayStatus === "complete"
+          {dayCompletion.kind === "full"
             ? "تم حفظ إنجازاتك ووقتك الفعلي. عُد غدًا بخطوة صغيرة جديدة."
+            : dayCompletion.kind === "terminal-incomplete"
+              ? "تم حفظ ما أنجزته والوقت المسجل لهذا اليوم."
             : "بقي لك " + progress.remaining + " مهام، وحققت " + progress.partial + " تقدمًا جزئيًا. اختر محطة واحدة فقط الآن."}
         </p>
       </div>
@@ -220,9 +226,9 @@ export function DashboardView() {
       </Card>
     </div>
 
-    {dayStatus === "complete" ? <section className="day-complete-panel">
-      <span className="day-complete-icon"><Award size={30} /></span>
-      <div><p className="eyebrow">اكتمل اليوم</p><h2>خطواتك محفوظة، والرحلة مستمرة.</h2><p>أنجزت {progress.completed} من {progress.total} مهام خلال {formatMinutes(progress.actualMinutes)} وحافظت على سلسلة {streakData.current} يومًا.</p></div>
+    {dayCompletion.kind !== "active" ? <section className={cn("day-complete-panel", dayCompletion.kind === "terminal-incomplete" && "day-terminal-incomplete")}>
+      <span className="day-complete-icon">{dayCompletion.kind === "full" ? <Award size={30} /> : <CircleCheck size={30} />}</span>
+      <div><p className="eyebrow">{dayCompletion.kind === "full" ? "اكتملت رحلة اليوم" : "تم حفظ رحلة اليوم"}</p><h2>{dayCompletion.kind === "full" ? "خطواتك محفوظة، والرحلة مستمرة." : "حُفظ ما أنجزته والوقت المسجل."}</h2><p>{dayCompletion.kind === "full" ? <>أنجزت {progress.completed} من {progress.total} مهام خلال {formatMinutes(progress.actualMinutes)} وحافظت على سلسلة {streakData.current} يومًا.</> : <>أُغلقت مهام اليوم مع حفظ النتائج والوقت المسجل خلال {formatMinutes(progress.actualMinutes)}.</>}</p></div>
       <Link href="/history"><Button variant="outline">فتح سجل اليوم <ArrowLeft size={17} /></Button></Link>
     </section> : <>
       <section className="dashboard-section dashboard-tasks-preview">
@@ -348,14 +354,14 @@ export function StreaksView() {
     <PageHeader eyebrow="استمراريتك" title="الاستريك العام والتفصيلي" description="تابع استمراريتك العامة، ثم اعرف أي مهمة تحافظ عليها يومًا بعد يوم." />
     <section className="streak-celebration"><span><Flame size={28} /></span><div><strong>{generalStreakTitle.label}</strong><p>{generalStreakTitle.nextMilestone ? `تبقى ${generalStreakTitle.nextMilestone - generalStreakTitle.days} يومًا للوصول إلى المرحلة التالية.` : "وصلت إلى أعلى مرحلة مسجلة حتى الآن."}</p></div><b><Flame size={16} aria-hidden="true" />{streakData.current} يوم</b></section>
     <div className="streak-stats"><Card><Flame size={24} /><span>الاستريك العام الحالي</span><strong>{streakData.current} يومًا</strong><small>{generalStreakTitle.label}</small></Card><Card><Award size={24} /><span>أفضل استريك عام</span><strong>{streakData.best} يومًا</strong></Card><Card><CircleCheck size={24} /><span>أيام ناجحة</span><strong>{streakData.successfulDays}</strong></Card></div>
-    <Card className="streak-rules-card"><SectionHeader title="الاستريكات التفصيلية" description="كل مهمة لها عداد مستقل ولقب خاص بها." /><div className="task-streak-grid">{taskStreaks.map((entry) => <article className="task-streak-card" key={entry.taskId}><div className="task-streak-card-head"><div><strong>{entry.taskTitle}</strong><span>{entry.title}</span></div><Badge tone={getTaskStreakPresentation(entry).tone}>{entry.current} يوم</Badge></div><div className="task-streak-metrics"><span>أفضل: <strong>{entry.best}</strong></span><span>أيام ناجحة: <strong>{entry.successfulDays}</strong></span>{entry.nextMilestone && <span>المرحلة القادمة: <strong>{entry.nextMilestone}</strong></span>}</div><ProgressBar value={entry.milestoneProgress} tone={entry.isTodaySuccessful ? "success" : "teal"} /><div className="task-streak-history">{entry.history.slice(-14).map((day) => <i key={`${entry.taskId}-${day.date}`} className={`streak-day streak-${day.status}`} title={getStreakDayLabel(day.date, day.status)} aria-label={getStreakDayLabel(day.date, day.status)} />)}</div></article>)}</div></Card>
+    <Card className="streak-rules-card"><SectionHeader title="الاستريكات التفصيلية" description="كل مهمة لها عداد مستقل ولقب خاص بها." /><div className="task-streak-grid">{taskStreaks.map((entry) => <article className="task-streak-card" key={entry.taskId}><div className="task-streak-card-head"><div><strong>{entry.taskTitle}</strong><span>{entry.title}</span></div><Badge tone={getTaskStreakPresentation(entry).tone}>{entry.current} يوم</Badge></div><p className="task-streak-state">{getTaskStreakPresentation(entry).body}</p><div className="task-streak-metrics"><span>أفضل: <strong>{entry.best}</strong></span><span>أيام ناجحة: <strong>{entry.successfulDays}</strong></span>{entry.nextMilestone && <span>المرحلة القادمة: <strong>{entry.nextMilestone}</strong></span>}</div><ProgressBar value={entry.milestoneProgress} tone={entry.isTodaySuccessful ? "success" : "teal"} /><div className="task-streak-history">{entry.history.slice(-14).map((day) => <i key={`${entry.taskId}-${day.date}`} className={`streak-day streak-${day.status}`} title={getStreakDayLabel(day.date, day.status)} aria-label={getStreakDayLabel(day.date, day.status)} />)}</div></article>)}</div></Card>
     <Card className="streak-map-card"><SectionHeader title="خريطة الاستريك العام" description="كل مربع يمثل يومًا واحدًا من سجل الاستمرارية." /><div className="streak-map">{streakData.history.map((day) => <span key={day.date} title={getStreakDayLabel(day.date, day.status)} aria-label={getStreakDayLabel(day.date, day.status)} className={cn("streak-day", `streak-${day.status}`)} />)}</div><div className="streak-legend"><span><i className="streak-successful" />ناجح</span><span><i className="streak-unsuccessful" />لم يكتمل</span><span><i className="streak-partial" />جزئي</span><span><i className="streak-today" />اليوم</span><span><i className="streak-future" />قادِم</span></div></Card>
     <section className="streak-tips"><Lightbulb size={22} aria-hidden="true" /><div><strong>كيف تعمل الاستمرارية؟</strong><p>استمرارية المهمة تعتمد على إنجاز المهمة في أيامها، أما الاستمرارية العامة فتعتمد على نجاح اليوم حسب قاعدة التقدم الحالية.</p></div></section>
   </>;
 }
 export function CompetitionView() {
   const { rankings, activeParticipant } = useDemo();
-  return <><PageHeader eyebrow="المجموعة" title="الترتيب" description="مقارنة مشجعة تركّز على التقدم والاستمرارية." /><section className="ranking-podium">{rankings.slice(0, 3).map((entry) => <Card key={entry.participantId} className={cn("podium-card", `podium-${entry.rank}`)}><span className="podium-rank">{entry.rank}</span><UserAvatar initials={entry.initials} color={entry.avatarColor} size="lg" /><strong>{entry.name}</strong><span>{entry.score} نقطة</span><Badge tone={entry.rank === 1 ? "warning" : "teal"}><Flame size={13} />{entry.streak} أيام</Badge></Card>)}</section><Card><SectionHeader title="كل المشاركين" description="يُحدّث الترتيب تلقائيًا من تقدم المجموعة المحفوظ." /><div className="ranking-list">{rankings.map((entry) => <article key={entry.participantId} className={cn(entry.participantId === activeParticipant.id && "ranking-current-user")}><span className={cn("rank-chip", `rank-${entry.rank}`)} aria-label={`المركز ${entry.rank}`}>{entry.rank}</span><UserAvatar initials={entry.initials} color={entry.avatarColor} size="md" /><strong>{entry.name}</strong><div><ProgressBar value={entry.progress} tone="teal" /><span>{entry.progress}% من رحلة اليوم</span></div><span className="ranking-score">{entry.score}</span></article>)}</div></Card></>;
+  return <><PageHeader eyebrow="المجموعة" title="الترتيب" description="مقارنة مشجعة تركّز على التقدم والاستمرارية." /><section className="ranking-podium">{rankings.slice(0, 3).map((entry) => <Card key={entry.participantId} className={cn("podium-card", `podium-${entry.rank}`)}><span className="podium-rank">{entry.rank}</span><UserAvatar initials={entry.initials} color={entry.avatarColor} size="lg" /><strong>{entry.name}</strong><span>{entry.score} نقطة</span><Badge tone={entry.rank === 1 ? "warning" : "teal"}><Flame size={13} />{entry.streak} أيام</Badge></Card>)}</section><Card><SectionHeader title="كل المشاركين" description="يُحدّث الترتيب تلقائيًا من تقدم المجموعة المحفوظ." /><div className="ranking-list">{rankings.map((entry) => <article key={entry.participantId} className={cn(entry.participantId === activeParticipant.id && "ranking-current-user")}><span className={cn("rank-chip", `rank-${entry.rank}`)} aria-label={`المركز ${entry.rank}`}>{entry.rank}</span><UserAvatar initials={entry.initials} color={entry.avatarColor} size="md" /><strong>{entry.name}{entry.participantId === activeParticipant.id && <small className="ranking-current-label"> (أنت)</small>}</strong><div><ProgressBar value={entry.progress} tone="teal" /><span>{entry.progress}% من رحلة اليوم</span></div><span className="ranking-score">{entry.score}</span></article>)}</div></Card></>;
 }
 
 export function HonorsView() {
