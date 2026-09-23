@@ -40,7 +40,7 @@ export interface CalculatedRankingEntry extends RankingEntry {
   rankScore: number;
 }
 
-type ParticipantLike = Pick<Participant, "id" | "name" | "initials" | "avatarColor" | "role" | "progress" | "streak" | "score"> & Partial<Pick<Participant, "pin" | "presence" | "currentStatus" | "currentTask">> & {
+type ParticipantLike = Pick<Participant, "id" | "name" | "initials" | "avatarColor" | "role" | "progress" | "streak"> & Partial<Pick<Participant, "score" | "pin" | "presence" | "currentStatus" | "currentTask">> & {
   actualMinutes?: number;
 };
 
