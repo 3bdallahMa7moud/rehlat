@@ -2,10 +2,12 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 
 import { Check, Download, WifiOff } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useInstallPrompt, useOnlineStatus, useServiceWorkerRegistration } from "@/hooks/use-online-status";
 
 export function OfflineBanner() {
+  const pathname = usePathname();
   const { isOnline } = useOnlineStatus();
   const { canInstall, promptInstall } = useInstallPrompt();
   useServiceWorkerRegistration();
@@ -30,7 +32,7 @@ export function OfflineBanner() {
   if (showReconnect) {
     return <aside className="offline-banner offline-banner-online" role="status" aria-live="polite"><Check size={17} aria-hidden="true" /><span>عاد الاتصال. نتابع مزامنة الرحلة.</span></aside>;
   }
-  if (canInstall) {
+  if (canInstall && pathname !== "/login" && pathname !== "/setup-pin") {
     return <aside className="offline-banner offline-banner-install" role="status" aria-live="polite"><Download size={17} aria-hidden="true" /><span>ثبّت رحلة التغيير للوصول السريع من جهازك.</span><button type="button" onClick={() => void promptInstall()}>تثبيت التطبيق</button></aside>;
   }
   return null;

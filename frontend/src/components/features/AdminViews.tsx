@@ -9,6 +9,7 @@ import { exportReport } from "@/lib/export";
 import { formatMinutes } from "@/lib/format";
 import { formatRelativeTime } from "@/lib/date-time";
 import { useDemo } from "@/state/DemoContext";
+import { quranReciters } from "@/lib/quran-recitation";
 
 import type { Report, TaskCategory, TaskType } from "@/types/models";
 const adminTaskCategoryLabels: Record<TaskCategory, string> = { faith: "دين", culture: "ثقافة", sport: "رياضة", growth: "تطوير الذات", skill: "مهارة", life: "حياة", family: "أهل وبيت", health: "صحة", character: "سلوك" };
@@ -47,7 +48,7 @@ export function AdminParticipantDetailsView({ participantId }: { participantId: 
 }
 
 export function AdminTasksView() {
-  const { tasks, saveTaskDefinition, deleteTask, quranAyahsPerPage, setQuranAyahsPerPage } = useDemo();
+  const { tasks, saveTaskDefinition, deleteTask, quranAyahsPerPage, setQuranAyahsPerPage, quranReadingMode, setQuranReadingMode, quranReciter, setQuranReciter } = useDemo();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
@@ -60,7 +61,7 @@ export function AdminTasksView() {
   const [target, setTarget] = useState("1");
   const [fullPoints, setFullPoints] = useState("10");
 
-  const units: Record<TaskType, string> = { quran: "صفحة", prayer: "صلاة", adhkar: "جلسة", reading: "صفحة", sport: "دقيقة", water: "كوب", sleep: "ساعة", general: "مرة" };
+  const units: Record<TaskType, string> = { quran: quranReadingMode === "pages" ? "\u0635\u0641\u062d\u0629" : "\u0622\u064a\u0629", prayer: "صلاة", adhkar: "جلسة", reading: "صفحة", sport: "دقيقة", water: "كوب", sleep: "ساعة", general: "مرة" };
   const categoryLabels = adminTaskCategoryLabels;
   const categoryTones: Record<TaskCategory, "primary" | "teal" | "warning" | "success"> = { faith: "primary", culture: "teal", sport: "warning", growth: "success", skill: "primary", life: "teal", family: "warning", health: "success", character: "primary" };
   const statusLabels = { completed: "مكتملة", running: "قيد التنفيذ", paused: "متوقفة مؤقتًا", not_started: "جاهزة للبدء", partial: "إنجاز جزئي", not_completed: "لم تُنجز", closed: "مغلقة" };
@@ -114,10 +115,6 @@ export function AdminTasksView() {
         <div className="admin-task-ring" style={{ background: `conic-gradient(var(--teal) ${completionRate}%, var(--line) 0)` }} aria-label={`${completionRate}% من المهام مكتملة`}><div><strong>{completionRate}%</strong><span>نسبة الإنجاز</span></div></div>
       </Card>
 
-      <Card className="admin-quran-display-settings">
-        <SectionHeader title="إعداد قارئ القرآن" description="يظل القرآن كاملًا ومتاحًا للاختيار، وهذا الإعداد يحدد فقط عدد الآيات الظاهرة في كل دفعة." />
-        <div><Input label="عدد الآيات في الدفعة" type="number" min="1" max="20" value={quranAyahsPerPage} onChange={(event) => setQuranAyahsPerPage(Number(event.target.value))} /><p>سيظهر للمستخدم زر للانتقال إلى الدفعة السابقة أو التالية، مع تفسير وصوت لكل آية.</p></div>
-      </Card>
 
       <div className="admin-task-summary admin-task-summary-new">
         <Card className="admin-task-stat admin-task-stat-total"><span className="admin-task-stat-icon"><Layers3 size={18} /></span><div><small>إجمالي المهام</small><strong>{tasks.length}</strong><span>متاحة للمجموعة</span></div></Card>
@@ -152,6 +149,7 @@ export function AdminTasksView() {
     </section>
     <Dialog open={dialogOpen} onClose={() => { setDialogOpen(false); resetForm(); }} title={editingTaskId ? "تعديل المهمة" : "إنشاء مهمة جديدة"} description="حدّد اسم المهمة وتصنيفها وهدفها، وستظهر النتيجة مباشرة في القائمة." footer={<><Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>إلغاء</Button><Button disabled={!canSave} onClick={saveTask}>{editingTaskId ? "حفظ التعديلات" : "حفظ المهمة"}</Button></>}>
       <div className="admin-form-grid"><Input label="اسم المهمة" value={taskName} onChange={(event) => setTaskName(event.target.value)} placeholder="مثال: مراجعة الدرس" /><Dropdown label="التصنيف" value={category} onChange={(value) => setCategory(value as TaskCategory)} options={Object.entries(categoryLabels).map(([value, label]) => ({ value, label }))} /><Input label={`الهدف (${units[type]})`} type="number" min="1" value={target} onChange={(event) => setTarget(event.target.value)} /><Input label="نقاط الإكمال" type="number" min="0" value={fullPoints} onChange={(event) => setFullPoints(event.target.value)} /><Dropdown label="نوع المهمة" value={type} onChange={(value) => setType(value as TaskType)} options={[{ value: "general", label: "مهمة عامة" }, { value: "reading", label: "قراءة" }, { value: "sport", label: "رياضة" }, { value: "quran", label: "قرآن" }, { value: "prayer", label: "صلاة" }, { value: "adhkar", label: "أذكار" }, { value: "water", label: "ماء" }, { value: "sleep", label: "نوم" }]} /></div>
+      {type === "quran" && <section className="admin-quran-task-settings"><h3>إعدادات ورد القرآن</h3><p>تظهر للمشارك دفعة اليوم فقط وفق هذه الإعدادات.</p><div className="admin-form-grid"><Dropdown label="طريقة الورد" value={quranReadingMode} onChange={(value) => setQuranReadingMode(value as "ayahs" | "pages")} options={[{ value: "ayahs", label: "بالآيات" }, { value: "pages", label: "بالصفحات" }]} /><Input label="عدد الآيات في الدفعة" type="number" min="1" max="20" value={quranAyahsPerPage} onChange={(event) => setQuranAyahsPerPage(Number(event.target.value))} disabled={quranReadingMode === "pages"} /><Dropdown label="القارئ الافتراضي" value={quranReciter} onChange={setQuranReciter} options={quranReciters.map((reciter) => ({ value: reciter.id, label: reciter.label }))} /></div></section>}
     </Dialog>
     <Dialog open={Boolean(deletingTaskId)} onClose={() => setDeletingTaskId(null)} title="حذف المهمة؟" description={deletingTask ? `سيتم حذف ${deletingTask.title} من قائمة المهام الحالية.` : "سيتم حذف المهمة من القائمة."} footer={<><Button variant="outline" onClick={() => setDeletingTaskId(null)}>إلغاء</Button><Button variant="destructive" onClick={() => { if (deletingTaskId) deleteTask(deletingTaskId); setDeletingTaskId(null); }}>حذف المهمة</Button></>}><div className="danger-dialog-copy"><TriangleAlert size={21} /><p>ستُحذف المهمة من القوائم الحالية، بينما تبقى سجلات الأيام السابقة محفوظة.</p></div></Dialog>
   </>;

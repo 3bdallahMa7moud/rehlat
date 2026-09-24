@@ -108,6 +108,8 @@ export interface PresenceRecord {
 export interface JourneySettings {
   soundEnabled: boolean;
   quranAyahsPerPage: number;
+  quranReadingMode?: "ayahs" | "pages";
+  quranReciter?: string;
   theme: "light" | "dark" | "system";
   timezone?: string;
 }
@@ -269,7 +271,7 @@ export function createEmptyJourneyState(): JourneyPersistedState {
     seenFeedbackIds: [],
     messages: [],
     activity: [],
-    settings: { soundEnabled: true, quranAyahsPerPage: 5, theme: "light" },
+    settings: { soundEnabled: true, quranAyahsPerPage: 5, quranReadingMode: "ayahs", quranReciter: "ar.alafasy", theme: "light" },
     session: { participantId: null },
     presence: [],
   };

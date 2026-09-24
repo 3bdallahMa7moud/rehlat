@@ -56,7 +56,7 @@ const mainNavigation = [
   { href: "/focus", label: "التركيز", icon: Focus },
   { href: "/competition", label: "الترتيب", icon: Trophy },
   { href: "/honors", label: "لوحة الشرف", icon: Medal },
-  { href: "/streaks", label: "السلسلة", icon: Flame },
+  { href: "/streaks", label: "الاستريك", icon: Flame },
   { href: "/analytics", label: "تحليلي", icon: ChartNoAxesCombined },
   { href: "/reports", label: "التقارير", icon: BarChart3 },
   { href: "/history", label: "السجل", icon: ClipboardList },
@@ -137,7 +137,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     return <main className="route-guard-state"><LoadingState label="جارٍ التحقق من الجلسة..." /></main>;
   }
 
-  return <div className={cn("app-shell", sidebarCollapsed && "sidebar-collapsed")}>
+  return <div className={cn("app-shell", sidebarCollapsed && "sidebar-collapsed", pathname === "/admin/reports" && "admin-report-shell")}>
     <aside className="desktop-sidebar">
       <div className="sidebar-brand-row">
       <Link href="/dashboard" className="brand-lockup" aria-label="رحلة التغيير - الرئيسية">

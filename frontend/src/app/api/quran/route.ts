@@ -20,9 +20,12 @@ export async function GET(request: Request) {
         number: arabicPayload.data.number,
         name: arabicPayload.data.name,
         englishName: arabicPayload.data.englishName,
-        ayahs: arabicPayload.data.ayahs.map((ayah: { number: number; numberInSurah: number; text: string }, index: number) => ({
+        revelationType: arabicPayload.data.revelationType,
+        ayahs: arabicPayload.data.ayahs.map((ayah: { number: number; numberInSurah: number; text: string; juz: number; page: number }, index: number) => ({
           number: ayah.numberInSurah,
           audioNumber: ayah.number,
+          juz: ayah.juz,
+          page: ayah.page,
           text: ayah.text,
           tafsir: tafsirPayload.data.ayahs[index]?.text ?? "",
         })),

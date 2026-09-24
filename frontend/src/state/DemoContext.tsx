@@ -82,6 +82,8 @@ interface DemoContextValue {
   focus: FocusState;
   soundEnabled: boolean;
   quranAyahsPerPage: number;
+  quranReadingMode: "ayahs" | "pages";
+  quranReciter: string;
   progress: { percent: number; completed: number; partial: number; remaining: number; total: number; actualMinutes: number };
   startDay: () => void;
   endDay: () => void;
@@ -115,6 +117,8 @@ interface DemoContextValue {
   deleteAiConversation: (conversationId: string) => void;
   toggleSound: () => void;
   setQuranAyahsPerPage: (value: number) => void;
+  setQuranReadingMode: (value: "ayahs" | "pages") => void;
+  setQuranReciter: (value: string) => void;
   addParticipant: (name: string, pin?: string) => void;
   editParticipantName: (id: string, name: string) => void;
   setParticipantRole: (id: string, role: Participant["role"]) => void;
@@ -196,7 +200,7 @@ function emptyJourneySnapshot(): JourneyPersistedState {
     seenFeedbackIds: [],
     messages: encouragements,
     activity: activityEvents,
-    settings: { soundEnabled: true, quranAyahsPerPage: 5, theme: "light" },
+    settings: { soundEnabled: true, quranAyahsPerPage: 5, quranReadingMode: "ayahs", quranReciter: "ar.alafasy", theme: "light" },
     session: { participantId: null },
     presence: [],
   };
@@ -219,6 +223,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [quranAyahsPerPage, setQuranAyahsPerPageState] = useState(5);
+  const [quranReadingMode, setQuranReadingModeState] = useState<"ayahs" | "pages">("ayahs");
+  const [quranReciter, setQuranReciterState] = useState("ar.alafasy");
   const [focusTimer, setFocusTimer] = useState<FocusTimerSnapshot>(() => defaultFocus("razi", localDate()));
   const [focusTick, setFocusTick] = useState(0);
   const [progressHistory, setProgressHistory] = useState<JourneyPersistedState["progress"]>([]);
@@ -307,6 +313,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setEncouragementMessages(source.messages);
     setSoundEnabled(source.settings.soundEnabled);
     setQuranAyahsPerPageState(Math.max(1, Math.min(20, source.settings.quranAyahsPerPage ?? 5)));
+    setQuranReadingModeState(source.settings.quranReadingMode === "pages" ? "pages" : "ayahs");
+    setQuranReciterState(source.settings.quranReciter ?? "ar.alafasy");
     setFocusTimer(source.focusTimers.find((timer) => timer.userId === participantId && timer.localDate === today) ?? defaultFocus(participantId, today));
     setProgressHistory(source.progress);
     setDailyTaskRecords(source.dailyTaskRecords);
@@ -350,7 +358,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { if (hydrated && !remoteDomainsRef.current.delete("notification.created")) persist((state) => ({ ...state, notifications }), "notification.created"); }, [notifications, hydrated, persist]);
   useEffect(() => { if (hydrated && !remoteDomainsRef.current.delete("activity.created")) persist((state) => ({ ...state, activity }), "activity.created"); }, [activity, hydrated, persist]);
   useEffect(() => { if (hydrated && !remoteDomainsRef.current.delete("message.created")) persist((state) => ({ ...state, messages: encouragementMessages }), "message.created"); }, [encouragementMessages, hydrated, persist]);
-  useEffect(() => { if (hydrated && !remoteDomainsRef.current.delete("settings.changed")) persist((state) => ({ ...state, settings: { ...state.settings, soundEnabled, quranAyahsPerPage } }), "settings.changed"); }, [soundEnabled, quranAyahsPerPage, hydrated, persist]);
+  useEffect(() => { if (hydrated && !remoteDomainsRef.current.delete("settings.changed")) persist((state) => ({ ...state, settings: { ...state.settings, soundEnabled, quranAyahsPerPage, quranReadingMode, quranReciter } }), "settings.changed"); }, [soundEnabled, quranAyahsPerPage, quranReadingMode, quranReciter, hydrated, persist]);
   useEffect(() => {
     if (!hydrated) return;
     const saved = journeyStorage.read();
@@ -379,7 +387,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       if (event.payload.changedDomains.includes("feedback.updated")) setSeenFeedbackIds(next.seenFeedbackIds);
       if (event.payload.changedDomains.includes("activity.created")) setActivity(next.activity);
       if (event.payload.changedDomains.includes("message.created")) setEncouragementMessages(next.messages);
-      if (event.payload.changedDomains.includes("settings.changed")) { setSoundEnabled(next.settings.soundEnabled); setQuranAyahsPerPageState(Math.max(1, Math.min(20, next.settings.quranAyahsPerPage ?? 5))); }
+      if (event.payload.changedDomains.includes("settings.changed")) { setSoundEnabled(next.settings.soundEnabled); setQuranAyahsPerPageState(Math.max(1, Math.min(20, next.settings.quranAyahsPerPage ?? 5))); setQuranReadingModeState(next.settings.quranReadingMode === "pages" ? "pages" : "ayahs"); setQuranReciterState(next.settings.quranReciter ?? "ar.alafasy"); }
       if (event.payload.changedDomains.includes("task.updated")) {
         setDailyTaskRecords(next.dailyTaskRecords);
         const nextDefinitions = next.tasks.map(normalizeTask);
@@ -1006,6 +1014,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     focus,
     soundEnabled,
     quranAyahsPerPage,
+    quranReadingMode,
+    quranReciter,
     progress,
     startDay,
     endDay,
@@ -1039,6 +1049,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     deleteAiConversation,
     toggleSound: () => setSoundEnabled((value) => !value),
     setQuranAyahsPerPage: (value) => setQuranAyahsPerPageState(Math.max(1, Math.min(20, Math.round(value) || 1))),
+    setQuranReadingMode: (value) => setQuranReadingModeState(value),
+    setQuranReciter: (value) => setQuranReciterState(value),
     addParticipant: (name, pin = "1234") => {
       const next = addParticipantToList(participants, name, pin);
       if (next.length === participants.length) return;

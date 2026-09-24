@@ -18,7 +18,7 @@ export function Footer({ className, participantName }: FooterProps) {
   const pathname = usePathname();
   const links = siteConfig.links;
 
-  if (pathname === "/ai") return null;
+  if (pathname === "/ai" || pathname === "/login" || pathname === "/setup-pin") return null;
 
   return <footer className={cn("site-footer", className)} aria-label="معلومات رحلة التغيير">
     <div className="site-footer-inner">

@@ -115,6 +115,9 @@ export function PinInput({ value, onChange, onSubmit, error, loading, success, m
   useEffect(() => {
     refs.current[0]?.focus();
   }, []);
+  useEffect(() => {
+    if (error) refs.current[0]?.focus();
+  }, [error]);
   const update = (index: number, input: string) => {
     const digits = input.replace(/\D/g, "");
     if (!digits) {
