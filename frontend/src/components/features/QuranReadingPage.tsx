@@ -13,6 +13,7 @@ export function QuranReadingPage({ taskId }: { taskId?: string }) {
   const [search, setSearch] = useState("");
   const [searchError, setSearchError] = useState(false);
   const [requestedSurah, setRequestedSurah] = useState<number | undefined>();
+  const [readerReset, setReaderReset] = useState(0);
   const details = (() => {
     const currentDetails = task?.details ?? {};
     if (currentDetails.quranBookmarked !== true || !Number.isFinite(currentDetails.quranBookmarkedAyah)) return currentDetails;
@@ -27,6 +28,11 @@ export function QuranReadingPage({ taskId }: { taskId?: string }) {
   const savedSurah = typeof details.quranSurah === "number" ? details.quranSurah : (task?.supportingText ?? "").includes("الكهف") ? 18 : 1;
   const surahName = quranSurahNames[savedSurah - 1] ?? "القرآن الكريم";
   const goToReader = () => document.getElementById("quran-reader-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const goToSavedPosition = () => {
+    setRequestedSurah(savedSurah);
+    setReaderReset((value) => value + 1);
+    window.setTimeout(goToReader, 0);
+  };
 
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -62,11 +68,11 @@ export function QuranReadingPage({ taskId }: { taskId?: string }) {
         <Card className="quran-insight-card quran-last-position" padding="sm">
           <div className="quran-card-title"><h2>آخر موضع</h2><Bookmark size={20} /></div>
           <div className="quran-position-preview"><span><ScrollText size={25} /></span><div><strong>سورة {surahName}</strong><p>الآية {savedAyah} · موضعك المحفوظ</p></div></div>
-          <Button variant="outline" onClick={goToReader}>الانتقال إلى آخر موضع <ChevronLeft size={16} /></Button>
+          <Button variant="outline" onClick={goToSavedPosition}>الانتقال إلى آخر موضع <ChevronLeft size={16} /></Button>
         </Card>
         <Card className="quran-reflection-card" padding="sm"><div className="quran-reflection-title"><Leaf size={17} /><strong>تأمل اليوم</strong></div><p>اقرأ على مهل، وتأمل معنى الآية في لوحة التفسير أثناء وردك.</p></Card>
       </aside>
-      <div className="quran-reader-column"><QuranBatchReader key={requestedSurah} initialSurahOverride={requestedSurah} task={task} onProgress={(value) => updateTaskProgress(task.id, value)} onDetails={(next) => updateTaskDetails(task.id, next)} /></div>
+      <div className="quran-reader-column"><QuranBatchReader key={`${requestedSurah ?? savedSurah}-${readerReset}`} initialSurahOverride={requestedSurah} task={task} onProgress={(value) => updateTaskProgress(task.id, value)} onDetails={(next) => updateTaskDetails(task.id, next)} /></div>
     </div>}
   </div>;
 }

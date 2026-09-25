@@ -6,17 +6,18 @@ export function createFocusTimer(userId: string, localDate: string, updatedAt: s
 
 export function getFocusElapsedSeconds(timer: FocusTimerSnapshot, at = Date.now()): number {
   if (timer.status !== "running" || !timer.startedAt) return timer.elapsedSeconds;
-  return Math.min(timer.durationSeconds, timer.elapsedSeconds + Math.max(0, Math.floor((at - new Date(timer.startedAt).getTime()) / 1000)));
+  const elapsed = timer.elapsedSeconds + Math.max(0, Math.floor((at - new Date(timer.startedAt).getTime()) / 1000));
+  return timer.durationSeconds === 0 ? elapsed : Math.min(timer.durationSeconds, elapsed);
 }
 
 export function chooseFocusDuration(timer: FocusTimerSnapshot, minutes: number, updatedAt: string): FocusTimerSnapshot {
-  if (!Number.isFinite(minutes) || minutes <= 0 || timer.status === "running") return timer;
+  if (!Number.isFinite(minutes) || minutes < 0 || timer.status === "running") return timer;
   return { ...timer, durationSeconds: Math.round(minutes * 60), elapsedSeconds: 0, status: "idle", startedAt: undefined, pausedAt: undefined, finishedAt: undefined, updatedAt };
 }
 
 export function startFocusTimer(timer: FocusTimerSnapshot, updatedAt: string): FocusTimerSnapshot {
   if (timer.status === "running") return timer;
-  const fresh = timer.status === "completed" || timer.status === "cancelled" || timer.elapsedSeconds >= timer.durationSeconds;
+  const fresh = timer.status === "completed" || timer.status === "cancelled" || (timer.durationSeconds > 0 && timer.elapsedSeconds >= timer.durationSeconds);
   return { ...timer, elapsedSeconds: fresh ? 0 : timer.elapsedSeconds, status: "running", startedAt: updatedAt, pausedAt: undefined, finishedAt: undefined, updatedAt };
 }
 

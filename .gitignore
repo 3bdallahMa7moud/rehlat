@@ -36,3 +36,12 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary & Audit Artifacts
+.tmp/
+*/.tmp/
+.claude/
+*.tmp
+reports/
+cdp-audit.mjs
+package-lock.json

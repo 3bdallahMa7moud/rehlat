@@ -18,7 +18,7 @@ import { getDetailCompletionFeedbackPriority, getTaskDetailOutcomeFeedback, getT
 import { getAchievementFeedback, getNewStreakMilestones, getUnseenAchievementFeedback, hasParticipantCompletedTask, planAchievementFeedbackDelivery } from "../src/lib/achievement-feedback.ts";
 import { getEarnedTitleCards, getHonorHighlights, getPersonalHonorSummary } from "../src/lib/honors.ts";
 import { calculateRankings, calculateRankingScore } from "../src/lib/ranking.ts";
-import { getDayCompletionPresentation, getTaskStreakPresentation } from "../src/lib/streak-presentation.ts";
+import { getDayCompletionPresentation, getTaskStreakPresentation, getTaskStreakStatusLabel, getTaskStreakTodayLabel, matchesTaskStreakFilter } from "../src/lib/streak-presentation.ts";
 import { queryReport } from "../src/lib/report-query.ts";
 import { serializePdf } from "../src/lib/export.ts";
 
@@ -39,6 +39,16 @@ assert.equal(rankingFallback[0].rankScore > 0, true);
 assert.equal(getTaskStreakPresentation({ current: 4, isTodaySuccessful: false, isAtRisk: false }).tone, "teal");
 assert.deepEqual(getTaskStreakPresentation({ current: 4, isTodaySuccessful: false, isAtRisk: true }), { tone: "warning", body: "لم يُسجل نجاح هذه المهمة لليوم بعد." });
 assert.equal(getTaskStreakPresentation({ current: 4, isTodaySuccessful: true, isAtRisk: false }).tone, "success");
+const activeTaskStreak = { current: 4, reason: "today_pending" };
+assert.equal(matchesTaskStreakFilter("today", "not_started", activeTaskStreak), true);
+assert.equal(matchesTaskStreakFilter("today", "running", activeTaskStreak), false);
+assert.equal(matchesTaskStreakFilter("today", "paused", activeTaskStreak), false);
+assert.equal(matchesTaskStreakFilter("today", "partial", activeTaskStreak), false);
+assert.equal(matchesTaskStreakFilter("active", "not_started", activeTaskStreak), true);
+assert.equal(matchesTaskStreakFilter("broken", "not_started", { current: 0, reason: "streak_broken" }), true);
+assert.equal(getTaskStreakStatusLabel("running", activeTaskStreak), "قيد التنفيذ");
+assert.equal(getTaskStreakStatusLabel("partial", activeTaskStreak), "إنجاز جزئي");
+assert.equal(getTaskStreakTodayLabel("paused"), "متوقفة");
 assert.equal(getDayCompletionPresentation("complete", 100).kind, "full");
 assert.equal(getDayCompletionPresentation("complete", 50).kind, "terminal-incomplete");
 assert.equal(getDayCompletionPresentation("in_progress", 50).kind, "active");

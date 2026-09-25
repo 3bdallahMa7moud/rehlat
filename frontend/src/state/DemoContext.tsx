@@ -46,8 +46,12 @@ interface FocusState {
   duration: number;
   secondsLeft: number;
   isRunning: boolean;
+  isUntimed: boolean;
   status: FocusTimerSnapshot["status"];
   elapsedSeconds: number;
+  todayTotalSeconds: number;
+  todaySessions: number;
+  longestSessionSeconds: number;
 }
 
 interface DemoContextValue {
@@ -96,10 +100,10 @@ interface DemoContextValue {
   updateTaskProgress: (taskId: string, current: number) => void;
   updateTaskDetails: (taskId: string, details: NonNullable<Task["details"]>) => void;
   chooseFocusDuration: (minutes: number) => void;
-  startFocus: () => void;
+  startFocus: (taskId?: string) => void;
   pauseFocus: () => void;
   resumeFocus: () => void;
-  finishFocus: () => void;
+  finishFocus: (taskId?: string) => void;
   cancelFocus: () => void;
   dismissNotification: (id: string) => void;
   markNotificationsRead: () => void;
@@ -226,6 +230,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const [quranReadingMode, setQuranReadingModeState] = useState<"ayahs" | "pages">("ayahs");
   const [quranReciter, setQuranReciterState] = useState("ar.alafasy");
   const [focusTimer, setFocusTimer] = useState<FocusTimerSnapshot>(() => defaultFocus("razi", localDate()));
+  const [focusSessions, setFocusSessions] = useState<FocusSession[]>([]);
   const [focusTick, setFocusTick] = useState(0);
   const [progressHistory, setProgressHistory] = useState<JourneyPersistedState["progress"]>([]);
   const [dailyTaskRecords, setDailyTaskRecords] = useState<JourneyPersistedState["dailyTaskRecords"]>([]);
@@ -243,6 +248,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const [activeAiConversationId, setActiveAiConversationId] = useState("chat-welcome");
   const [aiHistoryReady, setAiHistoryReady] = useState(false);
   const presenceAdapterRef = useRef<ReturnType<typeof createLocalPresenceAdapter> | null>(null);
+  const activeFocusTaskIdRef = useRef<string | undefined>("reading");
   const stateSnapshotRef = useRef<JourneyPersistedState>(emptyJourneySnapshot());
   const pushToastRef = useRef<((toast: Omit<ToastItem, "id">) => void) | null>(null);
   const lastPublishedRevisionRef = useRef<number | null>(null);
@@ -316,6 +322,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setQuranReadingModeState(source.settings.quranReadingMode === "pages" ? "pages" : "ayahs");
     setQuranReciterState(source.settings.quranReciter ?? "ar.alafasy");
     setFocusTimer(source.focusTimers.find((timer) => timer.userId === participantId && timer.localDate === today) ?? defaultFocus(participantId, today));
+    setFocusSessions(source.focusSessions);
     setProgressHistory(source.progress);
     setDailyTaskRecords(source.dailyTaskRecords);
     const savedStreak = source.streaks.find((item) => item.userId === participantId);
@@ -367,6 +374,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     const status = saved.dayStatuses.find((item) => item.userId === activeParticipantId && item.localDate === today)?.status;
     setDayStatus(status ?? "not_started");
     setFocusTimer(saved.focusTimers.find((timer) => timer.userId === activeParticipantId && timer.localDate === today) ?? defaultFocus(activeParticipantId, today));
+    setFocusSessions(saved.focusSessions);
   }, [activeParticipantId, today, taskDefinitions, hydrated]);
 
   useEffect(() => {
@@ -400,7 +408,10 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         const savedStreak = next.streaks.find((item) => item.userId === activeParticipantId);
         if (savedStreak) setStreakData({ current: savedStreak.current, best: savedStreak.best, successfulDays: savedStreak.successfulDays, history: savedStreak.history });
       }
-      if (event.payload.changedDomains.includes("focus.updated")) setFocusTimer(next.focusTimers.find((timer) => timer.userId === activeParticipantId && timer.localDate === today) ?? defaultFocus(activeParticipantId, today));
+      if (event.payload.changedDomains.includes("focus.updated")) {
+        setFocusTimer(next.focusTimers.find((timer) => timer.userId === activeParticipantId && timer.localDate === today) ?? defaultFocus(activeParticipantId, today));
+        setFocusSessions(next.focusSessions);
+      }
     });
     return () => { stopStatus(); stopPresence(); stopState(); localRealtime.disconnect(); };
   }, [activeParticipantId, hydrated, today]);
@@ -421,19 +432,19 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   }, [focusTimer.status]);
 
   const elapsedFocusSeconds = focusElapsed(focusTimer);
+  const todayFocusSessions = focusSessions.filter((session) => session.userId === activeParticipantId && session.localDate === today);
+  const todayTotalSeconds = todayFocusSessions.reduce((total, session) => total + session.actualSeconds, 0);
   const focus: FocusState = {
     duration: Math.round(focusTimer.durationSeconds / 60),
-    secondsLeft: Math.max(0, focusTimer.durationSeconds - elapsedFocusSeconds),
-    isRunning: focusTimer.status === "running" && elapsedFocusSeconds < focusTimer.durationSeconds,
+    secondsLeft: focusTimer.durationSeconds === 0 ? elapsedFocusSeconds : Math.max(0, focusTimer.durationSeconds - elapsedFocusSeconds),
+    isRunning: focusTimer.status === "running" && (focusTimer.durationSeconds === 0 || elapsedFocusSeconds < focusTimer.durationSeconds),
+    isUntimed: focusTimer.durationSeconds === 0,
     status: focusTimer.status,
     elapsedSeconds: elapsedFocusSeconds + focusTick * 0,
+    todayTotalSeconds,
+    todaySessions: todayFocusSessions.length,
+    longestSessionSeconds: todayFocusSessions.reduce((longest, session) => Math.max(longest, session.actualSeconds), 0),
   };
-
-  useEffect(() => {
-    if (!hydrated || focusTimer.status !== "running" || elapsedFocusSeconds < focusTimer.durationSeconds) return;
-    setFocusTimer((timer) => ({ ...timer, elapsedSeconds: timer.durationSeconds, status: "completed", finishedAt: nowIso(), updatedAt: nowIso() }));
-    pushToastRef.current?.({ tone: "success", title: "اكتملت جلسة التركيز", body: "أحسنت، خذ نفسًا قصيرًا قبل خطوتك التالية." });
-  }, [hydrated, focusTimer.status, focusTimer.durationSeconds, elapsedFocusSeconds]);
 
   const progress = useMemo(() => calculateProgress(tasks), [tasks]);
 
@@ -824,9 +835,38 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const chooseFocusDuration = (minutes: number) => {
     setFocusTimer((timer) => chooseFocusTimerDuration(timer, minutes, nowIso()));
   };
-  const startFocus = () => {
+  const saveFocusSession = useCallback((finished: FocusTimerSnapshot, taskId = activeFocusTaskIdRef.current) => {
+    if (finished.elapsedSeconds <= 0) return false;
+    const sessionId = `focus-session-${finished.id}-${finished.startedAt ?? finished.updatedAt}`;
+    if (stateSnapshotRef.current.focusSessions.some((session) => session.id === sessionId)) return false;
+    const session: FocusSession = {
+      id: sessionId,
+      userId: activeParticipantId,
+      localDate: today,
+      durationSeconds: finished.durationSeconds,
+      actualSeconds: finished.elapsedSeconds,
+      startedAt: finished.startedAt ?? finished.updatedAt,
+      finishedAt: finished.finishedAt ?? finished.updatedAt,
+      taskId,
+    };
+    persist((state) => ({
+      ...state,
+      focusTimers: [...state.focusTimers.filter((timer) => timer.id !== finished.id), finished],
+      focusSessions: [...state.focusSessions, session],
+    }), "focus.updated");
+    setFocusSessions((items) => items.some((item) => item.id === session.id) ? items : [...items, session]);
+    if (taskId) {
+      setTasks((items) => items.map((task) => task.id === taskId
+        ? { ...task, actualMinutes: task.actualMinutes + finished.elapsedSeconds / 60 }
+        : task));
+    }
+    return true;
+  }, [activeParticipantId, persist, today]);
+  const startFocus = (taskId?: string) => {
+    activeFocusTaskIdRef.current = taskId ?? activeFocusTaskIdRef.current;
     setFocusTimer((timer) => startFocusTimer(timer, nowIso()));
-    presenceAdapterRef.current?.update("active", { currentTaskTitle: "جلسة تركيز" });
+    const selectedTask = tasks.find((task) => task.id === activeFocusTaskIdRef.current);
+    presenceAdapterRef.current?.update("active", { currentTaskTitle: selectedTask?.title ?? "جلسة تركيز" });
   };
   const pauseFocus = () => {
     if (focusTimer.status !== "running") return;
@@ -837,12 +877,12 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     if (focusTimer.status !== "paused") return;
     setFocusTimer((timer) => resumeFocusTimer(timer, nowIso()));
   };
-  const finishFocus = () => {
+  const finishFocus = (taskId?: string) => {
     if (focusTimer.status === "idle" && focusTimer.elapsedSeconds === 0) return;
+    activeFocusTaskIdRef.current = taskId ?? activeFocusTaskIdRef.current;
     const finished = finishFocusTimer(focusTimer, nowIso());
     setFocusTimer(finished);
-    const session: FocusSession = { id: createLocalId("focus-session"), userId: activeParticipantId, localDate: today, durationSeconds: finished.durationSeconds, actualSeconds: finished.elapsedSeconds, startedAt: finished.startedAt ?? nowIso(), finishedAt: finished.finishedAt ?? nowIso() };
-    persist((state) => ({ ...state, focusTimers: [...state.focusTimers.filter((timer) => timer.id !== finished.id), finished], focusSessions: [...state.focusSessions, session] }), "focus.updated");
+    saveFocusSession(finished, activeFocusTaskIdRef.current);
     presenceAdapterRef.current?.update("idle");
     pushToast({ tone: "success", title: "أحسنت التركيز", body: `حُفظت جلسة مدتها ${Math.round(finished.elapsedSeconds / 60)} دقيقة.` });
   };
@@ -855,6 +895,15 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     if (remoteDomainsRef.current.delete("focus.updated")) return;
     persist((state) => ({ ...state, focusTimers: [...state.focusTimers.filter((timer) => timer.id !== focusTimer.id), focusTimer] }), "focus.updated");
   }, [focusTimer, activeParticipantId, hydrated, persist]);
+  useEffect(() => {
+    if (!hydrated || focusTimer.status !== "running" || focusTimer.durationSeconds === 0 || elapsedFocusSeconds < focusTimer.durationSeconds) return;
+    const finishedAt = nowIso();
+    const finished: FocusTimerSnapshot = { ...focusTimer, elapsedSeconds: focusTimer.durationSeconds, status: "completed", finishedAt, updatedAt: finishedAt };
+    setFocusTimer(finished);
+    saveFocusSession(finished);
+    presenceAdapterRef.current?.update("idle");
+    pushToastRef.current?.({ tone: "success", title: "اكتملت جلسة التركيز", body: "أحسنت، تم حفظ وقت الجلسة على المهمة المختارة." });
+  }, [elapsedFocusSeconds, focusTimer, hydrated, saveFocusSession]);
 
   const setParticipantRole = (id: string, role: Participant["role"]) => setParticipants((items) => changeParticipantRole(items, id, role));
   const setParticipantPin = (id: string, pin: string) => {
@@ -949,6 +998,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setTasks(applyRecords(taskDefinitions, recordsFor(next, activeParticipantId, today)));
     setDayStatus(next.dayStatuses.find((item) => item.userId === activeParticipantId && item.localDate === today)?.status ?? "not_started");
     setFocusTimer(next.focusTimers.find((timer) => timer.userId === activeParticipantId && timer.localDate === today) ?? defaultFocus(activeParticipantId, today));
+    setFocusSessions(next.focusSessions);
     setActivity(next.activity);
     setNotifications(next.notifications);
     setSeenFeedbackIds(next.seenFeedbackIds);
@@ -969,6 +1019,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setDailyTaskRecords(clearBackup.dailyTaskRecords);
     setDayStatus(clearBackup.dayStatuses.find((item) => item.userId === activeParticipantId && item.localDate === today)?.status ?? "not_started");
     setFocusTimer(clearBackup.focusTimers.find((timer) => timer.userId === activeParticipantId && timer.localDate === today) ?? defaultFocus(activeParticipantId, today));
+    setFocusSessions(clearBackup.focusSessions);
     setActivity(clearBackup.activity);
     setNotifications(clearBackup.notifications);
     setSeenFeedbackIds(clearBackup.seenFeedbackIds);

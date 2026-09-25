@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Activity, ArrowDownUp, ArrowLeft, Award, BarChart3, BedDouble, BookOpen, CalendarDays, Check, ChevronDown, ChevronLeft, CircleCheck, Clock3, Droplets, Dumbbell, FileSpreadsheet, FileText, Flame, Focus, HeartPulse, Lightbulb, Medal, MessageCircle, Moon, MoreHorizontal, Play, Search, Sparkles, Target, Timer, Trophy, Users, X } from "lucide-react";
+import { Activity, ArrowDownUp, ArrowLeft, Award, BarChart3, BedDouble, BookOpen, CalendarDays, Check, ChevronDown, ChevronLeft, CircleCheck, ClipboardList, Clock3, Droplets, Dumbbell, FileSpreadsheet, FileText, Flame, Info, Layers3, Mosque, Lightbulb, ListTodo, Medal, MessageCircle, Moon, MoreHorizontal, Pause, Play, Search, SlidersHorizontal, Sparkles, Target, Timer, Trophy, Users, X } from "lucide-react";
 import { AIAssistantHero } from "@/components/features/AIAssistant";
 import { TaskCard, TaskGlyph } from "@/components/features/TaskCard";
 import { filterTasks, getTaskGuideCopy, isActiveTask, taskCategories, taskCategoryNames } from "@/domain/tasks/task-presentation";
@@ -24,8 +24,9 @@ import { exportReport } from "@/lib/export";
 import { PARTIAL_COMPLETION_WEIGHT } from "@/lib/progress";
 import { getEarnedTitleCards, getHonorHighlights, getPersonalHonorSummary } from "@/lib/honors";
 import { useDemo } from "@/state/DemoContext";
-import { getDayCompletionPresentation, getStreakDayLabel, getTaskStreakPresentation } from "@/lib/streak-presentation";
+import { getDayCompletionPresentation, getStreakDayLabel, getTaskStreakPresentation, getTaskStreakStatusLabel, getTaskStreakTodayLabel, matchesTaskStreakFilter, type TaskStreakFilter } from "@/lib/streak-presentation";
 import type { Report, TaskCategory, TaskStatus, TaskType } from "@/types/models";
+import focusStyles from "./FocusView.module.css";
 
 const activityMeta: Record<TaskType, { title: string; description: string; detail: string }> = {
   quran: { title: "القرآن", description: "وردك اليومي، هدف واضح وخطوة قابلة للقياس.", detail: "مقروء اليوم" },
@@ -292,22 +293,89 @@ export function TasksView() {
   const { tasks } = useDemo();
   const [filter, setFilter] = useState<"all" | "morning" | "active">("all");
   const [category, setCategory] = useState<TaskCategory | "all">("all");
-  const shownTasks = filterTasks(tasks, filter, category);
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
+  const [search, setSearch] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const activeTasks = tasks.filter(isActiveTask);
-  const resetFilters = () => { setFilter("all"); setCategory("all"); };
+  const morningTasks = tasks.filter((task) => task.group === "morning");
+  const morningComplete = morningTasks.length > 0 && morningTasks.every((task) => task.status === "completed");
+  const nextTasks = tasks.filter((task) => task.group !== "morning" && task.status !== "completed").slice(0, 3);
+  const completedCount = tasks.filter((task) => task.status === "completed").length;
+  const pendingCount = tasks.length - completedCount;
+  const completionRate = tasks.length ? Math.round((completedCount / tasks.length) * 100) : 0;
+  const primaryTask = [...tasks]
+    .filter((task) => !["completed", "closed"].includes(task.status))
+    .sort((left, right) => (dashboardTaskPriority[left.status] ?? 99) - (dashboardTaskPriority[right.status] ?? 99))[0];
+  const primaryTaskProgress = primaryTask?.target ? Math.min(100, Math.round((primaryTask.current / primaryTask.target) * 100)) : 0;
+  const appliedFilterCount = Number(Boolean(search.trim())) + Number(filter !== "all") + Number(category !== "all") + Number(statusFilter !== "all");
+  const statusOptions: Array<{ value: TaskStatus | "all"; label: string }> = [
+    { value: "all", label: "الكل" },
+    { value: "completed", label: "مكتملة" },
+    { value: "partial", label: "جزئية" },
+    { value: "running", label: "جارية" },
+    { value: "not_started", label: "لم تبدأ" },
+  ];
+  const shownTasks = filterTasks(tasks, filter, category).filter((task) => {
+    const query = search.trim().toLocaleLowerCase("ar");
+    const matchesSearch = !query || `${task.title} ${task.goalLabel} ${task.supportingText ?? ""}`.toLocaleLowerCase("ar").includes(query);
+    const matchesStatus = statusFilter === "all" || task.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+  const resetFilters = () => { setFilter("all"); setCategory("all"); setStatusFilter("all"); setSearch(""); setFiltersOpen(false); };
 
-  return <>
-    <PageHeader eyebrow="مساحة العمل" title="مهام اليوم" description="اختر المهمة، ابدأها بوضوح، ثم احفظ نتيجتها من مكان واحد." actions={<Link href="/focus"><Button variant="secondary"><Focus size={18} />جلسة تركيز</Button></Link>} />
-    {activeTasks.length > 0 && <section className="active-tasks-section" aria-labelledby="active-tasks-title"><SectionHeader title="المهام النشطة" description="قيد التنفيذ أو متوقفة مؤقتًا أو محفوظة كإنجاز جزئي." action={<Badge tone="primary">{activeTasks.length} مهام</Badge>} /><div id="active-tasks-title" className="task-grid active-tasks-grid">{activeTasks.map((task) => <TaskCard task={task} compact openOnClick key={task.id} />)}</div></section>}
-    <section className="tasks-filter-section" aria-label="تصفية المهام">
-      <div className="tasks-toolbar"><Tabs value={filter} onValueChange={setFilter} tabs={[{ value: "all", label: "كل المهام" }, { value: "morning", label: "مجموعة الصباح" }, { value: "active", label: "قيد التقدم" }]} /></div>
-      <div className="task-category-filters" role="group" aria-label="التصنيف"><button type="button" className={cn("task-category-chip", category === "all" && "task-category-chip-active")} aria-pressed={category === "all"} onClick={() => setCategory("all")}>الكل</button>{taskCategories.map((item) => <button type="button" key={item} className={cn("task-category-chip", category === item && "task-category-chip-active")} aria-pressed={category === item} onClick={() => setCategory(item)}>{taskCategoryNames[item]}</button>)}</div>
+  return <div className="tasks-page">
+    <PageHeader
+      title="مهامي"
+      description="تابع مهامك اليومية وابدأ تنفيذ ما عليك اليوم."
+
+    />
+
+    <section className="tasks-summary-grid" aria-label="ملخص مهام اليوم">
+      <article className="tasks-summary-card tasks-summary-card-primary"><span className="tasks-summary-icon"><ClipboardList size={22} /></span><div><strong>{tasks.length}</strong><span>مهام اليوم</span><small>إجمالي المحطات</small></div></article>
+      <article className="tasks-summary-card tasks-summary-card-success"><span className="tasks-summary-icon"><CircleCheck size={22} /></span><div><strong>{completedCount}</strong><span>مكتملة</span><small>تم حفظها اليوم</small></div></article>
+      <article className="tasks-summary-card tasks-summary-card-warning"><span className="tasks-summary-icon"><Target size={22} /></span><div><strong>{pendingCount}</strong><span>متبقية</span><small>خطوات يمكنك البدء بها</small></div></article>
     </section>
-    <SectionHeader title="كل المهام" description={category === "all" ? "القائمة الكاملة لمهام اليوم." : `المهام ضمن تصنيف ${taskCategoryNames[category]}.`} />
-    {shownTasks.length ? <div className="task-grid">{shownTasks.map((task) => <TaskCard task={task} openOnClick key={task.id} />)}</div> : <EmptyState title="لا توجد مهام ضمن هذا الاختيار." description="جرّب تغيير الحالة أو التصنيف لرؤية مهام أخرى." action={<Button variant="outline" onClick={resetFilters}>إظهار كل المهام</Button>} />}
-  </>;
-}
 
+    {primaryTask && <section className="tasks-mobile-focus" aria-labelledby="tasks-mobile-focus-title">
+      <div className="tasks-mobile-focus-kicker"><span><Sparkles size={15} />خطوتك التالية</span><strong>{completionRate}% من اليوم</strong></div>
+      <div className="tasks-mobile-focus-heading">
+        <span className="tasks-mobile-focus-icon"><TaskGlyph task={primaryTask} size={24} /></span>
+        <div><Badge tone="teal">{taskCategoryNames[primaryTask.category]}</Badge><h2 id="tasks-mobile-focus-title">{primaryTask.title}</h2><p>{primaryTask.supportingText ?? primaryTask.goalLabel}</p></div>
+      </div>
+      <div className="tasks-mobile-focus-progress"><span>{primaryTask.goalLabel}</span><strong>{primaryTask.current} / {primaryTask.target} {primaryTask.unit}</strong></div>
+      <ProgressBar value={primaryTaskProgress} tone="teal" />
+      <div className="tasks-mobile-focus-footer"><Link href={`/tasks/${primaryTask.id}`} className="tasks-mobile-focus-action button button-primary"><Play size={17} />{nextActionCopy[primaryTask.status] ?? "عرض المهمة"}</Link><span>{pendingCount} مهام متبقية</span></div>
+    </section>}
+
+    {activeTasks.length > 0 && <section className="tasks-board tasks-active-board" aria-labelledby="active-tasks-title">
+      <div className="tasks-section-heading"><div><span className="tasks-section-icon tasks-section-icon-primary"><Play size={18} /></span><div><h2 id="active-tasks-title">قيد التنفيذ</h2><p>المهام التي تعمل عليها حالياً</p></div></div><Badge tone="primary">{activeTasks.length} مهام</Badge></div>
+      <div className="task-grid tasks-featured-grid">{activeTasks.map((task) => <TaskCard task={task} compact openOnClick key={task.id} />)}</div>
+    </section>}
+
+    <section className="tasks-board tasks-morning-board" aria-labelledby={morningComplete ? "next-tasks-title" : "morning-tasks-title"}>
+      <div className="tasks-section-heading"><div><span className={cn("tasks-section-icon", morningComplete ? "tasks-section-icon-primary" : "tasks-section-icon-warning")}>{morningComplete ? <Play size={18} /> : <Sparkles size={18} />}</span><div><h2 id={morningComplete ? "next-tasks-title" : "morning-tasks-title"}>{morningComplete ? "الخطوة التالية" : "مهام الصباح"}</h2><p>{morningComplete ? "أحسنت، انتقل تلقائيًا إلى باقي مهام يومك." : "ابدأ يومك بالمهام الأساسية"}</p></div></div><span className="tasks-section-note">{morningComplete ? "مهام مقترحة" : "روتين البداية"}</span></div>
+      {morningComplete ? nextTasks.length ? <div className="task-grid tasks-morning-grid">{nextTasks.map((task) => <TaskCard task={task} compact openOnClick key={task.id} />)}</div> : <div className="tasks-morning-complete"><CircleCheck size={18} /><div><strong>اكتملت مهام اليوم</strong><span>تم حفظ كل إنجازاتك، ولا توجد مهام أخرى متبقية.</span></div></div> : <div className="task-grid tasks-morning-grid">{morningTasks.map((task) => <TaskCard task={task} compact openOnClick key={task.id} />)}</div>}
+    </section>
+    <section className="tasks-filter-panel" aria-label="تصفية المهام">
+      <div className="tasks-filter-head">
+        <label className="tasks-search-field"><Search size={18} aria-hidden="true" /><span className="sr-only">البحث عن مهمة</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ابحث عن مهمة..." /></label>
+        <button type="button" className="tasks-mobile-filter-toggle" aria-expanded={filtersOpen} aria-controls="tasks-filter-options" onClick={() => setFiltersOpen((value) => !value)}><SlidersHorizontal size={17} /><span>الفلاتر</span>{appliedFilterCount > 0 && <strong>{appliedFilterCount}</strong>}<ChevronDown size={16} /></button>
+      </div>
+      <div id="tasks-filter-options" className={cn("tasks-filter-options", filtersOpen && "tasks-filter-options-open")}>
+        <div className="tasks-filter-group"><span className="tasks-filter-label">العرض:</span><div className="tasks-filter-chips">{([{ value: "all", label: "الكل" }, { value: "morning", label: "الصباحية" }, { value: "active", label: "قيد التنفيذ" }] as const).map((item) => <button type="button" key={item.value} className={cn("tasks-filter-chip", filter === item.value && "tasks-filter-chip-active")} aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label}</button>)}</div></div>
+        <div className="tasks-filter-group"><span className="tasks-filter-label">الحالة:</span><div className="tasks-filter-chips">{statusOptions.map((item) => <button type="button" key={item.value} className={cn("tasks-filter-chip", statusFilter === item.value && "tasks-filter-chip-active")} aria-pressed={statusFilter === item.value} onClick={() => setStatusFilter(item.value)}>{item.label}</button>)}</div></div>
+        <div className="tasks-filter-divider" />
+        <div className="tasks-filter-group"><span className="tasks-filter-label">الفئة:</span><div className="tasks-filter-chips">{(["all", ...taskCategories] as Array<TaskCategory | "all">).map((item) => <button type="button" key={item} className={cn("tasks-filter-chip", category === item && "tasks-filter-chip-active")} aria-pressed={category === item} onClick={() => setCategory(item)}>{item === "all" ? "الكل" : taskCategoryNames[item]}</button>)}</div></div>
+      <button type="button" className="tasks-reset-button" onClick={resetFilters}>إعادة ضبط الفلاتر</button>
+      </div>
+    </section>
+
+    <section className="tasks-board tasks-all-board" aria-labelledby="all-tasks-title">
+      <div className="tasks-section-heading"><div><span className="tasks-section-icon tasks-section-icon-teal"><ListTodo size={18} /></span><div><h2 id="all-tasks-title">كل المهام</h2><p>جميع مهامك اليومية والأسبوعية</p></div></div><span className="tasks-section-count">{shownTasks.length} من {tasks.length}</span></div>
+      {shownTasks.length ? <div className="task-grid tasks-all-grid">{shownTasks.map((task) => <TaskCard task={task} compact openOnClick key={task.id} />)}</div> : <EmptyState title="لا توجد مهام ضمن هذا الاختيار." description="جرّب تغيير الحالة أو الفئة لرؤية مهام أخرى." action={<Button variant="outline" onClick={resetFilters}>إظهار كل المهام</Button>} />}
+    </section>
+  </div>;
+}
 function SpecializedTaskFields({ task, onProgress, onDetails }: { task: NonNullable<ReturnType<typeof useDemo>["tasks"]>[number]; onProgress: (value: number) => void; onDetails: (details: NonNullable<typeof task.details>) => void }) {
   const entry = getTaskRegistryEntry(task);
   const details = task.details ?? {};
@@ -344,30 +412,122 @@ export function TaskActivityView({ taskId }: { taskId: string }) {
 }
 
 export function FocusView() {
-  const { cancelFocus, chooseFocusDuration, finishFocus, focus, pauseFocus, resumeFocus, startFocus } = useDemo();
-  const remainingMinutes = Math.floor(focus.secondsLeft / 60).toString().padStart(2, "0");
-  const remainingSeconds = (focus.secondsLeft % 60).toString().padStart(2, "0");
+  const { cancelFocus, chooseFocusDuration, finishFocus, focus, pauseFocus, resumeFocus, startFocus, tasks } = useDemo();
+  const selectedTask = tasks.find((task) => task.type === "reading") ?? tasks[0];
+  const displayedSeconds = focus.isUntimed ? focus.elapsedSeconds : focus.secondsLeft;
+  const remainingMinutes = Math.floor(displayedSeconds / 60).toString().padStart(2, "0");
+  const remainingSeconds = (displayedSeconds % 60).toString().padStart(2, "0");
   const isPaused = focus.status === "paused";
   const isFinished = focus.status === "completed" || focus.status === "cancelled";
-  return <div className="focus-page"><PageHeader eyebrow="مساحة هادئة" title="التركيز" description="اختر المدة أولًا، ثم ابدأ عندما تكون جاهزًا." /><section className="focus-room"><div className="focus-task-label"><Focus size={19} />جلسة تركيز شخصية</div><div className="focus-clock" aria-label={`الوقت المتبقي ${remainingMinutes}:${remainingSeconds}`}><strong dir="ltr">{remainingMinutes}:{remainingSeconds}</strong><span>متبقي من {focus.duration} دقيقة</span></div><div className="duration-selector" aria-label="اختيار مدة الجلسة">{[15, 25, 45, 60].map((duration) => <button type="button" key={duration} className={cn(focus.duration === duration && "duration-active")} onClick={() => chooseFocusDuration(duration)} disabled={focus.isRunning}>{duration} د</button>)}</div><div className="focus-actions">{focus.isRunning ? <Button size="lg" variant="outline" onClick={pauseFocus}>إيقاف مؤقت</Button> : <Button size="lg" onClick={isPaused ? resumeFocus : startFocus}><Play size={19} />{isPaused ? "استئناف" : isFinished ? "ابدأ جلسة جديدة" : "ابدأ"}</Button>}{focus.status !== "idle" && <Button size="lg" variant="ghost" onClick={finishFocus}>إنهاء الجلسة</Button>}{focus.status !== "idle" && <Button size="lg" variant="ghost" onClick={cancelFocus}>إلغاء الجلسة</Button>}</div><p className="focus-note"><Timer size={16} />لا تبدأ المدة تلقائيًا عند اختيارها، ويُحفظ الوقت عند الإيقاف المؤقت.</p></section></div>;
+  const taskLocked = focus.status === "running" || focus.status === "paused";
+  const totalSeconds = Math.max(1, focus.duration * 60);
+  const ringProgress = focus.isUntimed
+    ? Math.min(1, focus.elapsedSeconds / (25 * 60))
+    : focus.status === "idle"
+      ? 0.24
+      : Math.min(1, focus.elapsedSeconds / totalSeconds);
+  const ringRadius = 90;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+  const statusLabel = focus.status === "running"
+    ? "جلسة التركيز جارية"
+    : focus.status === "paused"
+      ? "متوقف مؤقتًا"
+      : focus.status === "completed"
+        ? "اكتملت الجلسة"
+        : focus.status === "cancelled"
+          ? "تم إلغاء الجلسة"
+          : focus.isUntimed
+            ? "جاهز للعد التصاعدي"
+            : "جاهز للتركيز";
+  const formatTotalTime = (seconds: number) => {
+    const minutes = Math.round(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+    if (!hours) return `${minutes} د`;
+    return rest ? `${hours} س ${rest} د` : `${hours} س`;
+  };
+
+  return <div className={focusStyles.page}>
+    <header className={focusStyles.header}>
+      <span>منطقة هادئة</span>
+      <h1>التركيز</h1>
+      <p>ابدأ جلسة هادئة للعمل على أهدافك</p>
+    </header>
+
+    <section className={focusStyles.timerCard} aria-label="جلسة التركيز">
+      <div className={focusStyles.durationBlock}>
+        <h2>مدة الجلسة</h2>
+        <div className={focusStyles.durationSelector} aria-label="اختيار مدة الجلسة">
+          {[25, 45, 60, 0].map((duration) => <button type="button" key={duration} className={cn(focusStyles.durationButton, focus.duration === duration && focusStyles.durationActive)} aria-pressed={focus.duration === duration} onClick={() => chooseFocusDuration(duration)} disabled={taskLocked}>{duration === 0 ? "بدون مدة" : `${duration} دقيقة`}</button>)}
+        </div>
+      </div>
+
+      <div className={focusStyles.clock} aria-label={focus.isUntimed ? `الوقت المسجل ${remainingMinutes}:${remainingSeconds}` : `الوقت المتبقي ${remainingMinutes}:${remainingSeconds}`}>
+        <svg viewBox="0 0 210 210" aria-hidden="true">
+          <circle className={focusStyles.clockTrack} cx="105" cy="105" r={ringRadius} />
+          <circle className={focusStyles.clockValue} cx="105" cy="105" r={ringRadius} strokeDasharray={ringCircumference} strokeDashoffset={ringCircumference * (1 - ringProgress)} />
+        </svg>
+        <div><strong dir="ltr">{remainingMinutes}:{remainingSeconds}</strong><span>{statusLabel}</span></div>
+      </div>
+
+      <div className={focusStyles.actions}>
+        <button type="button" className={focusStyles.primaryAction} onClick={focus.isRunning ? pauseFocus : isPaused ? resumeFocus : () => startFocus(selectedTask?.id)} disabled={!selectedTask}>
+          {focus.isRunning ? <Pause size={23} fill="currentColor" /> : <Play size={23} fill="currentColor" />}
+          {focus.isRunning ? "إيقاف مؤقت" : isPaused ? "استئناف التركيز" : isFinished ? "ابدأ جلسة جديدة" : "ابدأ التركيز"}
+        </button>
+        {(focus.status === "running" || focus.status === "paused") && <div className={focusStyles.secondaryActions}>
+          <button type="button" onClick={() => finishFocus(selectedTask?.id)}><Check size={16} />إنهاء وحفظ</button>
+          <button type="button" onClick={cancelFocus}><X size={16} />إلغاء</button>
+        </div>}
+      </div>
+
+      <p className={focusStyles.note}><Info size={17} />سيتم تسجيل الوقت الفعلي على {selectedTask?.title ?? "مهمة القراءة"}.</p>
+    </section>
+
+    <section className={focusStyles.stats} aria-label="إحصائيات التركيز اليوم">
+      <article><span className={focusStyles.statIcon}><BarChart3 size={25} /></span><div><small>أطول جلسة</small><strong>{formatTotalTime(focus.longestSessionSeconds)}</strong></div></article>
+      <article><span className={cn(focusStyles.statIcon, focusStyles.layersIcon)}><Layers3 size={25} /></span><div><small>عدد الجلسات</small><strong>{focus.todaySessions} جلسات</strong></div></article>
+      <article><span className={focusStyles.statIcon}><Timer size={25} /></span><div><small>إجمالي التركيز اليوم</small><strong>{formatTotalTime(focus.todayTotalSeconds)}</strong></div></article>
+    </section>
+  </div>;
 }
 
 export function StreaksView() {
   const { streakData, generalStreakTitle, taskStreaks, tasks } = useDemo();
-  const [taskFilter, setTaskFilter] = useState<"all" | "active" | "broken" | "today">("all");
-  const [taskSearch, setTaskSearch] = useState("");
+  const [taskFilter, setTaskFilter] = useState<TaskStreakFilter>("all");
   const [sortDescending, setSortDescending] = useState(true);
   const taskById = new Map(tasks.map((task) => [task.id, task]));
   const nextGoal = generalStreakTitle.nextMilestone ?? Math.max(streakData.current + 1, 1);
-  const calendarHistory = streakData.history.slice(-30);
-  const calendarDays = Array.from({ length: 30 }, (_, index) => {
-    const historyIndex = index - (30 - calendarHistory.length);
-    if (index === 29) return { date: "اليوم", status: "today" as const };
-    return calendarHistory[historyIndex] ?? { date: `قبل ${30 - index} يومًا`, status: "unsuccessful" as const };
+  const todayKey = getProjectDateKey();
+  const [currentYear, currentMonth, currentDay] = todayKey.split("-").map(Number);
+  const daysInCurrentMonth = new Date(Date.UTC(currentYear, currentMonth, 0)).getUTCDate();
+  const currentMonthDate = new Date(Date.UTC(currentYear, currentMonth - 1, 1, 12));
+  const currentMonthName = new Intl.DateTimeFormat("ar-EG", { timeZone: "Asia/Riyadh", month: "long" }).format(currentMonthDate);
+  const weekdayFormatter = new Intl.DateTimeFormat("ar-EG", { timeZone: "Asia/Riyadh", weekday: "long" });
+  const calendarHistory = streakData.history;
+  const historyByDate = new Map(calendarHistory.map((day) => [day.date, day]));
+  const calendarDays = Array.from({ length: daysInCurrentMonth }, (_, index) => {
+    const dayNumber = index + 1;
+    const date = new Date(Date.UTC(currentYear, currentMonth - 1, dayNumber, 12));
+    const dateKey = getProjectDateKey(date);
+    const historicalDay = historyByDate.get(dateKey);
+    return {
+      date: dateKey,
+      day: dayNumber,
+      status: dayNumber === currentDay
+        ? "today" as const
+        : dayNumber > currentDay
+          ? "future" as const
+          : historicalDay?.status ?? "unsuccessful" as const,
+    };
   });
-  const weekLabels = ["اليوم", "أمس", "الثلاثاء", "الاثنين", "الأحد", "السبت", "الجمعة"];
+  const weekLabels = Array.from({ length: 7 }, (_, offset) => {
+    const date = new Date(`${todayKey}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() - offset);
+    return offset === 0 ? "اليوم" : weekdayFormatter.format(date);
+  });
   const iconForTask = (type: TaskType) => {
-    if (type === "prayer") return <HeartPulse size={22} />;
+    if (type === "prayer") return <Mosque size={22} />;
     if (type === "quran" || type === "reading") return <BookOpen size={22} />;
     if (type === "sport") return <Dumbbell size={22} />;
     if (type === "water") return <Droplets size={22} />;
@@ -376,10 +536,10 @@ export function StreaksView() {
   };
   const filteredTaskStreaks = taskStreaks.filter((entry) => {
     const task = taskById.get(entry.taskId);
-    const matchesSearch = !taskSearch.trim() || `${entry.taskTitle} ${entry.title}`.toLocaleLowerCase("ar").includes(taskSearch.trim().toLocaleLowerCase("ar"));
-    const matchesFilter = taskFilter === "all" || (taskFilter === "active" && entry.current > 0) || (taskFilter === "broken" && entry.current === 0) || (taskFilter === "today" && entry.isTodayPending);
-    return Boolean(task) && matchesSearch && matchesFilter;
+    if (!task) return false;
+    return matchesTaskStreakFilter(taskFilter, task.status, entry);
   });
+
   const visibleTaskStreaks = [...filteredTaskStreaks].sort((left, right) => sortDescending ? right.current - left.current : left.current - right.current);
   return <>
     <PageHeader eyebrow="متابعة العادات اليومية" title="الاستريك" description="تابع استمراريتك اليومية واستمرارية كل مهمة، وحافظ على الإيقاع الذي يناسب رحلتك." />
@@ -391,9 +551,35 @@ export function StreaksView() {
       <div className="streak-overview-progress"><div><span>تبقى {Math.max(0, nextGoal - streakData.current)} يومًا للوصول إلى {nextGoal} يومًا</span><strong>{streakData.current} / {nextGoal}</strong></div><ProgressBar value={generalStreakTitle.progress} tone="teal" /></div>
     </section>
 
-    <Card className="streak-calendar-card"><SectionHeader title="آخر 30 يومًا" description="كل مربع يمثل يومًا واحدًا من استمراريتك في إنجاز المهام." /><div className="streak-calendar-legend"><span><i className="streak-legend-dot streak-legend-success" />مستمر</span><span><i className="streak-legend-dot streak-legend-pending" />لم يُنجز</span><span><i className="streak-legend-dot streak-legend-today" />اليوم</span></div><div className="streak-calendar-scroll"><div className="streak-calendar-list">{calendarDays.map((day, index) => <div key={`${day.date}-${index}`} className={cn("streak-calendar-day", day.status === "today" && "streak-calendar-day-today")} title={getStreakDayLabel(day.date, day.status)}><span>{weekLabels[(calendarDays.length - 1 - index) % weekLabels.length]}</span><strong>{index === calendarDays.length - 1 ? "24" : 30 - index}</strong><small>أبريل</small><i className={cn(`streak-calendar-dot-${day.status}`)} /></div>)}</div></div></Card>
+    <Card className="streak-calendar-card"><SectionHeader title={`شهر ${currentMonthName} ${currentYear}`} description="أيام الشهر مرتبة بالتاريخ، واليوم ظاهر في مكانه الطبيعي." /><div className="streak-calendar-legend"><span><i className="streak-legend-dot streak-legend-success" />مستمر</span><span><i className="streak-legend-dot streak-legend-pending" />لم يُنجز</span><span><i className="streak-legend-dot streak-legend-today" />اليوم</span><span><i className="streak-legend-dot streak-legend-future" />قادم</span></div><div className="streak-calendar-scroll"><div className="streak-calendar-list" style={{ gridTemplateColumns: `repeat(${calendarDays.length}, minmax(33px, 1fr))` }}>{calendarDays.map((day) => <div key={day.date} className={cn("streak-calendar-day", day.status === "today" && "streak-calendar-day-today")} title={getStreakDayLabel(day.date, day.status)} aria-current={day.status === "today" ? "date" : undefined}><strong>{day.day}</strong><i className={cn(`streak-calendar-dot-${day.status}`)} /></div>)}</div></div></Card>
 
-    <Card className="streak-tasks-card"><div className="streak-tasks-heading"><div><h2>استمرارية المهام</h2><p>استمرارية كل مهمة تساعدك على بناء عادات أفضل وتحقيق أهدافك.</p></div><Badge tone="teal">{filteredTaskStreaks.length} مهام</Badge></div><div className="streak-task-toolbar"><label className="streak-search"><Search size={18} aria-hidden="true" /><span className="sr-only">البحث عن مهمة</span><input value={taskSearch} onChange={(event) => setTaskSearch(event.target.value)} placeholder="ابحث عن مهمة..." /></label><div className="streak-task-filter-tabs" role="tablist" aria-label="تصفية المهام">{([ ["all", "الكل"], ["active", "مستمرة"], ["broken", "انقطعت"], ["today", "لم تبدأ اليوم"] ] as const).map(([value, label]) => <button key={value} type="button" role="tab" aria-selected={taskFilter === value} className={cn(taskFilter === value && "streak-task-filter-active")} onClick={() => setTaskFilter(value)}>{label}</button>)}</div><button type="button" className="streak-sort-button" onClick={() => setSortDescending((value) => !value)}><ArrowDownUp size={16} /> {sortDescending ? "أعلى استمرارية" : "الأقل استمرارية"} <ChevronDown size={16} /></button></div><div className="streak-task-grid-new">{visibleTaskStreaks.map((entry) => { const task = taskById.get(entry.taskId); if (!task) return null; const presentation = getTaskStreakPresentation(entry); const recentHistory = Array.from({ length: 7 }, (_, index) => entry.history.slice(-7)[index] ?? { date: `day-${index}`, status: "unsuccessful" as const }); return <article className="streak-task-card-new" key={entry.taskId}><div className={cn("streak-task-icon", `streak-task-icon-${task.type}`)}>{iconForTask(task.type)}</div><div className="streak-task-card-title"><h3>{task.type === "prayer" ? "الصلاة" : task.type === "quran" ? "القرآن" : task.type === "sport" ? "الرياضة" : task.type === "reading" ? "القراءة" : task.type === "water" ? "شرب الماء" : task.type === "sleep" ? "النوم" : task.title}</h3><span>{task.title}</span></div><Badge tone={presentation.tone}>{entry.current > 0 ? "مستمرة" : "لم تبدأ"}</Badge><div className="streak-task-metrics-new"><div><span>الاستمرارية الحالية</span><strong>{entry.current} يومًا</strong></div><div><span>الأطول</span><strong>{entry.best} يومًا</strong></div><div><span>اليوم</span><strong className={cn(entry.isTodaySuccessful ? "streak-metric-good" : "streak-metric-muted")}>{entry.isTodaySuccessful ? "مستمر" : entry.isTodayPending ? "لم يبدأ" : "انقطع"}</strong></div></div><div className="streak-task-week"><span>آخر 7 أيام</span><div>{recentHistory.map((day, index) => <span key={`${entry.taskId}-${day.date}-${index}`}><small>{weekLabels[index]}</small><i className={cn("streak-week-dot", `streak-week-dot-${day.status}`)}>{day.status === "successful" ? <Check size={12} /> : day.status === "unsuccessful" ? <X size={11} /> : ""}</i></span>)}</div></div></article>; })}</div>{filteredTaskStreaks.length === 0 && <EmptyState title="لا توجد مهام بهذا البحث" description="جرّب تغيير الفلتر أو كلمة البحث." />}</Card>
+    <Card className="streak-tasks-card">
+      <div className="streak-tasks-heading"><div><h2>استمرارية المهام</h2><p>استمرارية كل مهمة تساعدك على بناء عادات أفضل وتحقيق أهدافك.</p></div><Badge tone="teal">{filteredTaskStreaks.length} مهام</Badge></div>
+      <div className="streak-task-toolbar">
+        <div className="streak-task-filter-tabs" role="tablist" aria-label="تصفية المهام">
+          {([ ["all", "الكل"], ["active", "مستمرة"], ["broken", "انقطعت"], ["today", "لم تبدأ اليوم"] ] as const).map(([value, label]) => <button key={value} type="button" role="tab" aria-selected={taskFilter === value} className={cn(taskFilter === value && "streak-task-filter-active")} onClick={() => setTaskFilter(value)}>{label}</button>)}
+        </div>
+        <button type="button" className="streak-sort-button" onClick={() => setSortDescending((value) => !value)}><ArrowDownUp size={16} /> {sortDescending ? "أعلى استمرارية" : "الأقل استمرارية"} <ChevronDown size={16} /></button>
+      </div>
+      <div className="streak-task-grid-new">
+        {visibleTaskStreaks.map((entry) => {
+          const task = taskById.get(entry.taskId);
+          if (!task) return null;
+          const presentation = getTaskStreakPresentation(entry);
+          const statusLabel = getTaskStreakStatusLabel(task.status, entry);
+          const todayLabel = getTaskStreakTodayLabel(task.status);
+          const recentHistory = Array.from({ length: 7 }, (_, index) => entry.history.slice(-7)[index] ?? { date: `day-${index}`, status: "unsuccessful" as const });
+          return <article className="streak-task-card-new" key={entry.taskId}>
+            <div className={cn("streak-task-icon", `streak-task-icon-${task.type}`)}>{iconForTask(task.type)}</div>
+            <div className="streak-task-card-title"><h3>{task.type === "prayer" ? "الصلاة" : task.type === "quran" ? "القرآن" : task.type === "sport" ? "الرياضة" : task.type === "reading" ? "القراءة" : task.type === "water" ? "شرب الماء" : task.type === "sleep" ? "النوم" : task.title}</h3><span>{task.title}</span></div>
+            <Badge tone={presentation.tone}>{statusLabel}</Badge>
+            <div className="streak-task-metrics-new"><div><span>الاستمرارية الحالية</span><strong>{entry.current} يومًا</strong></div><div><span>الأطول</span><strong>{entry.best} يومًا</strong></div><div><span>اليوم</span><strong className={cn(task.status === "completed" ? "streak-metric-good" : "streak-metric-muted")}>{todayLabel}</strong></div></div>
+            <div className="streak-task-week"><span>آخر 7 أيام</span><div>{recentHistory.map((day, index) => <span key={`${entry.taskId}-${day.date}-${index}`}><small>{weekLabels[index]}</small><i className={cn("streak-week-dot", `streak-week-dot-${day.status}`)}>{day.status === "successful" ? <Check size={12} /> : day.status === "unsuccessful" ? <X size={11} /> : ""}</i></span>)}</div></div>
+          </article>;
+        })}
+      </div>
+      {filteredTaskStreaks.length === 0 && <EmptyState title="لا توجد مهام ضمن هذا الفلتر" description="جرّب اختيار فلتر آخر لرؤية استمراريات مختلفة." />}
+    </Card>
   </>;
 }
 export function CompetitionView() {

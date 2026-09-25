@@ -105,6 +105,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const unread = notifications.filter((notification) => !notification.read).length;
   const isAdmin = activeParticipant.role === "admin";
   const isAdminRoute = pathname.startsWith("/admin");
+  const isTasksRoute = pathname.startsWith("/tasks");
   useEffect(() => {
     const storedValue = window.localStorage.getItem("joc-sidebar-collapsed");
     if (storedValue === null) return;
@@ -137,7 +138,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     return <main className="route-guard-state"><LoadingState label="جارٍ التحقق من الجلسة..." /></main>;
   }
 
-  return <div className={cn("app-shell", sidebarCollapsed && "sidebar-collapsed", pathname === "/admin/reports" && "admin-report-shell")}>
+  return <div className={cn("app-shell", sidebarCollapsed && "sidebar-collapsed", isTasksRoute && "tasks-shell")}>
     <aside className="desktop-sidebar">
       <div className="sidebar-brand-row">
       <Link href="/dashboard" className="brand-lockup" aria-label="رحلة التغيير - الرئيسية">

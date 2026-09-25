@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useId, useRef, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactNode } from "react";
+import { forwardRef, useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Award, Check, ChevronDown, CircleCheck, Crown, Flame, Info, LoaderCircle, SearchX, TriangleAlert, X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -99,7 +99,45 @@ export function Dialog({ open, onClose, title, description, children, footer }: 
 
 export function Tabs<T extends string>({ value, onValueChange, tabs }: { value: T; onValueChange: (value: T) => void; tabs: { value: T; label: string }[] }) { return <div className="tabs" role="tablist">{tabs.map((tab) => <button type="button" role="tab" aria-selected={value === tab.value} className={cn("tab", value === tab.value && "tab-active")} key={tab.value} onClick={() => onValueChange(tab.value)}>{tab.label}</button>)}</div>; }
 
-export function Dropdown({ label, value, onChange, options, className }: { label?: string; value: string; onChange: (value: string) => void; options: { value: string; label: string }[]; className?: string }) { return <label className={cn("select-wrap", className)}>{label && <span className="sr-only">{label}</span>}<select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><ChevronDown size={17} aria-hidden="true" /></label>; }
+export function Dropdown({ label, value, onChange, options, className }: { label?: string; value: string; onChange: (value: string) => void; options: { value: string; label: string }[]; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const selectedOption = options.find((option) => option.value === value) ?? options[0];
+
+  return <div className={cn("select-wrap", className)}>
+    <button
+      type="button"
+      className="dropdown-trigger"
+      aria-label={label}
+      aria-haspopup="listbox"
+      aria-expanded={open}
+      onMouseDown={(event) => event.stopPropagation()}
+      onClick={(event) => {
+        event.stopPropagation();
+        setOpen((current) => !current);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") setOpen(false);
+      }}
+    >
+      <span>{selectedOption?.label}</span>
+      <ChevronDown size={17} aria-hidden="true" />
+    </button>
+    {open && <div className="dropdown-menu" role="listbox" aria-label={label} onMouseDown={(event) => event.stopPropagation()}>
+      {options.map((option) => <button
+        type="button"
+        key={option.value}
+        role="option"
+        aria-selected={value === option.value}
+        className={cn("dropdown-option", value === option.value && "dropdown-option-selected")}
+        onClick={(event) => {
+          event.stopPropagation();
+          onChange(option.value);
+          setOpen(false);
+        }}
+      >{option.label}</button>)}
+    </div>}
+  </div>;
+}
 
 export function Skeleton({ className }: { className?: string }) { return <span className={cn("skeleton", className)} />; }
 export function LoadingState({ label = "جارٍ التحميل" }: { label?: string }) { return <div className="state-box"><LoaderCircle className="animate-spin text-[var(--primary)]" size={24} /><p>{label}</p></div>; }
