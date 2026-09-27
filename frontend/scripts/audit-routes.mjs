@@ -22,18 +22,21 @@ const participantRoutes = [
   "/settings",
 ];
 
+const [baseUrl = "http://localhost:3000", debugPort = "9222"] = process.argv.slice(2);
+
 const adminRoutes = [
   "/admin",
   "/admin/participants",
   "/admin/participants/razi",
   "/admin/tasks",
   "/admin/analytics",
+  "/admin/reports",
   "/admin/activity",
   "/admin/data",
 ];
 
-const targets = await fetch("http://localhost:9222/json").then((response) => response.json());
-const page = targets.find((target) => target.type === "page" && target.url.includes("localhost:3000"));
+const targets = await fetch(`http://127.0.0.1:${debugPort}/json`).then((response) => response.json());
+const page = targets.find((target) => target.type === "page" && target.url.startsWith(baseUrl));
 if (!page) throw new Error("No local page target found");
 
 const socket = new WebSocket(page.webSocketDebuggerUrl);
@@ -68,7 +71,7 @@ async function evaluate(expression) {
 
 async function auditRoute(path, participantId) {
   await evaluate(`localStorage.setItem("joc-session-participant", ${JSON.stringify(participantId)})`);
-  await send("Page.navigate", { url: `http://localhost:3000${path}` });
+  await send("Page.navigate", { url: `${baseUrl}${path}` });
   await new Promise((resolve) => setTimeout(resolve, 900));
   return JSON.parse(await evaluate(`JSON.stringify({
     requested: ${JSON.stringify(path)},

@@ -19,6 +19,7 @@ function datesFor(period: ReportPeriod, today: string) { if (period === "daily")
 function statusProgress(status: TaskStatus) { return status === "completed" ? 100 : status === "partial" ? 50 : 0; }
 function weekBucket(date: string) { return Math.min(5, Math.floor((Number(date.slice(8, 10)) - 1) / 7) + 1); }
 function hasActivity(row: Pick<DailyTaskRecord, "status" | "current" | "actualMinutes">) { return row.status !== "not_started" || safe(row.current) > 0 || safe(row.actualMinutes) > 0; }
+function hasSnapshotActivity(snapshot: ProgressSnapshot) { return safe(snapshot.percent) > 0 || safe(snapshot.actualMinutes) > 0 || safe(snapshot.completed) > 0 || safe(snapshot.partial) > 0; }
 
 export function queryReport(input: Input, filters: ReportFilters): ReportDataset {
   const today = input.today ?? getProjectDateKey(); const dates = datesFor(filters.period, today);
@@ -28,9 +29,9 @@ export function queryReport(input: Input, filters: ReportFilters): ReportDataset
   const records = input.dailyTaskRecords.filter((r) => allowedUsers.has(r.userId) && allowedTasks.has(r.taskId) && dates.includes(r.localDate));
   const recordMap = new Map(records.map((r) => [`${r.userId}:${r.taskId}:${r.localDate}`, r]));
   const currentParticipantIsSelected = Boolean(input.currentParticipantId && allowedUsers.has(input.currentParticipantId));
-  const currentHasEvidence = currentParticipantIsSelected && (input.currentDayStatus !== "not_started" || (input.currentTasks ?? []).some(hasActivity));
-  if (currentHasEvidence) (input.currentTasks ?? []).filter((t) => allowedTasks.has(t.id) && hasActivity(t)).forEach((task) => recordMap.set(`${input.currentParticipantId}:${task.id}:${today}`, { userId: input.currentParticipantId!, taskId: task.id, localDate: today, status: task.status, current: task.current, actualMinutes: task.actualMinutes, updatedAt: new Date().toISOString() }));
-  const selected = [...recordMap.values()].filter((r) => allowedUsers.has(r.userId) && allowedTasks.has(r.taskId) && dates.includes(r.localDate));
+  const currentHasEvidence = currentParticipantIsSelected && (Boolean(input.currentDayStatus && input.currentDayStatus !== "not_started") || (input.currentTasks ?? []).some(hasActivity));
+  if (currentHasEvidence) (input.currentTasks ?? []).filter((t) => allowedTasks.has(t.id)).forEach((task) => recordMap.set(`${input.currentParticipantId}:${task.id}:${today}`, { userId: input.currentParticipantId!, taskId: task.id, localDate: today, status: task.status, current: task.current, actualMinutes: task.actualMinutes, updatedAt: new Date().toISOString() }));
+  const selected = [...recordMap.values()].filter((r) => allowedUsers.has(r.userId) && allowedTasks.has(r.taskId) && dates.includes(r.localDate) && hasActivity(r));
   const snapshots = new Map(input.progress.filter((p) => allowedUsers.has(p.userId) && dates.includes(p.localDate)).map((p) => [`${p.userId}:${p.localDate}`, p]));
   if (currentParticipantIsSelected && input.currentProgress && currentHasEvidence) snapshots.set(`${input.currentParticipantId}:${today}`, { userId: input.currentParticipantId!, localDate: today, ...input.currentProgress, updatedAt: new Date().toISOString() });
   const statusMap = new Map((input.dayStatuses ?? []).filter((s) => allowedUsers.has(s.userId) && dates.includes(s.localDate)).map((s) => [`${s.userId}:${s.localDate}`, s.status]));
@@ -40,7 +41,9 @@ export function queryReport(input: Input, filters: ReportFilters): ReportDataset
     const key = `${participant.id}:${date}`;
     const rows = selected.filter((r) => r.userId === participant.id && r.localDate === date);
     const snapshot = filters.taskId === "all" ? snapshots.get(key) : undefined;
-    const evidence = rows.some(hasActivity) || (statusMap.get(key) !== undefined && statusMap.get(key) !== "not_started");
+    const evidence = filters.taskId === "all"
+      ? rows.some(hasActivity) || (statusMap.get(key) !== undefined && statusMap.get(key) !== "not_started") || Boolean(snapshot && hasSnapshotActivity(snapshot))
+      : rows.some(hasActivity);
     if (!evidence) return;
     if (snapshot) metrics.push({ userId: participant.id, date, percent: Math.max(0, Math.min(100, safe(snapshot.percent))), minutes: Math.max(0, safe(snapshot.actualMinutes)) });
     else { const active = rows.filter(hasActivity); metrics.push({ userId: participant.id, date, percent: active.length ? Math.round(active.reduce((sum, r) => sum + statusProgress(r.status), 0) / active.length) : 0, minutes: active.reduce((sum, r) => sum + Math.max(0, safe(r.actualMinutes)), 0) }); }

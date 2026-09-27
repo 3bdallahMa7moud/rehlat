@@ -1,0 +1,78 @@
+{
+  "label": "baseline-1440x1000",
+  "theme": "light",
+  "action": "none",
+  "url": "/history",
+  "innerWidth": 1440,
+  "clientWidth": 1425,
+  "scrollWidth": 1425,
+  "bodyWidth": 1425,
+  "pageHeight": 1126,
+  "viewportHeight": 1000,
+  "historyCardCount": 1,
+  "buttonCount": 7,
+  "linkCount": 16,
+  "smallTextCount": 9,
+  "smallText": [
+    {
+      "tag": "SMALL",
+      "className": "",
+      "text": "JOURNEY OF CHANGE",
+      "fontSize": "8px"
+    },
+    {
+      "tag": "SPAN",
+      "className": "avatar avatar-navy avatar-sm",
+      "text": "رز",
+      "fontSize": "10px"
+    },
+    {
+      "tag": "SPAN",
+      "className": "notification-count",
+      "text": "2",
+      "fontSize": "8px"
+    },
+    {
+      "tag": "SPAN",
+      "className": "avatar avatar-navy avatar-sm",
+      "text": "رز",
+      "fontSize": "10px"
+    },
+    {
+      "tag": "SPAN",
+      "className": "",
+      "text": "إنجاز جزئي",
+      "fontSize": "10px"
+    },
+    {
+      "tag": "SPAN",
+      "className": "",
+      "text": "14% تقدم",
+      "fontSize": "10px"
+    },
+    {
+      "tag": "STRONG",
+      "className": "",
+      "text": "مساعدك",
+      "fontSize": "10px"
+    },
+    {
+      "tag": "P",
+      "className": "",
+      "text": "مساحة هادئة لخطوات صغيرة تتراكم إلى تغيير حقيقي.",
+      "fontSize": "10px"
+    },
+    {
+      "tag": "SPAN",
+      "className": "",
+      "text": "© 2026 رحلة التغيير. جميع الحقوق محفوظة.",
+      "fontSize": "10px"
+    }
+  ],
+  "outside": [],
+  "dialogOpen": false,
+  "activeFilter": null,
+  "heading": "السجل",
+  "bodyText": "رحلة التغيير\nJOURNEY OF CHANGE\nالرئيسية\nالمهام\nالتركيز\nالترتيب\nلوحة الشرف\nالاستريك\nتحليلي\nالتقارير\nالسجل\nالمساعد\nرز\nرازي\nمشارك\nتسجيل الخروج\n2\nرز\n\nالأيام السابقة\n\nالسجل\n\nعودة منظمة للأيام الماضية، مع ما يهمك فقط.\n\nالسبت، ٢٦ سبتمبر\nإنجاز جزئي\n14% تقدم\n٠ دقيقة\n0\nمساعدك\nجاهز لخطوتك التالية\nرحلة التغيير\n\nمساحة هادئة لخطوات صغيرة تتراكم إلى تغيير حقيقي.\n\n© 2026 رحلة التغيير. جميع الحقوق محفوظة.\nخطوة صغيرة كل يوم",
+  "consoleErrors": []
+}

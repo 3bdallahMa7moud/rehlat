@@ -1,0 +1,115 @@
+{
+  "label": "after-1440x1000-light",
+  "seeded": {
+    "ok": true,
+    "today": "2026-09-27",
+    "records": 21
+  },
+  "audit": {
+    "url": "/reports",
+    "viewport": {
+      "innerWidth": 1440,
+      "innerHeight": 1000
+    },
+    "clientWidth": 1425,
+    "scrollWidth": 1425,
+    "pageHeight": 1846,
+    "horizontalOverflow": false,
+    "direction": "rtl",
+    "theme": "light",
+    "headings": [
+      "التقارير",
+      "اختيار الفترة والفلاتر",
+      "تقرير رحلة التغيير",
+      "ملخص الأداء",
+      "ملخص المهام والحالات",
+      "أبرز النتائج",
+      "النشاط المسجل في الفترة"
+    ],
+    "summaryCards": 5,
+    "taskRows": 3,
+    "pointRows": 7,
+    "emptyState": false,
+    "controls": 9,
+    "touchViolations": [],
+    "tinyText": [],
+    "tabs": [
+      {
+        "text": "اليوم",
+        "selected": "false",
+        "height": 44
+      },
+      {
+        "text": "آخر 7 أيام",
+        "selected": "true",
+        "height": 44
+      },
+      {
+        "text": "الشهر الحالي",
+        "selected": "false",
+        "height": 44
+      }
+    ],
+    "selects": [
+      {
+        "value": "all",
+        "options": [
+          "كل المشاركين",
+          "رازي",
+          "نورة",
+          "سارة",
+          "خالد"
+        ]
+      },
+      {
+        "value": "all",
+        "options": [
+          "كل المهام",
+          "المحافظة على الصلوات",
+          "ورد القرآن",
+          "أذكار الصباح",
+          "أذكار المساء",
+          "قراءة الكتاب",
+          "مراجعة الدروس",
+          "مشي سريع",
+          "شرب الماء",
+          "تطبيق المهارة",
+          "جلسة مع الأهل",
+          "نوم مبكر"
+        ]
+      }
+    ],
+    "tasksHref": "/tasks",
+    "generatedAt": "٢٧‏/٠٩‏/٢٠٢٦، ٩:٣٠ م",
+    "summaryText": [
+      "متوسط التقدم70%",
+      "إجمالي الوقت٥ س ٥١ دوقت فعلي مسجل",
+      "الأيام النشطة7يوم له نشاط محفوظ",
+      "الأيام المكتملة3بلغت حد الإنجاز",
+      "أفضل استمرارية2 وحداتمتتالية في الفترة"
+    ]
+  },
+  "printAudit": {
+    "sidebarHidden": true,
+    "topbarHidden": true,
+    "controlsHidden": true,
+    "actionsHidden": true,
+    "footerHidden": true,
+    "pdfBytes": 485396
+  },
+  "functionalAudit": null,
+  "errors": {
+    "console": [
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "log",
+        "text": "[HMR] connected"
+      }
+    ],
+    "exceptions": [],
+    "failedRequests": []
+  }
+}

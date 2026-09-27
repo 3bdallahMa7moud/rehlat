@@ -1,0 +1,53 @@
+{
+  "label": "baseline-390x844",
+  "audit": {
+    "url": "/analytics",
+    "viewport": {
+      "innerWidth": 390,
+      "innerHeight": 844
+    },
+    "clientWidth": 375,
+    "scrollWidth": 375,
+    "pageHeight": 1433,
+    "horizontalOverflow": false,
+    "cards": 5,
+    "chartPoints": 1,
+    "buttons": 0,
+    "filters": [],
+    "metrics": [],
+    "headings": [
+      "تحليلي",
+      "اتجاه التقدم",
+      "الاستمرارية"
+    ],
+    "smallTextCount": 3,
+    "smallText": [
+      {
+        "tag": "span",
+        "text": "14%",
+        "size": "10px"
+      },
+      {
+        "tag": "small",
+        "text": "اليوم",
+        "size": "10px"
+      },
+      {
+        "tag": "span",
+        "text": "متوسط التقدم",
+        "size": "8px"
+      }
+    ],
+    "touchViolations": [],
+    "theme": "light",
+    "storage": {
+      "progressDaysForParticipant": 1,
+      "participantCount": 5
+    }
+  },
+  "errors": {
+    "console": [],
+    "exceptions": [],
+    "failedRequests": []
+  }
+}

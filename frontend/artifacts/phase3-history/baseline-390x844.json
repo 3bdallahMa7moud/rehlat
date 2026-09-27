@@ -1,0 +1,60 @@
+{
+  "label": "baseline-390x844-retry",
+  "theme": "light",
+  "action": "none",
+  "url": "/history",
+  "innerWidth": 390,
+  "clientWidth": 390,
+  "scrollWidth": 390,
+  "bodyWidth": 390,
+  "pageHeight": 966,
+  "viewportHeight": 844,
+  "historyCardCount": 1,
+  "buttonCount": 5,
+  "linkCount": 6,
+  "smallTextCount": 6,
+  "smallText": [
+    {
+      "tag": "SPAN",
+      "className": "notification-count",
+      "text": "2",
+      "fontSize": "8px"
+    },
+    {
+      "tag": "SPAN",
+      "className": "avatar avatar-navy avatar-sm",
+      "text": "رز",
+      "fontSize": "10px"
+    },
+    {
+      "tag": "SPAN",
+      "className": "",
+      "text": "إنجاز جزئي",
+      "fontSize": "10px"
+    },
+    {
+      "tag": "SPAN",
+      "className": "",
+      "text": "14% تقدم",
+      "fontSize": "10px"
+    },
+    {
+      "tag": "P",
+      "className": "",
+      "text": "مساحة هادئة لخطوات صغيرة تتراكم إلى تغيير حقيقي.",
+      "fontSize": "10px"
+    },
+    {
+      "tag": "SPAN",
+      "className": "",
+      "text": "© 2026 رحلة التغيير. جميع الحقوق محفوظة.",
+      "fontSize": "10px"
+    }
+  ],
+  "outside": [],
+  "dialogOpen": false,
+  "activeFilter": null,
+  "heading": "السجل",
+  "bodyText": "ثبّت رحلة التغيير للوصول السريع من جهازك.\nتثبيت التطبيق\nرحلة التغيير\n2\nرز\n\nالأيام السابقة\n\nالسجل\n\nعودة منظمة للأيام الماضية، مع ما يهمك فقط.\n\nالسبت، ٢٦ سبتمبر\nإنجاز جزئي\n14% تقدم\n٠ دقيقة\n0\nالرئيسية\nالمهام\nالتركيز\nالترتيب\nالمزيد\nرحلة التغيير\n\nمساحة هادئة لخطوات صغيرة تتراكم إلى تغيير حقيقي.\n\n© 2026 رحلة التغيير. جميع الحقوق محفوظة.\nخطوة صغيرة كل يوم",
+  "consoleErrors": []
+}

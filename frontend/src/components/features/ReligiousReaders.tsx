@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, Check, ChevronLeft, ChevronRight, CircleAlert, Headphones, LoaderCircle, RotateCcw, Sparkles } from "lucide-react";
+import { BookOpen, Check, ChevronLeft, CircleAlert, Headphones, LoaderCircle, RotateCcw, Sparkles } from "lucide-react";
 import { adhkarContent, tasbeehContent, type AdhkarSession } from "@/data/adhkar";
 import { Badge, Button, Card, ProgressBar, SectionHeader } from "@/components/ui";
 import { cn } from "@/lib/cn";
-import { useDemo } from "@/state/DemoContext";
 import type { Task } from "@/types/models";
 
 export function AdhkarReader({ task, onDetails, onProgress }: { task: Task; onDetails: (details: Record<string, string | number | boolean | string[]>) => void; onProgress: (value: number) => void }) {

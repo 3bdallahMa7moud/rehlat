@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Activity, ArrowDownUp, ArrowLeft, Award, BarChart3, BedDouble, BookOpen, CalendarDays, Check, ChevronDown, ChevronLeft, CircleCheck, ClipboardList, Clock3, Droplets, Dumbbell, FileSpreadsheet, FileText, Flame, Info, Layers3, Mosque, Lightbulb, ListTodo, Medal, MessageCircle, Moon, MoreHorizontal, Pause, Play, Search, SlidersHorizontal, Sparkles, Target, Timer, Trophy, Users, X } from "lucide-react";
 import { AIAssistantHero } from "@/components/features/AIAssistant";
+import { AnalyticsPageView } from "@/components/features/AnalyticsView";
 import { TaskCard, TaskGlyph } from "@/components/features/TaskCard";
 import { filterTasks, getTaskGuideCopy, isActiveTask, taskCategories, taskCategoryNames } from "@/domain/tasks/task-presentation";
 import { TaskDetailTimer } from "@/components/features/TaskDetailTimer";
@@ -17,7 +18,7 @@ import { getTaskRegistryEntry } from "@/components/tasks/TaskRegistry";
 import { ActivityIcon } from "@/design/activity-visuals";
 import { formatDashboardDate, formatRelativeTime, getProjectDateKey } from "@/lib/date-time";
 import { getDailyReflection } from "@/lib/daily-reflection";
-import { Badge, Button, Card, Dialog, EmptyState, IconButton, Input, PageHeader, ProgressBar, SectionHeader, StatusBadge, Tabs, UserAvatar } from "@/components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, Input, PageHeader, ProgressBar, SectionHeader, StatusBadge, Tabs, UserAvatar } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { formatMinutes, formatPercentage } from "@/lib/format";
 import { exportReport } from "@/lib/export";
@@ -602,44 +603,139 @@ export function HonorsView() {
     <Card className="honors-ranking-card"><div className="honors-table-title"><div><span className="honors-title-icon"><Medal size={20} /></span><div><h2>الترتيب العام</h2><p>ترتيب المجموعة حسب النقاط والتقدم الحالي.</p></div></div><Link href="/competition" className="section-link">عرض الترتيب الكامل <ArrowLeft size={16} /></Link></div><div className="honors-table-head" aria-hidden="true"><span>المركز</span><span>المشارك</span><span>معدل الإنجاز</span><span>النقاط</span><span>السلسلة</span><span /></div><div className="honors-ranking-list">{rankings.map((entry) => { const isCurrent = entry.participantId === activeParticipant.id; return <article key={entry.participantId} className={cn(isCurrent && "honors-current-user")}><strong className={cn("honors-rank-number", entry.rank <= 3 && `honors-rank-${entry.rank}`)}>{entry.rank}</strong><div className="honors-member"><UserAvatar initials={entry.initials} color={entry.avatarColor} size="md" /><span><strong>{isCurrent ? `${entry.name} (أنت)` : entry.name}</strong><small>{isCurrent ? "حسابك الحالي" : "عضو في رحلة التغيير"}</small></span></div><div className="honors-progress"><span><b>{entry.progress}%</b><small>إنجاز</small></span><ProgressBar value={entry.progress} tone={entry.rank === 1 ? "warning" : "teal"} /></div><strong className="honors-score">{entry.score.toLocaleString("ar-EG")}</strong><span className="honors-streak"><Flame size={15} />{entry.streak} أيام</span><span /></article>; })}</div></Card>
   </div>;
 }
-function ReportChart({ report }: { report: Report }) { const max = Math.max(...report.points.map((point) => point.progress)); return <div className="report-chart" aria-label="رسم تقدم الفترة">{report.points.map((point) => <div className="chart-column" key={point.label}><span className="chart-value">{point.progress}%</span><i style={{ height: `${Math.max(12, (point.progress / max) * 100)}%` }} /><small>{point.label}</small></div>)}</div>; }
-
 export function AnalyticsView() {
-  const { reports } = useDemo();
-  const report = reports.weekly;
-  return <><PageHeader eyebrow="فهم أدائك" title="تحليلي" description="مؤشرات شخصية مفيدة، لا لوحة BI مزدحمة." /><div className="analytics-grid"><Card className="analytics-main"><SectionHeader title="اتجاه التقدم" description="الأسبوع الحالي" action={<BarChart3 size={20} className="text-[var(--primary)]" />} /><ReportChart report={report} /></Card><Card><SectionHeader title="الاستمرارية" /><div className="consistency-score"><CircleProgress value={report.averageProgress} label="متوسط التقدم" /><p>{report.successfulDays} أيام ناجحة في الفترة الحالية؛ حافظ على خطوة يومية قابلة للتكرار.</p></div></Card></div><section className="insight-grid"><Card><span className="insight-icon insight-good"><Target size={22} /></span><h3>متوسط الإنجاز</h3><strong>{report.averageProgress}%</strong><p>محسوب من سجل تقدمك الفعلي خلال الفترة المحددة.</p></Card><Card><span className="insight-icon insight-watch"><Lightbulb size={22} /></span><h3>الخطوة التالية</h3><strong>{report.completionRate < 70 ? "مهمة قصيرة" : "حافظ على الإيقاع"}</strong><p>{report.completionRate < 70 ? "ابدأ بالمهمة الأقصر لتقليل مقاومة البداية." : "استمر على نفس الوتيرة مع فواصل راحة مناسبة."}</p></Card><Card><span className="insight-icon insight-teal"><Clock3 size={22} /></span><h3>أطول مهمة</h3><strong>{report.mostTimeConsumingTask}</strong><p>هذا طبيعي ما دامت تضيف لك قيمة واضحة.</p></Card></section></>;
+  return <AnalyticsPageView />;
 }
+
+function ReportChart({ report }: { report: Report }) { const max = Math.max(...report.points.map((point) => point.progress)); return <div className="report-chart" aria-label="رسم تقدم الفترة">{report.points.map((point) => <div className="chart-column" key={point.label}><span className="chart-value">{point.progress}%</span><i style={{ height: `${Math.max(12, (point.progress / max) * 100)}%` }} /><small>{point.label}</small></div>)}</div>; }
 
 export function HistoryView() {
   const { historyDays } = useDemo();
+  const [period, setPeriod] = useState<"7" | "30" | "all">("7");
   const [selectedDay, setSelectedDay] = useState<typeof historyDays[number] | null>(null);
-  return <>
-    <PageHeader eyebrow="الأيام السابقة" title="السجل" description="عودة منظمة للأيام الماضية، مع ما يهمك فقط." />
-    <Card>
-      <div className="history-list">{historyDays.map((day) => <article key={day.date}>
-        <span className="history-marker"><CalendarDays size={17} /></span>
-        <div className="history-date"><strong>{day.label}</strong><span>{day.status}</span></div>
-        <div className="history-progress"><ProgressBar value={day.progress} tone={day.progress > 85 ? "success" : "teal"} /><span>{day.progress}% تقدم</span></div>
-        <span className="history-time"><Clock3 size={16} />{formatMinutes(day.minutes)}</span>
-        <span className="history-streak"><Flame size={16} />{day.streak}</span>
-        <IconButton label={`عرض تفاصيل ${day.date}`} onClick={() => setSelectedDay(day)}><ChevronLeft size={18} /></IconButton>
-      </article>)}</div>
-    </Card>
+  const filteredDays = (() => {
+    if (period === "all" || historyDays.length === 0) return historyDays;
+    const newestDate = historyDays[0]?.date;
+    const anchor = new Date(`${newestDate}T12:00:00`);
+    if (!newestDate || Number.isNaN(anchor.getTime())) return historyDays.slice(0, Number(period));
+    anchor.setDate(anchor.getDate() - Number(period) + 1);
+    const cutoff = getProjectDateKey(anchor);
+    return historyDays.filter((day) => day.date >= cutoff && day.date <= newestDate);
+  })();
+  const totalProgress = filteredDays.reduce((total, day) => total + day.progress, 0);
+  const summary = filteredDays.length === 0
+    ? null
+    : {
+      averageProgress: Math.round(totalProgress / filteredDays.length),
+      totalMinutes: filteredDays.reduce((total, day) => total + day.minutes, 0),
+      completedDays: filteredDays.filter((day) => day.progress >= 100).length,
+      bestStreak: filteredDays.reduce((best, day) => Math.max(best, day.streak), 0),
+    };
+  const insight = !summary
+    ? null
+    : summary.averageProgress >= 70
+      ? { tone: "good", title: "إيقاعك في الفترة جيد", copy: `متوسط تقدمك ${summary.averageProgress}%؛ حافظ على الخطوات التي يمكنك تكرارها كل يوم.` }
+      : summary.averageProgress > 0
+        ? { tone: "watch", title: "خطوة قصيرة تعيدك للمسار", copy: `متوسط تقدمك ${summary.averageProgress}%. اختر مهمة قصيرة اليوم وابنِ عليها بهدوء.` }
+        : { tone: "start", title: "البداية التالية هي الأهم", copy: "لا يوجد تقدم مسجل في هذه الفترة بعد. ابدأ بمهمة قصيرة يمكن إنجازها الآن." };
+  const periodLabel = period === "7" ? "آخر 7 أيام" : period === "30" ? "آخر 30 يومًا" : "كل الأيام";
+  return <div className="history-page">
+    <PageHeader
+      eyebrow="رحلتك يومًا بيوم"
+      title="السجل"
+      description="راجع ما أنجزته في كل يوم، وافهم أين وصلت قبل أن تختار خطوتك التالية."
+      actions={<Link href="/tasks" className="button button-primary button-md history-header-cta"><ListTodo size={17} aria-hidden="true" />العودة لمهام اليوم</Link>}
+    />
+    {historyDays.length === 0 ? <Card className="history-empty-card">
+      <EmptyState
+        title="لا توجد أيام محفوظة بعد"
+        description="عندما تبدأ مهامك وتُحفظ رحلة يومك، ستظهر هنا بترتيب زمني واضح."
+        action={<Link href="/tasks" className="button button-primary button-md"><ListTodo size={17} aria-hidden="true" />ابدأ مهام اليوم</Link>}
+      />
+    </Card> : <>
+      <section className="history-summary" aria-labelledby="history-summary-title">
+        <div className="history-section-heading">
+          <div><span className="eyebrow">ملخص الفترة</span><h2 id="history-summary-title">صورتك السريعة</h2></div>
+          <span>{periodLabel}</span>
+        </div>
+        {summary && <div className="history-summary-grid">
+          <Card className="history-summary-card"><span className="history-summary-icon history-summary-icon-primary"><Target size={20} aria-hidden="true" /></span><div><span>متوسط التقدم</span><strong>{summary.averageProgress}%</strong><small>عبر {filteredDays.length} {filteredDays.length === 1 ? "يوم" : "أيام"}</small></div></Card>
+          <Card className="history-summary-card"><span className="history-summary-icon history-summary-icon-teal"><Clock3 size={20} aria-hidden="true" /></span><div><span>إجمالي الوقت المسجل</span><strong>{formatMinutes(summary.totalMinutes)}</strong><small>في الفترة المعروضة</small></div></Card>
+          <Card className="history-summary-card"><span className="history-summary-icon history-summary-icon-success"><CircleCheck size={20} aria-hidden="true" /></span><div><span>الأيام المكتملة</span><strong>{summary.completedDays}</strong><small>من أصل {filteredDays.length}</small></div></Card>
+          <Card className="history-summary-card"><span className="history-summary-icon history-summary-icon-warning"><Flame size={20} aria-hidden="true" /></span><div><span>أفضل استمرارية</span><strong>{summary.bestStreak} {summary.bestStreak === 1 ? "يوم" : "أيام"}</strong><small>مسجلة في هذه الفترة</small></div></Card>
+        </div>}
+      </section>
+      {insight && <Card className={cn("history-insight", `history-insight-${insight.tone}`)}>
+        <span className="history-insight-icon"><Lightbulb size={22} aria-hidden="true" /></span>
+        <div><span className="eyebrow">لمحة من سجلك</span><h2>{insight.title}</h2><p>{insight.copy}</p></div>
+        <Link href="/tasks" className="history-insight-link">اختر مهمة اليوم <ArrowLeft size={16} aria-hidden="true" /></Link>
+      </Card>}
+
+      <section className="history-timeline-section" aria-labelledby="history-timeline-title">
+        <div className="history-timeline-toolbar">
+          <div><span className="eyebrow">التسلسل الزمني</span><h2 id="history-timeline-title">أيام رحلتك</h2><p>{filteredDays.length} {filteredDays.length === 1 ? "يوم معروض" : "أيام معروضة"}</p></div>
+          <div className="history-period-filters" role="group" aria-label="تصفية السجل حسب الفترة">
+            {([{"value":"7","label":"آخر 7 أيام"},{"value":"30","label":"آخر 30 يومًا"},{"value":"all","label":"كل الأيام"}] as const).map((option) => <Button
+              key={option.value}
+              type="button"
+              size="sm"
+              variant={period === option.value ? "secondary" : "ghost"}
+              className={cn("history-period-filter", period === option.value && "history-period-filter-active")}
+              aria-pressed={period === option.value}
+              data-history-period={option.value}
+              onClick={() => setPeriod(option.value)}
+            >{option.label}</Button>)}
+          </div>
+        </div>
+        {filteredDays.length === 0 ? <Card className="history-period-empty">
+          <EmptyState title="لا توجد أيام في هذه الفترة" description="جرّب عرض كل الأيام أو عُد لمهام اليوم لبدء خطوة جديدة." action={<Button variant="outline" onClick={() => setPeriod("all")}>عرض كل الأيام</Button>} />
+        </Card> : <ol className="history-timeline">
+          {filteredDays.map((day) => {
+            const statusTone = day.progress >= 100 ? "success" : day.progress >= 70 ? "warning" : day.progress > 0 ? "teal" : "neutral";
+            const progressTone = day.progress >= 100 ? "success" : day.progress >= 70 ? "warning" : "teal";
+            return <li key={day.date}>
+              <span className={cn("history-timeline-marker", `history-timeline-marker-${statusTone}`)} aria-hidden="true"><CalendarDays size={18} /></span>
+              <Card className="history-day-card" data-history-day>
+                <div className="history-day-heading">
+                  <div className="history-day-date"><time dateTime={day.date}>{day.label}</time><span>{day.date}</span></div>
+                  <Badge tone={statusTone}>{day.status}</Badge>
+                </div>
+                <div className="history-day-progress">
+                  <div><span>التقدم اليومي</span><strong>{day.progress}%</strong></div>
+                  <ProgressBar value={day.progress} tone={progressTone} />
+                </div>
+                <dl className="history-day-metrics">
+                  <div><dt><Clock3 size={16} aria-hidden="true" />الوقت الفعلي</dt><dd>{formatMinutes(day.minutes)}</dd></div>
+                  <div><dt><Flame size={16} aria-hidden="true" />الاستمرارية</dt><dd>{day.streak} {day.streak === 1 ? "يوم" : "أيام"}</dd></div>
+                </dl>
+                <Button type="button" size="sm" variant="outline" className="history-details-button" data-history-details onClick={() => setSelectedDay(day)}>عرض التفاصيل <ChevronLeft size={17} aria-hidden="true" /></Button>
+              </Card>
+            </li>;
+          })}
+        </ol>}
+      </section>
+    </>}
     <Dialog
       open={Boolean(selectedDay)}
       onClose={() => setSelectedDay(null)}
       title={selectedDay?.label ?? "تفاصيل اليوم"}
-      description="ملخص الإنجاز والوقت والاستمرارية المسجلة في هذا اليوم."
-      footer={<Button onClick={() => setSelectedDay(null)}>تم</Button>}
+      description="ملخص واضح لما سُجل في هذا اليوم، دون إضافة تقديرات غير محفوظة."
+      footer={<Button data-history-dialog-close onClick={() => setSelectedDay(null)}>إغلاق</Button>}
     >
-      {selectedDay && <div className="participant-profile-metrics">
-        <div><span>الحالة</span><strong>{selectedDay.status}</strong></div>
-        <div><span>التقدم</span><strong>{selectedDay.progress}%</strong></div>
-        <div><span>الوقت الفعلي</span><strong>{formatMinutes(selectedDay.minutes)}</strong></div>
-        <div><span>السلسلة</span><strong>{selectedDay.streak} يومًا</strong></div>
+      {selectedDay && <div className="history-dialog-content">
+        <div className="history-dialog-overview">
+          <div><span>التقدم المسجل</span><strong>{selectedDay.progress}%</strong></div>
+          <Badge tone={selectedDay.progress >= 100 ? "success" : selectedDay.progress >= 70 ? "warning" : selectedDay.progress > 0 ? "teal" : "neutral"}>{selectedDay.status}</Badge>
+        </div>
+        <ProgressBar value={selectedDay.progress} tone={selectedDay.progress >= 100 ? "success" : selectedDay.progress >= 70 ? "warning" : "teal"} />
+        <dl className="history-dialog-metrics">
+          <div><dt><CalendarDays size={17} aria-hidden="true" />التاريخ</dt><dd>{selectedDay.date}</dd></div>
+          <div><dt><Clock3 size={17} aria-hidden="true" />الوقت الفعلي</dt><dd>{formatMinutes(selectedDay.minutes)}</dd></div>
+          <div><dt><Flame size={17} aria-hidden="true" />الاستمرارية</dt><dd>{selectedDay.streak} {selectedDay.streak === 1 ? "يوم" : "أيام"}</dd></div>
+        </dl>
       </div>}
     </Dialog>
-  </>;
+  </div>;
 }
 export function ReportsView() {
   const [period, setPeriod] = useState<Report["period"]>("weekly");

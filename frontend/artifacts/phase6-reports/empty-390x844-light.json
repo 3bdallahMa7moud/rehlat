@@ -1,0 +1,98 @@
+{
+  "label": "empty-390x844-light",
+  "seeded": {
+    "ok": true,
+    "today": "2026-09-27",
+    "records": 0
+  },
+  "audit": {
+    "url": "/reports",
+    "viewport": {
+      "innerWidth": 390,
+      "innerHeight": 844
+    },
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "pageHeight": 1369,
+    "horizontalOverflow": false,
+    "direction": "rtl",
+    "theme": "light",
+    "headings": [
+      "التقارير",
+      "اختيار الفترة والفلاتر",
+      "تقرير رحلة التغيير"
+    ],
+    "summaryCards": 0,
+    "taskRows": 0,
+    "pointRows": 0,
+    "emptyState": true,
+    "controls": 9,
+    "touchViolations": [],
+    "tinyText": [],
+    "tabs": [
+      {
+        "text": "اليوم",
+        "selected": "false",
+        "height": 44
+      },
+      {
+        "text": "آخر 7 أيام",
+        "selected": "true",
+        "height": 44
+      },
+      {
+        "text": "الشهر الحالي",
+        "selected": "false",
+        "height": 44
+      }
+    ],
+    "selects": [
+      {
+        "value": "all",
+        "options": [
+          "كل المشاركين",
+          "رازي",
+          "نورة",
+          "سارة",
+          "خالد"
+        ]
+      },
+      {
+        "value": "all",
+        "options": [
+          "كل المهام",
+          "المحافظة على الصلوات",
+          "ورد القرآن",
+          "أذكار الصباح",
+          "أذكار المساء",
+          "قراءة الكتاب",
+          "مراجعة الدروس",
+          "مشي سريع",
+          "شرب الماء",
+          "تطبيق المهارة",
+          "جلسة مع الأهل",
+          "نوم مبكر"
+        ]
+      }
+    ],
+    "tasksHref": "/tasks",
+    "generatedAt": "٢٧‏/٠٩‏/٢٠٢٦، ٩:٣٠ م",
+    "summaryText": []
+  },
+  "printAudit": null,
+  "functionalAudit": null,
+  "errors": {
+    "console": [
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "log",
+        "text": "[HMR] connected"
+      }
+    ],
+    "exceptions": [],
+    "failedRequests": []
+  }
+}

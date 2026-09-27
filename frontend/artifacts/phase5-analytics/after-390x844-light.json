@@ -1,0 +1,72 @@
+{
+  "label": "after-390x844-light",
+  "audit": {
+    "url": "/analytics",
+    "viewport": {
+      "innerWidth": 390,
+      "innerHeight": 844
+    },
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "pageHeight": 2074,
+    "horizontalOverflow": false,
+    "cards": 7,
+    "chartPoints": 1,
+    "buttons": 4,
+    "filters": [
+      {
+        "value": "7",
+        "pressed": "true",
+        "text": "آخر 7 أيام"
+      },
+      {
+        "value": "30",
+        "pressed": "false",
+        "text": "آخر 30 يومًا"
+      },
+      {
+        "value": "all",
+        "pressed": "false",
+        "text": "كل الأيام"
+      }
+    ],
+    "metrics": [
+      {
+        "key": "average",
+        "text": "متوسط التقدم14%متوسط الأيام المعروضة"
+      },
+      {
+        "key": "time",
+        "text": "إجمالي الوقت٠ دقيقةوقت مسجل في الفترة"
+      },
+      {
+        "key": "active",
+        "text": "الأيام النشطة1من أصل 1"
+      },
+      {
+        "key": "streak",
+        "text": "أفضل استمرارية0 أيامضمن الفترة المعروضة"
+      }
+    ],
+    "headings": [
+      "التحليلات",
+      "صورة تقدمك",
+      "هذه نقطة بداية واضحة",
+      "اتجاه التقدم",
+      "توزيع الحالات"
+    ],
+    "smallTextCount": 0,
+    "smallText": [],
+    "touchViolations": [],
+    "theme": "light",
+    "storage": {
+      "progressDaysForParticipant": 1,
+      "participantCount": 5
+    }
+  },
+  "errors": {
+    "console": [],
+    "exceptions": [],
+    "failedRequests": []
+  }
+}

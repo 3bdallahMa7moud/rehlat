@@ -1,10 +1,10 @@
 import { writeFile } from "node:fs/promises";
 
-const [path = "/dashboard", output = "page-audit.png", widthArg = "390", heightArg = "844", theme = "light", participantId = ""] = process.argv.slice(2);
+const [path = "/dashboard", output = "page-audit.png", widthArg = "390", heightArg = "844", theme = "light", participantId = "", baseUrl = "http://localhost:3000", debugPort = "9222"] = process.argv.slice(2);
 const width = Number(widthArg);
 const height = Number(heightArg);
-const targets = await fetch("http://localhost:9222/json").then((response) => response.json());
-const page = targets.find((target) => target.type === "page" && target.url.includes("localhost:3000"));
+const targets = await fetch(`http://127.0.0.1:${debugPort}/json`).then((response) => response.json());
+const page = targets.find((target) => target.type === "page" && target.url.startsWith(baseUrl));
 if (!page) throw new Error("No local page target found");
 
 const socket = new WebSocket(page.webSocketDebuggerUrl);
@@ -41,7 +41,7 @@ if (participantId) {
       : `localStorage.setItem("joc-session-participant", ${JSON.stringify(participantId)})`,
   });
 }
-await send("Page.navigate", { url: `http://localhost:3000${path}` });
+await send("Page.navigate", { url: `${baseUrl}${path}` });
 await new Promise((resolve) => setTimeout(resolve, 700));
 await send("Runtime.evaluate", { expression: `localStorage.setItem("joc-theme", "${theme}"); document.documentElement.classList.toggle("dark", "${theme}" === "dark"); document.documentElement.style.colorScheme = "${theme}";` });
 await new Promise((resolve) => setTimeout(resolve, 1200));

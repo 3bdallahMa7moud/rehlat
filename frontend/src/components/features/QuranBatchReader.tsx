@@ -55,7 +55,7 @@ export function QuranBatchReader({ task, onProgress, onDetails: saveDetails, ini
   const [moreOpen, setMoreOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const ayahs = payload?.surah.ayahs ?? [];
+  const ayahs = useMemo(() => payload?.surah.ayahs ?? [], [payload]);
   const safeStart = Math.min(batchStart, Math.max(0, ayahs.length - 1));
   const activeAyah = ayahs[selectedAyahNumber - 1] ?? ayahs[safeStart];
   const visibleAyahs = useMemo(() => {
@@ -83,8 +83,6 @@ export function QuranBatchReader({ task, onProgress, onDetails: saveDetails, ini
 
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true);
-    setError("");
     fetch("/api/quran?surah=" + surah, { signal: controller.signal })
       .then(async (response) => {
         const data = await response.json();
@@ -98,6 +96,12 @@ export function QuranBatchReader({ task, onProgress, onDetails: saveDetails, ini
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [surah, refreshKey]);
+
+  const retryLoad = () => {
+    setLoading(true);
+    setError("");
+    setRefreshKey((value) => value + 1);
+  };
 
   const selectAyah = (number: number) => {
     if (number < 1 || number > ayahs.length) return;
@@ -171,7 +175,7 @@ export function QuranBatchReader({ task, onProgress, onDetails: saveDetails, ini
       </div>
 
       {loading && <div className="reader-state"><LoaderCircle className="spin" size={22} />جارٍ تحميل السورة والتفسير…</div>}
-      {error && <div className="reader-state reader-error"><CircleAlert size={22} /><span>{error}</span><Button size="sm" variant="outline" onClick={() => setRefreshKey((value) => value + 1)}>إعادة المحاولة</Button></div>}
+      {error && <div className="reader-state reader-error"><CircleAlert size={22} /><span>{error}</span><Button size="sm" variant="outline" onClick={retryLoad}>إعادة المحاولة</Button></div>}
       {payload && !loading && <>
         <div className="quran-mushaf">
           <div className="quran-mushaf-corner quran-mushaf-corner-tr" aria-hidden="true">✦</div>
