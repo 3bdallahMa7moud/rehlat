@@ -35,7 +35,7 @@ export function TaskDetailTimer({ task }: { task: Task }) {
     return () => window.clearInterval(timer);
   }, [details]);
 
-  if (!details.length) return null;
+  if (!details.length || (task.type === "sport" && task.config?.type === "sport")) return null;
   const totalSeconds = details.reduce((sum, detail) => sum + getTaskDetailElapsedSeconds(detail), 0);
   const completed = details.filter((detail) => detail.status === "completed").length;
   const parentTerminal = ["completed", "partial", "not_completed", "closed"].includes(task.status);

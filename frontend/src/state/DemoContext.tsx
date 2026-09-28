@@ -3,7 +3,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { activityEvents, achievements, aiSuggestions, encouragements, initialAiMessages, initialTasks, notifications as initialNotifications, participants as initialParticipants, recentParticipantIds, streak, titles } from "@/mocks";
-import type { AIConversation, AIConversationState, Achievement, ActivityEvent, AppNotification, DayStatus, EncouragementMessage, Participant, RankingEntry, Report, Streak, Task, TaskCategory, TaskStatus, TaskType, Title } from "@/types/models";
+import type { AIConversation, AIConversationState, Achievement, ActivityEvent, AppNotification, DayStatus, EncouragementMessage, Participant, RankingEntry, Report, Streak, Task, TaskCategory, TaskConfig, TaskSchedule, TaskStatus, TaskType, Title } from "@/types/models";
 import { journeyStorage, type DailyTaskRecord, type FocusSession, type FocusTimerSnapshot, type JourneyPersistedState } from "@/lib/storage";
 import { createLocalPresenceAdapter, localRealtime, type PresenceRecord, type RealtimeStatus } from "@/lib/realtime";
 import { calculateProgress } from "@/lib/progress";
@@ -17,6 +17,7 @@ import { calculateStreakFromProgress } from "@/lib/streak";
 import { calculateRankings } from "@/lib/ranking";
 import { getTaskEarnedPoints } from "@/lib/points";
 import { getTaskDetailElapsedSeconds, getTaskElapsedSeconds, normalizeTask } from "@/lib/task-details";
+import { taskDefinitionSnapshot, taskVisibleFor } from "@/lib/task-config";
 import { calculateTaskStreaks, getGeneralStreakTitle, type StreakTitle, type TaskStreakEntry } from "@/lib/task-streaks";
 import { getProjectDateKey, getProjectTimestamp } from "@/lib/date-time";
 import { playJourneySound } from "@/lib/sound";
@@ -26,7 +27,7 @@ import { createActivityEvent } from "@/domain/activity/activity-factory";
 import { createNotification } from "@/domain/notifications/notification-factory";
 import { addParticipant as addParticipantToList, changeParticipantRole, deleteParticipant as deleteParticipantFromList, renameParticipant, setParticipantPin as setParticipantPinInList } from "@/domain/participants/participant-domain";
 import { cancelFocusTimer, chooseFocusDuration as chooseFocusTimerDuration, createFocusTimer, finishFocusTimer, getFocusElapsedSeconds, pauseFocusTimer, resumeFocusTimer, startFocusTimer } from "@/domain/focus/focus-domain";
-import { completeAllTasks, completeTaskOutcome, deriveDayStatus, transitionTaskDetail, transitionTaskStatus, updateMeasuredTaskProgress } from "@/domain/tasks/task-domain";
+import { completeAllTasks, completeTaskOutcome, deriveDayStatus, taskFromDetails, transitionTaskDetail, transitionTaskStatus, updateMeasuredTaskProgress } from "@/domain/tasks/task-domain";
 import { mockAIAdapter } from "@/data/ai/mock-ai-adapter";
 import { readLocalAiHistory, writeLocalAiHistory } from "@/data/ai/local-ai-history";
 import { getLocalSessionParticipantId, setLocalSessionParticipantId, subscribeToLocalSession } from "@/data/session/local-session";
@@ -66,6 +67,8 @@ interface DemoContextValue {
   logout: () => void;
   dayStatus: DayStatus;
   tasks: Task[];
+  taskDefinitions: Task[];
+  dailyTaskRecords: DailyTaskRecord[];
   activity: ActivityEvent[];
   rankings: RankingEntry[];
   reports: Record<Report["period"], Report>;
@@ -131,6 +134,8 @@ interface DemoContextValue {
   setParticipantPin: (id: string, pin: string) => boolean;
   changeOwnPin: (currentPin: string, nextPin: string) => { ok: boolean; error?: string };
   saveTaskDefinition: (taskId: string | null, input: TaskDefinitionInput) => void;
+  archiveTask: (taskId: string, archived: boolean) => void;
+  duplicateTask: (taskId: string) => void;
   deleteTask: (taskId: string) => void;
   sendEncouragement: (recipientId: string, message: string) => boolean;
   clearData: (scope: "day" | "week" | "month" | "history" | "participant" | "all", participantId?: string) => void;
@@ -151,6 +156,14 @@ export interface TaskDefinitionInput {
   unit: string;
   fullPoints: number;
   partialPoints?: number;
+  supportingText?: string;
+  scheduledTime?: string;
+  durationMinutes?: number;
+  group?: "morning" | "evening";
+  config?: TaskConfig;
+  schedule?: TaskSchedule;
+  assigneeIds?: string[];
+  applyToday?: boolean;
 }
 
 
@@ -181,12 +194,19 @@ function blankTaskState(task: Task): Task {
   return { ...task, current: 0, actualMinutes: 0, status: "not_started" };
 }
 
-function applyRecords(definitions: Task[], records: DailyTaskRecord[]) {
+function applyRecords(definitions: Task[], records: DailyTaskRecord[], participantId: string, dateKey: string) {
   const byTask = new Map(records.map((record) => [record.taskId, record]));
-  return definitions.map((task) => {
+  return definitions.flatMap((task) => {
     const record = byTask.get(task.id);
-    return record ? { ...task, current: record.current, actualMinutes: record.actualMinutes, status: record.status, details: record.details ?? task.details, awardedPoints: record.awardedPoints ?? 0, detailItems: record.detailItems ?? task.detailItems } : blankTaskState(task);
+    const definition = record?.definition ?? task;
+    if (task.archived || !taskVisibleFor(definition, participantId, dateKey)) return [];
+    return [record ? normalizeTask({ ...definition, current: record.current, actualMinutes: record.actualMinutes, status: record.status, details: record.details ?? definition.details, awardedPoints: record.awardedPoints ?? 0, detailItems: record.detailItems ?? definition.detailItems }) : blankTaskState(definition)];
   });
+}
+
+function mergeDailyRecords(existing: DailyTaskRecord[], records: DailyTaskRecord[], participantId: string, dateKey: string) {
+  const activeIds = new Set(records.map((record) => record.taskId));
+  return [...existing.filter((record) => !(record.userId === participantId && record.localDate === dateKey && activeIds.has(record.taskId))), ...records];
 }
 
 
@@ -253,6 +273,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   const pushToastRef = useRef<((toast: Omit<ToastItem, "id">) => void) | null>(null);
   const lastPublishedRevisionRef = useRef<number | null>(null);
   const remoteDomainsRef = useRef(new Set<string>());
+  const definitionRefreshIdsRef = useRef(new Set<string>());
   const aiHistoryOwnerRef = useRef<string | null>(null);
 
   const activeParticipantId = sessionParticipantId ?? selectedParticipantId;
@@ -306,7 +327,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     stateSnapshotRef.current = source;
     const participantId = source.session.participantId ?? selectedParticipantId;
     const definitions = source.tasks.map(normalizeTask);
-    const initialForUser = envelope ? applyRecords(definitions, recordsFor(source, participantId, today)) : definitions.map((task) => ({ ...task }));
+    const initialForUser = applyRecords(definitions, envelope ? recordsFor(source, participantId, today) : [], participantId, today);
     setParticipants(source.participants);
     setSelectedParticipantId(participantId);
     setTaskDefinitions(definitions);
@@ -357,9 +378,11 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!hydrated || tasksOwnerId !== activeParticipantId) return;
     if (remoteDomainsRef.current.delete("task.updated")) return;
-    const records = tasks.map((task): DailyTaskRecord => ({ userId: activeParticipantId, taskId: task.id, localDate: today, status: task.status, current: Math.max(0, Math.min(task.target, task.current)), actualMinutes: Math.max(0, getTaskElapsedSeconds(task) / 60), details: task.details, awardedPoints: task.awardedPoints ?? 0, detailItems: task.detailItems, updatedAt: nowIso() }));
-    setDailyTaskRecords((items) => [...items.filter((record) => !(record.userId === activeParticipantId && record.localDate === today)), ...records]);
-    persist((state) => ({ ...state, tasks: taskDefinitions, dailyTaskRecords: [...state.dailyTaskRecords.filter((record) => !(record.userId === activeParticipantId && record.localDate === today)), ...records] }), "task.updated");
+    const existing = new Map(stateSnapshotRef.current.dailyTaskRecords.filter((record) => record.userId === activeParticipantId && record.localDate === today).map((record) => [record.taskId, record]));
+    const records = tasks.map((task): DailyTaskRecord => ({ userId: activeParticipantId, taskId: task.id, localDate: today, status: task.status, current: Math.max(0, Math.min(task.target, task.current)), actualMinutes: Math.max(0, getTaskElapsedSeconds(task) / 60), details: task.details, definition: definitionRefreshIdsRef.current.has(task.id) ? taskDefinitionSnapshot(task) : existing.get(task.id)?.definition ?? taskDefinitionSnapshot(task), awardedPoints: task.awardedPoints ?? 0, detailItems: task.detailItems, updatedAt: nowIso() }));
+    definitionRefreshIdsRef.current.clear();
+    setDailyTaskRecords((items) => mergeDailyRecords(items, records, activeParticipantId, today));
+    persist((state) => ({ ...state, tasks: taskDefinitions, dailyTaskRecords: mergeDailyRecords(state.dailyTaskRecords, records, activeParticipantId, today) }), "task.updated");
   }, [tasks, taskDefinitions, tasksOwnerId, activeParticipantId, today, hydrated, persist]);
 
   useEffect(() => { if (hydrated && !remoteDomainsRef.current.delete("notification.created")) persist((state) => ({ ...state, notifications }), "notification.created"); }, [notifications, hydrated, persist]);
@@ -369,7 +392,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     const saved = journeyStorage.read();
-    setTasks(applyRecords(taskDefinitions, recordsFor(saved, activeParticipantId, today)));
+    setTasks(applyRecords(taskDefinitions, recordsFor(saved, activeParticipantId, today), activeParticipantId, today));
     setTasksOwnerId(activeParticipantId);
     const status = saved.dayStatuses.find((item) => item.userId === activeParticipantId && item.localDate === today)?.status;
     setDayStatus(status ?? "not_started");
@@ -400,7 +423,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         setDailyTaskRecords(next.dailyTaskRecords);
         const nextDefinitions = next.tasks.map(normalizeTask);
         setTaskDefinitions(nextDefinitions);
-        setTasks(applyRecords(nextDefinitions, recordsFor(next, activeParticipantId, today)));
+        setTasks(applyRecords(nextDefinitions, recordsFor(next, activeParticipantId, today), activeParticipantId, today));
       }
       if (event.payload.changedDomains.includes("progress.updated")) {
         setProgressHistory(next.progress);
@@ -774,14 +797,46 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
 
   const saveTaskDefinition = (taskId: string | null, input: TaskDefinitionInput) => {
     if (!input.title.trim() || !Number.isFinite(input.target) || input.target <= 0 || !Number.isFinite(input.fullPoints) || input.fullPoints < 0) return;
+    if (input.config && input.config.type !== input.type) return;
+    const { applyToday, ...definitionInput } = input;
     if (taskId) {
-      const update = (task: Task) => task.id === taskId ? normalizeTask({ ...task, ...input, goalLabel: `${input.target} ${input.unit}` }) : task;
+      const previousDefinition = taskDefinitions.find((task) => task.id === taskId);
+      if (previousDefinition) {
+        const todayDefinition = taskDefinitionSnapshot(previousDefinition);
+        const nextDefinition = taskDefinitionSnapshot(normalizeTask({ ...todayDefinition, ...definitionInput, goalLabel: `${input.target} ${input.unit}` }));
+        const saved = persist((state) => {
+          const existingIds = new Set(state.dailyTaskRecords.filter((record) => record.taskId === taskId && record.localDate === today).map((record) => record.userId));
+          const records = state.dailyTaskRecords.map((record) => {
+            if (record.taskId !== taskId || record.localDate !== today || !applyToday) return record;
+            const changedType = (record.definition ?? previousDefinition).type !== input.type;
+            return { ...record, definition: nextDefinition, current: changedType ? 0 : Math.min(record.current, input.target), status: changedType ? "not_started" as const : record.status, details: changedType ? undefined : record.details, detailItems: undefined };
+          });
+          if (applyToday) return { ...state, dailyTaskRecords: records };
+          const newRecords = participants.filter((person) => !existingIds.has(person.id)).map((person): DailyTaskRecord => ({
+            userId: person.id, taskId, localDate: today, status: "not_started", current: 0, actualMinutes: 0,
+            definition: todayDefinition, awardedPoints: 0, updatedAt: nowIso(),
+          }));
+          return { ...state, dailyTaskRecords: [...records, ...newRecords] };
+        }, "task.updated");
+        if (saved) setDailyTaskRecords(saved.dailyTaskRecords);
+      }
+      const update = (task: Task) => task.id === taskId ? normalizeTask({ ...taskDefinitionSnapshot(task), ...definitionInput, goalLabel: `${input.target} ${input.unit}` }) : task;
       setTaskDefinitions((items) => items.map(update));
-      setTasks((items) => items.map(update));
+      if (applyToday) {
+        definitionRefreshIdsRef.current.add(taskId);
+        const existingTask = tasks.find((task) => task.id === taskId);
+        if (existingTask) {
+          const changedType = existingTask.type !== input.type;
+          const nextTask = normalizeTask({ ...existingTask, ...definitionInput, goalLabel: `${input.target} ${input.unit}`, current: changedType ? 0 : Math.min(existingTask.current, input.target), status: changedType ? "not_started" : existingTask.status, details: changedType ? undefined : existingTask.details, detailItems: undefined });
+          const earnedAfter = getTaskEarnedPoints(nextTask);
+          const delta = earnedAfter - (existingTask.awardedPoints ?? 0);
+          setTasks((items) => items.map((task) => task.id === taskId ? { ...nextTask, awardedPoints: earnedAfter } : task));
+          if (delta) setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? { ...participant, score: Math.max(0, participant.score + delta) } : participant));
+        }
+      }
     } else {
-      const task: Task = normalizeTask({ id: createLocalId("task"), ...input, goalLabel: `${input.target} ${input.unit}`, current: 0, actualMinutes: 0, status: "not_started", supportingText: "مهمة جديدة أضيفت من لوحة الإدارة.", scheduledTime: "اليوم" });
+      const task: Task = normalizeTask({ id: createLocalId("task"), ...definitionInput, goalLabel: `${input.target} ${input.unit}`, current: 0, actualMinutes: 0, status: "not_started", supportingText: input.supportingText ?? "", scheduledTime: input.scheduledTime ?? "مرن خلال اليوم" });
       setTaskDefinitions((items) => [...items, task]);
-      setTasks((items) => [...items, task]);
     }
     pushToast({
       tone: "success",
@@ -803,7 +858,12 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       pushToast({ tone: "info", title: "التقدم من تفاصيل الصلوات", body: "ابدأ وسجّل وقت كل صلاة من قائمة الصلوات." });
       return;
     }
-    const nextTask = updateMeasuredTaskProgress(task, current);
+    const checklistConfig = task.config?.type === "general" && task.config.tracking === "count" && task.config.steps.length > 0 ? task.config : undefined;
+    const measuredTask = updateMeasuredTaskProgress(task, current);
+    if (checklistConfig) measuredTask.details = { ...measuredTask.details, generalCompletedSteps: checklistConfig.steps.slice(0, measuredTask.current).map((_, index) => String(index)) };
+    const nextTask = task.type === "sleep" && measuredTask.current > 0 && measuredTask.current < measuredTask.target
+      ? { ...measuredTask, status: "partial" as const }
+      : measuredTask;
     const awardedBefore = task.awardedPoints ?? 0;
     const earnedAfter = getTaskEarnedPoints(nextTask);
     const pointDelta = earnedAfter - awardedBefore;
@@ -834,6 +894,48 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
 
   const chooseFocusDuration = (minutes: number) => {
     setFocusTimer((timer) => chooseFocusTimerDuration(timer, minutes, nowIso()));
+  };
+  const updateTaskDetails = (taskId: string, details: NonNullable<Task["details"]>) => {
+    const task = tasks.find((item) => item.id === taskId);
+    if (!task) return;
+    let nextTask: Task = { ...task, details: { ...task.details, ...details } };
+    let updatesProgress = false;
+    if (task.type === "prayer" && Array.isArray(details.completedPrayers) && task.detailItems?.length) {
+      updatesProgress = true;
+      const completed = new Set(details.completedPrayers);
+      nextTask = taskFromDetails(nextTask, task.detailItems.map((detail) => ({
+        ...detail,
+        current: completed.has(detail.title) ? detail.target : 0,
+        status: completed.has(detail.title) ? "completed" as const : "not_started" as const,
+        lastStartedAt: undefined,
+      })));
+      const earnedAfter = getTaskEarnedPoints(nextTask);
+      const pointDelta = earnedAfter - (task.awardedPoints ?? 0);
+      nextTask = { ...nextTask, awardedPoints: earnedAfter };
+      if (pointDelta) setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? { ...participant, score: Math.max(0, participant.score + pointDelta) } : participant));
+    }
+    if (task.config?.type === "general" && task.config.tracking === "count" && task.config.steps.length && Array.isArray(details.generalCompletedSteps)) {
+      updatesProgress = true;
+      nextTask = updateMeasuredTaskProgress(nextTask, details.generalCompletedSteps.length);
+      const earnedAfter = getTaskEarnedPoints(nextTask);
+      const pointDelta = earnedAfter - (task.awardedPoints ?? 0);
+      nextTask = { ...nextTask, awardedPoints: earnedAfter };
+      if (pointDelta) setParticipants((items) => items.map((participant) => participant.id === activeParticipantId ? { ...participant, score: Math.max(0, participant.score + pointDelta) } : participant));
+    }
+    setTasks((items) => items.map((item) => item.id === taskId ? updatesProgress ? nextTask : { ...item, details: { ...item.details, ...details } } : item));
+  };
+
+  const archiveTask = (taskId: string, archived: boolean) => {
+    setTaskDefinitions((items) => items.map((task) => task.id === taskId ? { ...task, archived } : task));
+    pushToast({ tone: "success", title: archived ? "تمت أرشفة المهمة" : "عادت المهمة", body: archived ? "بقي سجل الأيام السابقة محفوظًا." : "ستظهر المهمة حسب جدولها والمشاركين المحددين." });
+  };
+
+  const duplicateTask = (taskId: string) => {
+    const source = taskDefinitions.find((task) => task.id === taskId);
+    if (!source) return;
+    const copy = normalizeTask({ ...taskDefinitionSnapshot(source), id: createLocalId("task"), title: `${source.title} (نسخة)`, archived: false });
+    setTaskDefinitions((items) => [...items, copy]);
+    pushToast({ tone: "success", title: "تم نسخ المهمة", body: "يمكنك تعديل النسخة من قائمة المهام." });
   };
   const saveFocusSession = useCallback((finished: FocusTimerSnapshot, taskId = activeFocusTaskIdRef.current) => {
     if (finished.elapsedSeconds <= 0) return false;
@@ -990,12 +1092,13 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         streaks: state.streaks.filter((item) => item.userId !== targetId),
         activity: scope === "history" || scope === "participant" ? state.activity.filter((event) => event.participantId !== targetId) : state.activity,
         messages: scope === "history" || scope === "participant" ? state.messages.filter((message) => message.senderId !== targetId && message.recipientId !== targetId) : state.messages,
-        notifications: scope === "history" || scope === "participant" ? [] : state.notifications,
+        notifications: state.notifications,
       };
     });
     stateSnapshotRef.current = next;
     setProgressHistory(next.progress);
-    setTasks(applyRecords(taskDefinitions, recordsFor(next, activeParticipantId, today)));
+    setDailyTaskRecords(next.dailyTaskRecords);
+    setTasks(applyRecords(taskDefinitions, recordsFor(next, activeParticipantId, today), activeParticipantId, today));
     setDayStatus(next.dayStatuses.find((item) => item.userId === activeParticipantId && item.localDate === today)?.status ?? "not_started");
     setFocusTimer(next.focusTimers.find((timer) => timer.userId === activeParticipantId && timer.localDate === today) ?? defaultFocus(activeParticipantId, today));
     setFocusSessions(next.focusSessions);
@@ -1003,7 +1106,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setNotifications(next.notifications);
     setSeenFeedbackIds(next.seenFeedbackIds);
     setEncouragementMessages(next.messages);
-    setStreakData(streak);
+    const activeStreak = next.streaks.find((item) => item.userId === activeParticipantId);
+    setStreakData(activeStreak ? { current: activeStreak.current, best: activeStreak.best, successfulDays: activeStreak.successfulDays, history: activeStreak.history } : { current: 0, best: 0, successfulDays: 0, history: [] });
     pushToast({ tone: "warning", title: "تم مسح البيانات", body: scope === "all" ? "تم مسح السجلات مع الإبقاء على الحسابات والمهام." : "تم تطبيق النطاق المحدد على البيانات المحلية." });
   };
 
@@ -1013,7 +1117,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     stateSnapshotRef.current = clearBackup;
     setParticipants(clearBackup.participants);
     setTaskDefinitions(clearBackup.tasks.map(normalizeTask));
-    setTasks(applyRecords(clearBackup.tasks.map(normalizeTask), recordsFor(clearBackup, activeParticipantId, today)));
+    setTasks(applyRecords(clearBackup.tasks.map(normalizeTask), recordsFor(clearBackup, activeParticipantId, today), activeParticipantId, today));
     setTasksOwnerId(activeParticipantId);
     setProgressHistory(clearBackup.progress);
     setDailyTaskRecords(clearBackup.dailyTaskRecords);
@@ -1043,6 +1147,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     logout,
     dayStatus,
     tasks,
+    taskDefinitions,
+    dailyTaskRecords,
     activity,
     rankings: currentRankings,
     reports: currentReports,
@@ -1077,7 +1183,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     pauseTaskDetail,
     completeTaskDetail,
     updateTaskProgress,
-    updateTaskDetails: (taskId, details) => setTasks((items) => items.map((task) => task.id === taskId ? { ...task, details: { ...task.details, ...details } } : task)),
+    updateTaskDetails,
     chooseFocusDuration,
     startFocus,
     pauseFocus,
@@ -1127,10 +1233,12 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setParticipantPin,
     changeOwnPin,
     saveTaskDefinition,
+    archiveTask,
+    duplicateTask,
     deleteTask,
     sendEncouragement,
     clearData,
-    getParticipantTasks: (participantId) => applyRecords(taskDefinitions, recordsFor(stateSnapshotRef.current, participantId, today)),
+    getParticipantTasks: (participantId) => applyRecords(taskDefinitions, recordsFor(stateSnapshotRef.current, participantId, today), participantId, today),
     restoreClearedData,
     canRestoreClearedData: Boolean(clearBackup),
   };

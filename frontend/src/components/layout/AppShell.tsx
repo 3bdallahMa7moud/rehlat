@@ -98,7 +98,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
-  const { activeParticipant, notifications, markNotificationsRead, dismissNotification, soundEnabled, toggleSound, toasts, dismissToast, sessionReady, isAuthenticated, logout } = useDemo();
+  const { activeParticipant, notifications, markNotificationsRead, dismissNotification, soundEnabled, toggleSound, toasts, dismissToast, sessionReady, isAuthenticated, logout, ai, openAi } = useDemo();
   const [moreOpen, setMoreOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => sidebarCollapsedMemory);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -164,6 +164,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link href="/dashboard" className="mobile-brand" aria-label="رحلة التغيير - الرئيسية"><BrandLogo decorative priority /><strong>رحلة التغيير</strong></Link>
         <div className="topbar-spacer" />
         <div className="topbar-actions">
+          {pathname !== "/ai" && <IconButton label="فتح مساعد رحلة التغيير" className="assistant-topbar-action" aria-expanded={ai.isOpen} onClick={openAi}><Sparkles size={20} /></IconButton>}
           <Tooltip content={theme === "light" ? "تفعيل الوضع الداكن" : "تفعيل الوضع الفاتح"}><IconButton label={theme === "light" ? "تفعيل الوضع الداكن" : "تفعيل الوضع الفاتح"} onClick={toggleTheme}>{theme === "light" ? <Moon size={19} /> : <Sun size={19} />}</IconButton></Tooltip>
           <Tooltip content={soundEnabled ? "كتم الأصوات" : "تفعيل الأصوات"}><IconButton label={soundEnabled ? "كتم الأصوات" : "تفعيل الأصوات"} onClick={toggleSound}>{soundEnabled ? <Volume2 size={19} /> : <VolumeX size={19} />}</IconButton></Tooltip>
           <div className="notification-anchor">

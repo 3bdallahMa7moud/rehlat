@@ -2,6 +2,6 @@ import { ProductPage, type ProductPageId } from "@/components/features/ProductPa
 import { AnimatedPage } from "@/components/layout/AnimatedPage";
 import { AppShell } from "@/components/layout/AppShell";
 
-export function AppRoute({ page, taskId, participantId }: { page: ProductPageId; taskId?: string; participantId?: string }) {
-  return <AppShell><AnimatedPage><ProductPage page={page} taskId={taskId} participantId={participantId} /></AnimatedPage></AppShell>;
+export function AppRoute({ page, taskId, participantId, reportView }: { page: ProductPageId; taskId?: string; participantId?: string; reportView?: "overview" | "participants" }) {
+  return <AppShell><AnimatedPage><ProductPage page={page} taskId={taskId} participantId={participantId} reportView={reportView} /></AnimatedPage></AppShell>;
 }

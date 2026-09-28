@@ -31,6 +31,7 @@ function reportTone(value: number): 'success' | 'warning' | 'teal' {
 function statusText(value: number) {
   if (value >= 100) return 'مكتمل';
   if (value >= nearCompletionThreshold) return 'شبه مكتمل';
+  if (value <= 0) return 'لم يُنجز بعد';
   return 'إنجاز جزئي';
 }
 
@@ -60,6 +61,7 @@ export function RealReportsView() {
   const selectedParticipant = people.find((participant) => participant.id === selectedParticipantId);
   const reportTitle = selectedParticipant ? `تقرير ${selectedParticipant.name}` : 'تقرير رحلة التغيير';
   const recordedPoints = report.points.filter((point) => point.hasData);
+  const hasMeasuredProgress = report.completionRate > 0 || report.totalMinutes > 0 || report.taskRows.some((row) => row.completed > 0 || row.partial > 0);
   const bestPoint = recordedPoints.reduce<typeof recordedPoints[number] | null>((best, point) => !best || point.progress > best.progress ? point : best, null);
   const attentionPoint = recordedPoints.filter((point) => point.progress < DEFAULT_SUCCESS_THRESHOLD).reduce<typeof recordedPoints[number] | null>((lowest, point) => !lowest || point.progress < lowest.progress ? point : lowest, null);
   const bestStreak = recordedPoints.reduce((state, point) => {
@@ -69,7 +71,7 @@ export function RealReportsView() {
   }, { current: 0, best: 0 }).best;
 
   const exportCurrent = async (format: 'pdf' | 'excel') => {
-    if (!report.hasData) return;
+    if (!report.hasData || !hasMeasuredProgress) return;
     if (format === 'excel') {
       const { exportXlsxReport } = await import('@/lib/xlsx-export');
       await exportXlsxReport(createReportExportModel(report), `journey-${period}-${selectedParticipantId}-${selectedTaskId}`);
@@ -87,8 +89,8 @@ export function RealReportsView() {
       description='ملخص منظم للفترة المختارة، مبني على نشاطك المحفوظ وقابل للمراجعة والطباعة.'
       actions={<div className='reports-header-actions'>
         <Link href='/tasks' className='button button-primary button-md'><ListTodo size={17} aria-hidden='true' />مهام اليوم</Link>
-        <Button size='sm' variant='outline' disabled={!report.hasData} onClick={() => exportCurrent('pdf')}><Printer size={16} aria-hidden='true' />حفظ PDF</Button>
-        <Button size='sm' variant='outline' disabled={!report.hasData} onClick={() => exportCurrent('excel')}><FileSpreadsheet size={16} aria-hidden='true' />تصدير Excel</Button>
+        <Button size='sm' variant='outline' disabled={!report.hasData || !hasMeasuredProgress} onClick={() => exportCurrent('pdf')}><Printer size={16} aria-hidden='true' />حفظ PDF</Button>
+        <Button size='sm' variant='outline' disabled={!report.hasData || !hasMeasuredProgress} onClick={() => exportCurrent('excel')}><FileSpreadsheet size={16} aria-hidden='true' />تصدير Excel</Button>
       </div>}
     />
 
@@ -105,15 +107,15 @@ export function RealReportsView() {
 
     <main className='reports-document' aria-labelledby='reports-document-title'>
       <header className='reports-document-header'>
-        <div><Badge tone='primary'><FileText size={14} aria-hidden='true' />تقرير الفترة</Badge><h2 id='reports-document-title'>{reportTitle}</h2><p>{periodLabels[period]} · {report.hasData ? 'بيانات محفوظة فعليًا' : 'بانتظار نشاط محفوظ'}</p></div>
+        <div><Badge tone='primary'><FileText size={14} aria-hidden='true' />تقرير الفترة</Badge><h2 id='reports-document-title'>{reportTitle}</h2><p>{periodLabels[period]} · {hasMeasuredProgress ? 'تقدم محفوظ فعليًا' : report.hasData ? 'نشاط محفوظ بانتظار التقدم' : 'بانتظار نشاط محفوظ'}</p></div>
         <dl className='reports-meta'>
           <div><dt><CalendarDays size={15} aria-hidden='true' />الفترة المغطاة</dt><dd><time dateTime={report.dateRange.start}>{formatDate(report.dateRange.start)}</time><span aria-hidden='true'>—</span><time dateTime={report.dateRange.end}>{formatDate(report.dateRange.end)}</time></dd></div>
           <div><dt><Clock3 size={15} aria-hidden='true' />تاريخ إنشاء التقرير</dt><dd>{generatedAt || '—'}</dd></div>
         </dl>
       </header>
 
-      {!report.hasData ? <Card className='reports-empty-card'>
-        <EmptyState title='يحتاج هذا التقرير إلى نشاط محفوظ' description='ابدأ مهمة وسجّل تقدمك، ثم عد إلى التقارير لمراجعة الفترة المختارة.' action={<Link href='/tasks' className='button button-primary button-md'><ListTodo size={17} aria-hidden='true' />العودة إلى مهام اليوم</Link>} />
+      {!report.hasData || !hasMeasuredProgress ? <Card className='reports-empty-card'>
+        <EmptyState title={report.hasData ? 'بدأ النشاط ولم يُسجّل تقدم بعد' : 'يحتاج هذا التقرير إلى نشاط محفوظ'} description={report.hasData ? 'ارجع إلى المهمة المفتوحة وسجّل خطوة أو وقتًا فعليًا، ثم راجع التقرير هنا.' : 'ابدأ مهمة وسجّل تقدمك، ثم عد إلى التقارير لمراجعة الفترة المختارة.'} action={<Link href='/tasks' className='button button-primary button-md'><ListTodo size={17} aria-hidden='true' />العودة إلى مهام اليوم</Link>} />
       </Card> : <>
         <section className='reports-section' aria-labelledby='reports-summary-title'>
           <div className='reports-section-heading'><div><span className='eyebrow'>الأرقام الأساسية</span><h2 id='reports-summary-title'>ملخص الأداء</h2></div><span>{report.recordedDays} {report.recordedDays === 1 ? 'يوم نشط' : 'أيام نشطة'}</span></div>

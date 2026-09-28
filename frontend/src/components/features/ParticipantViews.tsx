@@ -3,16 +3,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Activity, ArrowDownUp, ArrowLeft, Award, BarChart3, BedDouble, BookOpen, CalendarDays, Check, ChevronDown, ChevronLeft, CircleCheck, ClipboardList, Clock3, Droplets, Dumbbell, FileSpreadsheet, FileText, Flame, Info, Layers3, Mosque, Lightbulb, ListTodo, Medal, MessageCircle, Moon, MoreHorizontal, Pause, Play, Search, SlidersHorizontal, Sparkles, Target, Timer, Trophy, Users, X } from "lucide-react";
+import { Activity, ArrowDownUp, ArrowLeft, Award, BarChart3, BedDouble, BookOpen, CalendarDays, Check, ChevronDown, ChevronLeft, CircleCheck, ClipboardList, Clock3, Droplets, Dumbbell, FileSpreadsheet, FileText, Flame, Layers3, Mosque, Lightbulb, ListTodo, Medal, MessageCircle, Moon, MoreHorizontal, Pause, Play, Search, SlidersHorizontal, Sparkles, Target, Timer, Trophy, Users, X } from "lucide-react";
 import { AIAssistantHero } from "@/components/features/AIAssistant";
 import { AnalyticsPageView } from "@/components/features/AnalyticsView";
 import { TaskCard, TaskGlyph } from "@/components/features/TaskCard";
-import { filterTasks, getTaskGuideCopy, isActiveTask, taskCategories, taskCategoryNames } from "@/domain/tasks/task-presentation";
+import { filterTasks, isActiveTask, taskCategories, taskCategoryNames } from "@/domain/tasks/task-presentation";
 import { TaskDetailTimer } from "@/components/features/TaskDetailTimer";
-import { AdhkarReader } from "@/components/features/ReligiousReaders";
+import { AdhkarActivityPage } from "@/components/features/AdhkarActivityPage";
 import { QuranBatchReader } from "@/components/features/QuranBatchReader";
 import { QuranReadingPage } from "@/components/features/QuranReadingPage";
 import { PrayerActivityPage } from "@/components/features/PrayerActivityPage";
+import { ReadingActivityPage } from "@/components/features/ReadingActivityPage";
+import { WaterActivityPage } from "@/components/features/WaterActivityPage";
+import { SleepActivityPage } from "@/components/features/SleepActivityPage";
 import { PrayerTracker, ReadingTracker, ReviewTracker, SportTracker, WaterTracker } from "@/components/features/TaskTrackers";
 import { getTaskRegistryEntry } from "@/components/tasks/TaskRegistry";
 import { ActivityIcon } from "@/design/activity-visuals";
@@ -377,23 +380,33 @@ export function TasksView() {
     </section>
   </div>;
 }
-function SpecializedTaskFields({ task, onProgress, onDetails }: { task: NonNullable<ReturnType<typeof useDemo>["tasks"]>[number]; onProgress: (value: number) => void; onDetails: (details: NonNullable<typeof task.details>) => void }) {
+function SpecializedTaskFields({ task, onProgress, onDetails, onStart, onPause }: { task: NonNullable<ReturnType<typeof useDemo>["tasks"]>[number]; onProgress: (value: number) => void; onDetails: (details: NonNullable<typeof task.details>) => void; onStart: () => void; onPause: () => void }) {
   const entry = getTaskRegistryEntry(task);
   const details = task.details ?? {};
   const stringDetail = (key: string, fallback = "") => typeof details[key] === "string" ? details[key] as string : fallback;
   if (task.type === "quran") return <QuranBatchReader task={task} onProgress={onProgress} onDetails={onDetails} />;
   if (task.type === "water") return <WaterTracker task={task} onProgress={onProgress} onDetails={onDetails} />;
   if (task.type === "prayer") return <PrayerTracker task={task} onProgress={onProgress} onDetails={onDetails} />;
-  if (task.type === "adhkar") return <AdhkarReader task={task} onProgress={onProgress} onDetails={onDetails} />;
   if (task.type === "reading") return <ReadingTracker task={task} onProgress={onProgress} onDetails={onDetails} />;
-  if (task.type === "general" && task.id === "lesson-review") return <ReviewTracker task={task} onProgress={onProgress} onDetails={onDetails} />;
-  if (task.type === "general" && task.id === "skill") return <ReviewTracker task={task} onProgress={onProgress} onDetails={onDetails} title="تطبيق المهارة" description="سجّل دقائق التدريب اليومية، ويمكنك إنهاء المهمة بعد حفظ الوقت." />;
+  if (task.type === "general" && task.id === "lesson-review") return <ReviewTracker task={task} onProgress={onProgress} onDetails={onDetails} onStart={onStart} onPause={onPause} />;
+  if (task.type === "general" && task.id === "skill") return <ReviewTracker task={task} onProgress={onProgress} onDetails={onDetails} onStart={onStart} onPause={onPause} title="تطبيق المهارة" description="ابدأ وقت التدريب أو سجّل ما أنجزته، ثم احفظ تقدمك." actionLabel="التدريب" />;
+  if (task.type === "general") {
+    const tracking = task.config?.type === "general" ? task.config.tracking : task.unit.includes("دقيقة") ? "minutes" : "count";
+    const steps = task.config?.type === "general" ? task.config.steps.filter((step) => step.trim()) : [];
+    const completed = Array.isArray(details.generalCompletedSteps) ? details.generalCompletedSteps.filter((value): value is string => typeof value === "string") : [];
+    return <Card className="task-specialized-fields"><SectionHeader title={task.title} description={task.category === "family" ? "اقضِ وقتًا حاضرًا مع أهلك، ثم سجّل الدقائق التي قضيتها معهم." : task.supportingText || "سجّل تقدمك في المهمة."} />
+      {steps.length > 0 && <div className="sunnah-check-list">{steps.map((step, index) => { const key = String(index); const checked = completed.includes(key); return <button type="button" key={key} aria-pressed={checked} className={cn("sunnah-check", checked && "sunnah-check-active")} onClick={() => onDetails({ generalCompletedSteps: checked ? completed.filter((item) => item !== key) : [...completed, key] })}><span>{checked ? <Check size={15} /> : ""}</span>{step}</button>; })}</div>}
+      {tracking === "minutes" && <Input label="الدقائق المنجزة" type="number" min="0" max={task.target} value={task.current} onChange={(event) => onProgress(Number(event.target.value))} />}
+      {tracking === "count" && !steps.length && <div className="quick-progress-actions"><Button variant="outline" disabled={task.current <= 0} onClick={() => onProgress(task.current - 1)}>تراجع</Button><Button variant="secondary" onClick={() => onProgress(task.current + 1)}>سجّل {task.unit || "مرة"}</Button></div>}
+      <label className="field"><span className="field-label">ملاحظات اليوم</span><textarea className="input" rows={4} value={stringDetail("notes")} placeholder="اكتب ما يساعدك على تذكّر تقدمك…" onChange={(event) => onDetails({ notes: event.target.value })} /></label>
+    </Card>;
+  }
   if (task.type === "sleep") {
     const sleptAt = stringDetail("sleptAt", "22:30"); const wokeAt = stringDetail("wokeAt", "06:30");
     const updateSleep = (key: "sleptAt" | "wokeAt", value: string) => { const nextSleep = key === "sleptAt" ? value : sleptAt; const nextWake = key === "wokeAt" ? value : wokeAt; onDetails({ [key]: value }); if (!nextSleep || !nextWake) return; const [sleepHour, sleepMinute] = nextSleep.split(":").map(Number); const [wakeHour, wakeMinute] = nextWake.split(":").map(Number); let minutes = wakeHour * 60 + wakeMinute - (sleepHour * 60 + sleepMinute); if (minutes <= 0) minutes += 24 * 60; onProgress(Math.round(minutes / 6) / 10); };
     return <Card className="task-specialized-fields"><SectionHeader title="سجل النوم" description="يُحسب العبور من منتصف الليل بصورة صحيحة." /><div className="sleep-time-grid"><Input type="time" label="وقت النوم" value={sleptAt} onChange={(event) => updateSleep("sleptAt", event.target.value)} /><Input type="time" label="وقت الاستيقاظ" value={wokeAt} onChange={(event) => updateSleep("wokeAt", event.target.value)} /></div><p className="field-hint">المدة المسجلة: {task.current} ساعة من هدف {task.target} ساعات.</p></Card>;
   }
-  if (task.type === "sport") return <SportTracker task={task} onProgress={onProgress} onDetails={onDetails} />;
+  if (task.type === "sport") return <SportTracker task={task} onProgress={onProgress} onDetails={onDetails} onStart={onStart} onPause={onPause} />;
   return <Card className="task-specialized-fields"><SectionHeader title={entry.title} description={entry.description} /><label className="field"><span className="field-label">ملاحظات اليوم</span><textarea className="input" rows={4} value={stringDetail("notes")} placeholder="اكتب ما يساعدك على تذكّر تقدمك…" onChange={(event) => onDetails({ notes: event.target.value })} /></label></Card>;
 }
 
@@ -401,15 +414,67 @@ function SpecializedTaskFields({ task, onProgress, onDetails }: { task: NonNulla
 export function TaskActivityView({ taskId }: { taskId: string }) {
   const { tasks, setTaskStatus, updateTaskDetails, updateTaskProgress } = useDemo();
   const selectedTask = tasks.find((task) => task.id === taskId);
-  const type = selectedTask?.type ?? "general";
-  const config = activityMeta[type];
-  const registryEntry = selectedTask ? getTaskRegistryEntry(selectedTask) : null;
   if (!selectedTask) return <EmptyState title="المهمة غير موجودة" description="ربما حُذفت المهمة أو لم تعد متاحة لهذا المستخدم." action={<Link href="/tasks"><Button variant="outline">العودة إلى المهام</Button></Link>} />;
   if (selectedTask.type === "quran") return <QuranReadingPage taskId={selectedTask.id} />;
   if (selectedTask.type === "prayer") return <PrayerActivityPage taskId={selectedTask.id} />;
-  const detailProgress = Math.round((selectedTask.current / selectedTask.target) * 100);
-  const guide = getTaskGuideCopy(selectedTask.status);
-  return <><PageHeader eyebrow="محطة يومية" title={registryEntry?.title ?? config.title} description={registryEntry?.description ?? config.description} actions={<Link href="/tasks"><Button variant="outline">كل المهام</Button></Link>} /><section className="activity-hero"><div className="activity-hero-icon"><ActivityIcon type={selectedTask.type} size={32} /></div><div><Badge tone="teal">هدف اليوم</Badge><h2>{selectedTask.title}</h2><p>{selectedTask.supportingText ?? selectedTask.goalLabel}</p></div><div className="activity-metric"><span>{config.detail}</span><strong>{selectedTask.current} <small>/ {selectedTask.target} {selectedTask.unit}</small></strong></div></section><section className="activity-start-guide" aria-labelledby="start-guide-title"><div><Badge tone={selectedTask.status === "completed" ? "success" : selectedTask.status === "partial" ? "teal" : "primary"}>{guide.eyebrow}</Badge><h3 id="start-guide-title">{guide.title}</h3><p>{selectedTask.status === "running" ? "المهمة تعمل الآن؛ انتقل إلى مساحة التسجيل لتكمل من حيث توقفت." : selectedTask.status === "paused" ? "تم حفظ الوقت والحالة. استأنف المهمة ثم تابع تسجيل تقدمك." : selectedTask.type === "reading" ? `الكتاب المحدد: ${selectedTask.supportingText ?? "حدّد كتابك"}. ابدأ من آخر صفحة ثم سجّل صفحة التوقف.` : "ستجد أدوات البدء والتسجيل الخاصة بهذه المهمة أسفل هذه الخطوة."}</p></div><Button variant={selectedTask.status === "running" || selectedTask.status === "completed" || selectedTask.status === "closed" ? "outline" : "primary"} onClick={() => { if (["not_started", "paused", "partial", "not_completed"].includes(selectedTask.status)) setTaskStatus(selectedTask.id, "running"); document.getElementById("task-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}><Play size={17} />{guide.action}</Button></section><div className="activity-layout"><div><TaskCard task={selectedTask} /><TaskDetailTimer task={selectedTask} /><div id="task-workspace" className="task-workspace"><SpecializedTaskFields task={selectedTask} onProgress={(value) => updateTaskProgress(selectedTask.id, value)} onDetails={(details) => updateTaskDetails(selectedTask.id, details)} /></div></div><Card><SectionHeader title="تقدم المحطة" description="احسب النسبة من القيمة الحالية والهدف نفسه." /><div className="quick-progress"><div><strong>{detailProgress}%</strong><span>من هدفك المحدد</span></div><ProgressBar value={detailProgress} tone="teal" />{type === "prayer" ? <p>يُحدَّث هذا التقدم تلقائيًا عند تسجيل وقت كل صلاة وإكمالها.</p> : <div className="quick-progress-actions"><Button variant="outline" onClick={() => updateTaskProgress(selectedTask.id, selectedTask.current - 1)}>- خطوة</Button><Button variant="secondary" onClick={() => updateTaskProgress(selectedTask.id, selectedTask.current + 1)}>+ خطوة</Button></div>}</div></Card></div><section className="activity-support-grid"><Card><h3>بياناتك محفوظة</h3><p>تفاصيل هذه المحطة مرتبطة بالمهمة والمستخدم وتاريخ اليوم، وتتزامن تلقائيًا بين تبويبات المتصفح.</p></Card><Card><h3>الوقت الفعلي</h3><strong className="large-inline-metric"><Clock3 size={20} />{formatMinutes(selectedTask.actualMinutes)}</strong><p>الوقت السابق محفوظ حتى لو أغلقت المهمة أو أوقفتها مؤقتًا.</p></Card></section></>;
+  if (selectedTask.type === "adhkar") return <AdhkarActivityPage taskId={selectedTask.id} />;
+  if (selectedTask.type === "reading") return <ReadingActivityPage taskId={selectedTask.id} />;
+  if (selectedTask.type === "water") return <WaterActivityPage taskId={selectedTask.id} />;
+  if (selectedTask.type === "sleep") return <SleepActivityPage taskId={selectedTask.id} />;
+
+  const progress = Math.min(100, Math.max(0, Math.round((selectedTask.current / Math.max(1, selectedTask.target)) * 100)));
+  const description = selectedTask.id === "lesson-review"
+    ? "راجع درس اليوم، ثم سجّل وقت المراجعة من العداد."
+    : selectedTask.id === "skill"
+      ? "خصص وقتًا للتدريب واحفظ الدقائق التي أنجزتها."
+      : selectedTask.category === "family"
+        ? "اقضِ وقتًا حاضرًا مع أهلك، ثم سجّل مدة الجلسة."
+        : selectedTask.type === "sport"
+          ? "ابدأ نشاطك وسجّل مدته من العداد أو بإدخال الدقائق."
+          : selectedTask.supportingText || activityMeta[selectedTask.type].description;
+  const startTask = () => {
+    if (["not_started", "paused", "partial", "not_completed"].includes(selectedTask.status)) {
+      setTaskStatus(selectedTask.id, "running");
+    }
+  };
+  const pauseTask = () => {
+    if (selectedTask.status === "running") setTaskStatus(selectedTask.id, "paused");
+  };
+
+  return <div className="task-execution-page">
+    <PageHeader eyebrow={taskCategoryNames[selectedTask.category]} title={selectedTask.title} description={description} />
+    <section className="task-execution-overview" aria-label="هدف المهمة وتقدمها">
+      <span className="task-execution-icon"><ActivityIcon type={selectedTask.type} size={27} /></span>
+      <div className="task-execution-summary">
+        <StatusBadge status={selectedTask.status} />
+        <strong>{selectedTask.goalLabel}</strong>
+        {selectedTask.supportingText && <span>{selectedTask.supportingText}</span>}
+      </div>
+      <div className="task-execution-progress">
+        <strong>{selectedTask.current} <small>/ {selectedTask.target} {selectedTask.unit}</small></strong>
+        <ProgressBar value={progress} tone="teal" />
+      </div>
+    </section>
+    <div className="task-execution-grid">
+      <section className="task-execution-main" aria-label="تنفيذ المهمة">
+        <div id="task-workspace" className="task-workspace">
+          <SpecializedTaskFields
+            task={selectedTask}
+            onStart={startTask}
+            onPause={pauseTask}
+            onProgress={(value) => updateTaskProgress(selectedTask.id, value)}
+            onDetails={(details) => updateTaskDetails(selectedTask.id, details)}
+          />
+        </div>
+        <TaskDetailTimer task={selectedTask} />
+        <TaskCard task={selectedTask} />
+      </section>
+      <aside className="task-execution-side">
+        <Card><SectionHeader title="تقدم اليوم" description="يُحفظ التقدم كلما سجّلت الوقت أو حدّثت المهمة." /><div className="task-execution-side-progress"><strong>{progress}%</strong><ProgressBar value={progress} tone="teal" /><span>{selectedTask.current} من {selectedTask.target} {selectedTask.unit}</span></div></Card>
+        <Card><SectionHeader title="الوقت المسجل" /><strong className="large-inline-metric"><Clock3 size={20} />{formatMinutes(selectedTask.actualMinutes)}</strong><p>يمكنك متابعة المهمة من حيث توقفت.</p></Card>
+      </aside>
+    </div>
+  </div>;
 }
 
 export function FocusView() {
@@ -481,8 +546,6 @@ export function FocusView() {
           <button type="button" onClick={cancelFocus}><X size={16} />إلغاء</button>
         </div>}
       </div>
-
-      <p className={focusStyles.note}><Info size={17} />سيتم تسجيل الوقت الفعلي على {selectedTask?.title ?? "مهمة القراءة"}.</p>
     </section>
 
     <section className={focusStyles.stats} aria-label="إحصائيات التركيز اليوم">

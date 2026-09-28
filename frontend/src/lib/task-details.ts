@@ -3,11 +3,12 @@ import { getTaskFullPoints, withTaskPoints } from "./points.ts";
 import { PARTIAL_COMPLETION_WEIGHT } from "./progress.ts";
 
 const PRAYER_DETAILS = ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"];
+const PRAYER_DETAIL_IDS = PRAYER_DETAILS.map((_, index) => "prayer-" + String(index + 1));
 
-function detailSpecs(task: Pick<Task, "type" | "target" | "unit" | "title">) {
+function detailSpecs(task: Pick<Task, "type" | "target" | "unit" | "title" | "config">) {
   const common = (id: string, title: string, target = task.target, unit = task.unit) => ({ id, title, target: Math.max(1, target), unit });
   const byType: Partial<Record<TaskType, Array<{ id: string; title: string; target: number; unit: string }>>> = {
-    prayer: PRAYER_DETAILS.map((title, index) => common(`prayer-${index + 1}`, title, 1, "صلاة")),
+    prayer: (task.config?.type === "prayer" ? task.config.prayers : PRAYER_DETAILS).map((title) => common(`prayer-${PRAYER_DETAILS.indexOf(title) + 1}`, title, 1, "صلاة")),
     quran: [common("quran-reading", "قراءة القرآن")],
     reading: [common("book-reading", "قراءة الكتاب")],
     adhkar: [common("adhkar-session", task.title)],
@@ -28,7 +29,15 @@ function distributePoints(total: number, count: number) {
 
 export function withTaskDetails(task: Task): Task {
   if (task.detailItems?.length) {
-    return { ...task, detailItems: task.detailItems.map((detail) => ({ ...detail })) };
+    const legacyElapsedSeconds = Math.round(Math.max(0, task.actualMinutes) * 60);
+    const isSingleDetail = task.detailItems.length === 1;
+    return {
+      ...task,
+      detailItems: task.detailItems.map((detail) => ({
+        ...detail,
+        elapsedSeconds: isSingleDetail ? Math.max(detail.elapsedSeconds, legacyElapsedSeconds) : detail.elapsedSeconds,
+      })),
+    };
   }
   const specs = detailSpecs(task);
   const points = distributePoints(getTaskFullPoints(task), specs.length);
@@ -40,7 +49,7 @@ export function withTaskDetails(task: Task): Task {
       fullPoints: points[index],
       current: initialCompleted ? spec.target : specs.length > 1 ? (index < task.current ? spec.target : 0) : Math.min(spec.target, Math.max(0, task.current)),
       status: initialCompleted || (specs.length > 1 && index < task.current) ? "completed" : task.status === "partial" && task.current > 0 ? "partial" : "not_started",
-      elapsedSeconds: 0,
+      elapsedSeconds: specs.length === 1 ? Math.round(Math.max(0, task.actualMinutes) * 60) : 0,
     })),
   };
 }
@@ -71,4 +80,47 @@ export function getDetailStatusAfterResult(result: Extract<TaskStatus, "complete
   return result;
 }
 
-export function normalizeTask(task: Task) { return withTaskDetails(withTaskPoints(task)); }
+function hasPrayerDetails(task: Task) {
+  const expected = task.config?.type === "prayer"
+    ? task.config.prayers.map((name) => `prayer-${PRAYER_DETAILS.indexOf(name) + 1}`)
+    : PRAYER_DETAIL_IDS;
+  return task.detailItems?.length === expected.length
+    && task.detailItems.every((detail, index) => detail.id === expected[index]);
+}
+
+function normalizeCanonicalPrayerTask(task: Task) {
+  const requiredPrayers = task.config?.type === "prayer" ? task.config.prayers : PRAYER_DETAILS;
+  const detailsAreValid = hasPrayerDetails(task);
+  const previousElapsedSeconds = Math.max(
+    Math.round(Math.max(0, task.actualMinutes) * 60),
+    (task.detailItems ?? []).reduce((total, detail) => total + Math.max(0, detail.elapsedSeconds || 0), 0),
+  );
+  const savedCompletedPrayers = task.details?.completedPrayers;
+  const completedPrayers = Array.isArray(savedCompletedPrayers)
+    ? savedCompletedPrayers.filter((item): item is string => typeof item === "string" && requiredPrayers.includes(item))
+    : requiredPrayers.slice(0, Math.max(0, Math.min(requiredPrayers.length, task.current)));
+  const repairedTask: Task = {
+    ...task,
+    type: "prayer",
+    ...(detailsAreValid ? {} : {
+      detailItems: undefined,
+      current: completedPrayers.length,
+      details: { ...(task.details ?? {}), completedPrayers },
+    }),
+  };
+  const normalized = withTaskDetails(withTaskPoints(repairedTask));
+
+  if (detailsAreValid || previousElapsedSeconds === 0 || !normalized.detailItems?.length) return normalized;
+  return {
+    ...normalized,
+    actualMinutes: Math.max(normalized.actualMinutes, previousElapsedSeconds / 60),
+    detailItems: normalized.detailItems.map((detail, index) => index === 0
+      ? { ...detail, elapsedSeconds: Math.max(detail.elapsedSeconds, previousElapsedSeconds) }
+      : detail),
+  };
+}
+
+export function normalizeTask(task: Task) {
+  if (task.id === "prayer") return normalizeCanonicalPrayerTask(task);
+  return withTaskDetails(withTaskPoints(task));
+}

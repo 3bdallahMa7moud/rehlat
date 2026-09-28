@@ -30,6 +30,8 @@ export interface DailyTaskRecord {
   current: number;
   actualMinutes: number;
   details?: Task["details"];
+  /** Definition used on this day, so later admin edits do not rewrite history. */
+  definition?: Task;
   awardedPoints?: number;
   detailItems?: TaskDetail[];
   startedAt?: ISODateTime;

@@ -1,2 +1,5 @@
-import { AppRoute } from "@/components/layout/AppRoute";
-export default function AdminAnalyticsPage() { return <AppRoute page="admin-analytics" />; }
+import { redirect } from "next/navigation";
+
+export default function AdminAnalyticsPage() {
+  redirect("/admin/reports?view=participants");
+}

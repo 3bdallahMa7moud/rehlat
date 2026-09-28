@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Activity, ArrowLeft, BarChart3, CalendarDays, CheckCircle2, ClipboardCheck, Clock3, Eye, FileSpreadsheet, Filter, Flame, KeyRound, Layers3, Pencil, Plus, Printer, Search, Sparkles as SparklesIcon, Target, Trash2, TriangleAlert, TrendingDown, TrendingUp, Users } from "lucide-react";
-import { TaskCard, TaskGlyph } from "@/components/features/TaskCard";
+import { AdminParticipantPermissions } from "@/components/features/AdminParticipantPermissions";
+import { AdminParticipantTasks } from "@/components/features/AdminParticipantTasks";
+import { TaskGlyph } from "@/components/features/TaskCard";
 import { Badge, Button, Card, Dialog, Dropdown, EmptyState, IconButton, Input, PageHeader, ProgressBar, SectionHeader, StatusDot, Tabs, UserAvatar } from "@/components/ui";
 import { exportReport } from "@/lib/export";
 import { formatMinutes } from "@/lib/format";
-import { formatRelativeTime } from "@/lib/date-time";
+import { formatRelativeTime, getProjectDateKey } from "@/lib/date-time";
 import { useDemo } from "@/state/DemoContext";
 import { quranReciters } from "@/lib/quran-recitation";
 
@@ -37,14 +39,13 @@ export function AdminParticipantsView() {
 }
 
 export function AdminParticipantDetailsView({ participantId }: { participantId: string }) {
-  const { participants, getParticipantTasks, resetParticipantPin, setParticipantRole, activity, pushToast, sendEncouragement } = useDemo();
+  const { participants, getParticipantTasks, resetParticipantPin, activity, pushToast, sendEncouragement } = useDemo();
   const participant = participants.find((item) => item.id === participantId);
   const [draftMessage, setDraftMessage] = useState("كفو عليك، خطوة واحدة اليوم تصنع فرقًا كبيرًا.");
-  const [permissions, setPermissions] = useState({ editTasks: true, ranking: true, admin: participant?.role === "admin" });
   if (!participant) return <EmptyState title="المشارك غير موجود" description="ربما تم حذف الحساب أو لم يعد متاحًا." action={<Link href="/admin/participants"><Button>عودة للمشاركين</Button></Link>} />;
   const recentActivity = activity.filter((event) => event.participantId === participant.id).slice(0, 3);
   const participantTasks = getParticipantTasks(participant.id);
-  return <><PageHeader eyebrow="تفاصيل مشارك" title={participant.name} description="صورة موحدة للمعلومات والتقدم والنشاط والتشجيع." actions={<Link href="/admin/participants"><Button variant="outline">كل المشاركين</Button></Link>} /><section className="participant-profile"><Card><div className="participant-profile-top"><UserAvatar initials={participant.initials} color={participant.avatarColor} size="xl" online={participant.presence === "active"} /><div><Badge tone="primary">{participant.role === "admin" ? "مشرف" : "مشارك"}</Badge><h2>{participant.name}</h2><StatusDot status={participant.presence} label={participant.currentStatus} /></div></div><div className="participant-profile-metrics"><div><span>تقدم اليوم</span><strong>{participant.progress}%</strong></div><div><span>السلسلة</span><strong>{participant.streak} يومًا</strong></div><div><span>النقاط</span><strong>{participant.score}</strong></div></div><Button variant="outline" onClick={() => resetParticipantPin(participant.id)}><KeyRound size={17} />إعادة تعيين PIN</Button></Card><Card><SectionHeader title="الصلاحيات" description="اضبط ما يظهر للمشارك داخل الواجهة الحالية." /><div className="permission-list"><label><input type="checkbox" checked={permissions.editTasks} onChange={(event) => setPermissions((current) => ({ ...current, editTasks: event.target.checked }))} /> يمكنه تعديل مهام اليوم</label><label><input type="checkbox" checked={permissions.ranking} onChange={(event) => setPermissions((current) => ({ ...current, ranking: event.target.checked }))} /> يظهر في الترتيب</label><label><input type="checkbox" checked={permissions.admin} onChange={(event) => setPermissions((current) => ({ ...current, admin: event.target.checked }))} /> صلاحية مشرف</label></div><Button size="sm" variant="secondary" onClick={() => { setParticipantRole(participant.id, permissions.admin ? "admin" : "participant"); pushToast({ tone: "success", title: "تم حفظ الصلاحيات", body: `حُفظت صلاحيات ${participant.name}.` }); }}>حفظ الصلاحيات</Button></Card></section><section className="admin-detail-grid"><section className="admin-detail-section"><SectionHeader title="مهام اليوم" /><div className="admin-detail-tasks">{participantTasks.slice(0, 3).map((task) => <TaskCard task={task} compact key={task.id} />)}</div></section><Card><SectionHeader title="آخر النشاط" />{recentActivity.length ? <div className="admin-activity-mini">{recentActivity.map((event) => <p key={event.id}><strong>{event.action}</strong> {event.task} <span>{formatRelativeTime(event.createdAt)}</span></p>)}</div> : <EmptyState title="لا يوجد نشاط مسجل لهذا المشارك." />}</Card></section><Card><SectionHeader title="رسالة تشجيع" description="اكتب رسالة قصيرة وعاينها قبل الإرسال." /><div className="admin-encouragement"><Input aria-label="رسالة التشجيع" value={draftMessage} onChange={(event) => setDraftMessage(event.target.value)} placeholder="اكتب رسالة قصيرة ومشجعة..." /><div className="encouragement-preview"><span>معاينة</span><div><UserAvatar initials={participant.initials} color={participant.avatarColor} size="sm" /><p>{draftMessage || "اكتب رسالة لتظهر هنا."}</p></div></div><Button onClick={() => { if (sendEncouragement(participant.id, draftMessage)) { pushToast({ tone: "success", title: "تم إرسال رسالة التشجيع", body: `وصلت الرسالة إلى ${participant.name}.` }); setDraftMessage(""); } else pushToast({ tone: "error", title: "تعذر الإرسال", body: "اكتب رسالة قصيرة وحاول مرة أخرى." }); }}><Activity size={17} />إرسال الرسالة</Button></div></Card></>;
+  return <><PageHeader eyebrow="تفاصيل مشارك" title={participant.name} description="صورة موحدة للمعلومات والتقدم والنشاط والتشجيع." actions={<Link href="/admin/participants"><Button variant="outline">كل المشاركين</Button></Link>} /><section className="participant-profile"><Card><div className="participant-profile-top"><UserAvatar initials={participant.initials} color={participant.avatarColor} size="xl" online={participant.presence === "active"} /><div><Badge tone="primary">{participant.role === "admin" ? "مشرف" : "مشارك"}</Badge><h2>{participant.name}</h2><StatusDot status={participant.presence} label={participant.currentStatus} /></div></div><div className="participant-profile-metrics"><div><span>تقدم اليوم</span><strong>{participant.progress}%</strong></div><div><span>السلسلة</span><strong>{participant.streak} يومًا</strong></div><div><span>النقاط</span><strong>{participant.score}</strong></div></div><Button variant="outline" onClick={() => resetParticipantPin(participant.id)}><KeyRound size={17} />إعادة تعيين PIN</Button></Card><AdminParticipantPermissions key={`${participant.id}:${participant.role}`} participant={participant} /></section><section className="admin-detail-grid"><AdminParticipantTasks tasks={participantTasks} participantName={participant.name} /><Card><SectionHeader title="آخر النشاط" />{recentActivity.length ? <div className="admin-activity-mini">{recentActivity.map((event) => <p key={event.id}><strong>{event.action}</strong> {event.task} <span>{formatRelativeTime(event.createdAt)}</span></p>)}</div> : <EmptyState title="لا يوجد نشاط مسجل لهذا المشارك." />}</Card></section><Card><SectionHeader title="رسالة تشجيع" description="اكتب رسالة قصيرة وعاينها قبل الإرسال." /><div className="admin-encouragement"><Input aria-label="رسالة التشجيع" value={draftMessage} onChange={(event) => setDraftMessage(event.target.value)} placeholder="اكتب رسالة قصيرة ومشجعة..." /><div className="encouragement-preview"><span>معاينة</span><div><UserAvatar initials={participant.initials} color={participant.avatarColor} size="sm" /><p>{draftMessage || "اكتب رسالة لتظهر هنا."}</p></div></div><Button onClick={() => { if (sendEncouragement(participant.id, draftMessage)) { pushToast({ tone: "success", title: "تم إرسال رسالة التشجيع", body: `وصلت الرسالة إلى ${participant.name}.` }); setDraftMessage(""); } else pushToast({ tone: "error", title: "تعذر الإرسال", body: "اكتب رسالة قصيرة وحاول مرة أخرى." }); }}><Activity size={17} />إرسال الرسالة</Button></div></Card></>;
 }
 
 export function AdminTasksView() {
@@ -308,15 +309,44 @@ export function AdminActivityView() {
   return <><PageHeader eyebrow="الإدارة" title="سجل النشاط" description="تصفية وتتبع نشاط المجموعة حسب النوع أو اسم المشارك أو المهمة." /><div className="activity-filters"><Dropdown label="نوع النشاط" value={filter} onChange={setFilter} options={[{ value: "all", label: "كل النشاطات" }, { value: "started", label: "بدأ" }, { value: "completed", label: "مكتمل" }, { value: "paused", label: "متوقف" }, { value: "joined", label: "دخول" }]} /><Input aria-label="البحث في النشاط" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ابحث باسم المشارك أو المهمة" /></div><Card padding="none" className="admin-table-card"><div className="admin-table admin-activity-table"><div className="admin-table-head"><span>المشارك</span><span>الحدث</span><span>المهمة</span><span>الوقت</span></div>{items.map((event) => <article className="admin-table-row" key={event.id}><div className="admin-person"><UserAvatar initials={event.initials} color={event.avatarColor} size="sm" /><strong>{event.participantName}</strong></div><Badge tone={event.kind === "completed" ? "success" : event.kind === "paused" ? "warning" : "primary"}>{event.action}</Badge><span>{event.task || "—"}</span><span>{formatRelativeTime(event.createdAt)}</span></article>)}</div>{!items.length && <EmptyState title="لا يوجد نشاط مطابق." description="غيّر نوع النشاط أو عبارة البحث." />}</Card></>;
 }
 const dataActions = [
-  { id: "day", title: "مسح يوم", body: "سيزيل سجل ومهام يوم واحد فقط." },
-  { id: "week", title: "مسح أسبوع", body: "سيزيل بيانات أسبوع محدد من العرض." },
-  { id: "month", title: "مسح شهر", body: "سيزيل بيانات شهر محدد من العرض." },
-  { id: "history", title: "مسح السجل", body: "سيزيل تاريخ النشاط المحفوظ." },
-  { id: "participant", title: "مسح بيانات مشارك", body: "سيزيل بيانات المشارك المحدد فقط." },
+  { id: "day", title: "مسح بيانات اليوم", group: "period" },
+  { id: "week", title: "مسح آخر ٧ أيام", group: "period" },
+  { id: "month", title: "مسح الشهر الحالي", group: "period" },
+  { id: "history", title: "مسح السجل السابق", group: "history" },
+  { id: "participant", title: "مسح كل بيانات المشارك", group: "history" },
 ] as const;
 
+type DataAction = typeof dataActions[number];
+
 export function AdminDataView() {
-  const { canRestoreClearedData, clearData, restoreClearedData } = useDemo();
-  const [target, setTarget] = useState<typeof dataActions[number] | null>(null);
-  return <><PageHeader eyebrow="الإدارة" title="إدارة البيانات" description="كل إجراء محدد بنطاقه، مع نسخة احتياطية مؤقتة يمكن استعادتها فورًا." actions={canRestoreClearedData ? <Button variant="outline" onClick={restoreClearedData}>استعادة آخر مسح</Button> : undefined} /><section className="data-action-list">{dataActions.map((action) => <Card key={action.id} className="data-action"><span><TriangleAlert size={22} /></span><div><h3>{action.title}</h3><p>{action.body}</p></div><Button variant="destructive" size="sm" onClick={() => setTarget(action)}>مسح</Button></Card>)}</section><Dialog open={Boolean(target)} onClose={() => setTarget(null)} title={target ? `${target.title}؟` : "تأكيد"} description={target?.body} footer={<><Button variant="outline" onClick={() => setTarget(null)}>إلغاء</Button><Button variant="destructive" onClick={() => { if (target) clearData(target.id); setTarget(null); }}>تأكيد المسح</Button></>}><div className="danger-dialog-copy"><TriangleAlert size={22} /><p>سيُطبّق المسح على النطاق الموضح فقط. يمكنك استعادة آخر نسخة من الزر أعلى الصفحة ما دمت في الجلسة الحالية.</p></div></Dialog></>;
+  const { participants, canRestoreClearedData, clearData, restoreClearedData } = useDemo();
+  const [participantId, setParticipantId] = useState("");
+  const [target, setTarget] = useState<DataAction | null>(null);
+  const selectedParticipant = participants.find((participant) => participant.id === participantId && participant.role === "participant");
+  const today = getProjectDateKey();
+  const weekStartDate = new Date(`${today}T12:00:00Z`);
+  weekStartDate.setUTCDate(weekStartDate.getUTCDate() - 6);
+  const weekStart = weekStartDate.toISOString().slice(0, 10);
+  const monthStart = `${today.slice(0, 7)}-01`;
+  const scopeText = (action: DataAction) => {
+    if (action.id === "day") return `سجلات المهام والتركيز والتقدم بتاريخ ${today}، مع إعادة حساب سلسلة الإنجاز.`;
+    if (action.id === "week") return `سجلات المهام والتركيز والتقدم من ${weekStart} إلى ${today}، مع إعادة حساب سلسلة الإنجاز.`;
+    if (action.id === "month") return `سجلات المهام والتركيز والتقدم من ${monthStart} إلى ${today}، مع إعادة حساب سلسلة الإنجاز.`;
+    if (action.id === "history") return `كل سجلات المهام والتركيز والتقدم حتى ${today}، مع النشاط والرسائل وسلسلة الإنجاز. سجلات التواريخ القادمة تبقى محفوظة.`;
+    return "كل سجلات المهام والتركيز والتقدم والنشاط والرسائل وسلسلة الإنجاز، بما فيها سجلات التواريخ القادمة. يبقى حساب المشارك والمهام الأصلية.";
+  };
+  const renderAction = (action: DataAction) => <Card key={action.id} className={`data-action data-action-${action.group}`}>
+    <span aria-hidden="true">{action.group === "history" ? <TriangleAlert size={22} /> : <CalendarDays size={22} />}</span>
+    <div><h3>{action.title}</h3><p>{scopeText(action)}</p><small>المشارك: {selectedParticipant?.name ?? "اختر مشاركًا أولًا"}</small></div>
+    <Button variant={action.group === "history" ? "destructive" : "outline"} size="sm" disabled={!selectedParticipant} onClick={() => setTarget(action)}>مراجعة المسح</Button>
+  </Card>;
+
+  return <>
+    <PageHeader eyebrow="الإدارة" title="إدارة البيانات" description="حدد المشارك أولًا، ثم راجع السجلات التي ستمسحها قبل التأكيد." actions={canRestoreClearedData ? <Button variant="outline" onClick={restoreClearedData}>استعادة آخر مسح</Button> : undefined} />
+    <Card className="data-control-card"><div><h2>المشارك المستهدف</h2><p>كل إجراء في هذه الصفحة يخص المشارك الذي تختاره هنا فقط.</p></div><Dropdown label="اختر المشارك المستهدف" value={participantId} onChange={setParticipantId} options={[{ value: "", label: "اختر مشاركًا قبل المتابعة" }, ...participants.filter((participant) => participant.role === "participant").map((participant) => ({ value: participant.id, label: participant.name }))]} /></Card>
+    <p className="data-backup-status" role="status">{canRestoreClearedData ? "نسخة آخر مسح متاحة للاستعادة الآن. أي مسح جديد سيستبدل هذه النسخة." : "سيُحتفظ بنسخة مؤقتة من البيانات قبل المسح. الاستعادة متاحة حتى إعادة تحميل الصفحة."}</p>
+    <section className="data-action-section" aria-labelledby="data-period-heading"><h2 id="data-period-heading">فترة زمنية محددة</h2><div className="data-action-list">{dataActions.filter((action) => action.group === "period").map(renderAction)}</div></section>
+    <section className="data-action-section" aria-labelledby="data-history-heading"><h2 id="data-history-heading">السجل الكامل للمشارك</h2><div className="data-action-list">{dataActions.filter((action) => action.group === "history").map(renderAction)}</div></section>
+    <Dialog open={Boolean(target)} onClose={() => setTarget(null)} title={target ? `${target.title}؟` : "تأكيد المسح"} description={selectedParticipant ? `المشارك: ${selectedParticipant.name}` : undefined} footer={<><Button variant="outline" onClick={() => setTarget(null)}>إلغاء</Button><Button variant="destructive" disabled={!selectedParticipant} onClick={() => { if (target && selectedParticipant) clearData(target.id, selectedParticipant.id); setTarget(null); }}>تأكيد مسح بيانات {selectedParticipant?.name ?? "المشارك"}</Button></>}><div className="danger-dialog-copy"><TriangleAlert size={22} /><div><strong>النطاق الذي سيُمسح</strong><p>{target ? scopeText(target) : ""}</p><p>تُحفظ نسخة واحدة فقط للاستعادة حتى إعادة تحميل الصفحة.</p></div></div></Dialog>
+  </>;
 }

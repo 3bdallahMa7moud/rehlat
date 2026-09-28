@@ -38,13 +38,31 @@ export function WaterTracker({ task, onProgress, onDetails }: { task: Task; onPr
   return <Card className="task-specialized-fields"><SectionHeader title="هدف الماء اليومي" description="المعادلة تتغير حسب الوزن والطقس والنشاط، ويمكن تعديل النشاط يوميًا." /><div className="water-profile-grid"><label className="field"><span className="field-label">الجنس</span><select className="input" value={gender} onChange={(event) => updateProfile("gender", event.target.value)}><option>ذكر</option><option>أنثى</option></select></label><Input label="الوزن (كجم)" type="number" min={20} value={weight} onChange={(event) => updateProfile("weightKg", Number(event.target.value))} /><Input label="الطول (سم)" type="number" min={100} value={height} onChange={(event) => updateProfile("heightCm", Number(event.target.value))} /><label className="field"><span className="field-label">الطقس</span><select className="input" value={weather} onChange={(event) => updateProfile("weather", event.target.value)}><option>معتدل</option><option>حار</option><option>بارد</option></select></label><Input label="نشاط اليوم (دقيقة)" type="number" min={0} value={activity} onChange={(event) => updateProfile("activityMinutes", Number(event.target.value))} /></div><div className="water-target-callout"><Droplets size={20} /><strong>{targetMl} مل تقريبًا</strong><span>الهدف المحسوب لهذا اليوم</span></div><div className="quick-progress-actions"><Button size="sm" variant="outline" onClick={() => add(250)}>+250 مل</Button><Button size="sm" variant="secondary" onClick={() => add(500)}>+500 مل</Button></div><p className="field-hint">المسجل: {currentMl} مل · الوزن والطول محفوظان، والنشاط قابل للتغيير يوميًا.</p></Card>;
 }
 
-export function SportTracker({ task, onProgress, onDetails }: { task: Task; onProgress: (value: number) => void; onDetails: Update }) {
+export function SportTracker({ task, onProgress, onDetails, onStart, onPause }: { task: Task; onProgress: (value: number) => void; onDetails: Update; onStart: () => void; onPause: () => void }) {
+  const sportConfig = task.config?.type === "sport" ? task.config : null;
   const [running, setRunning] = useState(false);
   const [seconds, setSeconds] = useState(typeof task.details?.sportSeconds === "number" ? task.details.sportSeconds : task.current * 60);
   useEffect(() => { if (!running) return; const timer = window.setInterval(() => setSeconds((value) => value + 1), 1000); return () => window.clearInterval(timer); }, [running]);
   const minutes = Math.floor(seconds / 60);
-  const sync = () => { onDetails({ sportSeconds: seconds }); onProgress(minutes); };
-  return <Card className="task-specialized-fields"><SectionHeader title="الرياضة" description="اكتب اسم الرياضة أو شغّل العداد، ثم احفظ المدة عند التوقف." /><Input label="اسم الرياضة" value={typeof task.details?.activity === "string" ? task.details.activity : task.supportingText ?? ""} placeholder="مشي، تمارين منزلية…" onChange={(event) => onDetails({ activity: event.target.value })} /><div className="sport-timer"><Clock3 size={23} /><strong dir="ltr">{String(Math.floor(seconds / 60)).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}</strong><span>دقيقة مسجلة</span></div><div className="quick-progress-actions">{running ? <Button variant="outline" onClick={() => { setRunning(false); sync(); }}><Pause size={16} />إيقاف وحفظ</Button> : <Button variant="secondary" onClick={() => setRunning(true)}><Play size={16} />ابدأ العداد</Button>}<Button variant="ghost" onClick={() => { setRunning(false); setSeconds(0); onDetails({ sportSeconds: 0 }); onProgress(0); }}><RotateCcw size={16} />تصفير</Button></div><p className="field-hint">الهدف: {task.target} دقيقة.</p></Card>;
+  const activity = typeof task.details?.activity === "string" ? task.details.activity : sportConfig?.activity || task.supportingText || "";
+  const stopAndSave = () => {
+    setRunning(false);
+    onProgress(minutes);
+    onDetails({ sportSeconds: seconds });
+    if (minutes < task.target) onPause();
+  };
+  return <Card className="task-specialized-fields task-action-card">
+    <SectionHeader title={sportConfig?.activity || task.title} description={sportConfig?.timerEnabled === false ? "سجّل مدة النشاط التي أنجزتها اليوم." : "ابدأ العداد الآن، وأوقفه لحفظ مدة نشاطك."} />
+    {sportConfig?.timerEnabled === false ? <Input label="الدقائق المنجزة" type="number" min={0} max={task.target} value={task.current} onChange={(event) => onProgress(Number(event.target.value))} /> : <>
+      <div className="sport-timer"><Clock3 size={23} /><strong dir="ltr">{String(minutes).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}</strong><span>وقت النشاط</span></div>
+      <div className="quick-progress-actions task-timer-actions">
+        {running ? <Button variant="outline" onClick={stopAndSave}><Pause size={16} />إيقاف وحفظ</Button> : <Button variant="primary" onClick={() => { onStart(); setRunning(true); }}><Play size={16} />{seconds > 0 ? "استئناف العداد" : "ابدأ العداد"}</Button>}
+        <Button variant="ghost" onClick={() => { setRunning(false); setSeconds(0); onProgress(0); onDetails({ sportSeconds: 0 }); }}><RotateCcw size={16} />تصفير</Button>
+      </div>
+    </>}
+    <Input label="النشاط" value={activity} placeholder="مشي، تمارين منزلية…" onChange={(event) => onDetails({ activity: event.target.value })} />
+    <p className="field-hint">هدف اليوم: {task.target} دقيقة. احفظ الوقت عند التوقف.</p>
+  </Card>;
 }
 
 export function ReadingTracker({ task, onProgress, onDetails }: { task: Task; onProgress: (value: number) => void; onDetails: Update }) {
@@ -55,10 +73,33 @@ export function ReadingTracker({ task, onProgress, onDetails }: { task: Task; on
   return <Card className="task-specialized-fields"><SectionHeader title="قراءة الكتاب" description="ارفع نسخة محلية للعرض التجريبي، وسجّل الصفحة أو السطر الذي توقفت عنده." /><label className="upload-book-control"><Upload size={18} /><span>{fileName || "رفع كتاب يدويًا"}</span><input type="file" accept=".pdf,.epub,.txt" onChange={(event) => { const file = event.target.files?.[0]; const name = file?.name ?? ""; setFileName(name); if (file) setFileUrl(URL.createObjectURL(file)); onDetails({ bookFileName: name }); }} /></label>{fileName && <div className="book-preview-placeholder"><BookOpen size={20} /><span>{fileName}</span><small>الملف ظاهر الآن في هذه الجلسة، وسيصبح مشتركًا بعد توصيل التخزين.</small></div>}{fileUrl && <iframe className="book-preview-frame" title={`معاينة ${fileName}`} src={fileUrl} />}<label className="share-book-toggle"><input type="checkbox" checked={task.details?.bookShared === true} onChange={(event) => onDetails({ bookShared: event.target.checked })} /><span>إتاحة الكتاب للمجموعة بعد رفعه</span></label><div className="sleep-time-grid"><Input label="اسم الكتاب" value={typeof task.details?.book === "string" ? task.details.book : task.supportingText?.replace(/^كتاب:\s*/, "") ?? ""} onChange={(event) => onDetails({ book: event.target.value })} /><Input type="number" min={0} max={task.target} label="صفحة التوقف" value={page} onChange={(event) => { const next = Number(event.target.value); onDetails({ bookPage: next }); onProgress(next); }} /></div><label className="field"><span className="field-label">علامة أو سطر التوقف</span><textarea className="input" rows={2} value={bookmark} onChange={(event) => onDetails({ bookmark: event.target.value })} placeholder="مثال: السطر الثالث في الصفحة…" /></label><p className="field-hint">الصفحة المحفوظة: {page}. يمكن تحويلها لاحقًا إلى bookmark مشترك.</p></Card>;
 }
 
-export function ReviewTracker({ task, onProgress, onDetails, title = "مراجعة الدروس", description = "سجّل دقائق المراجعة بالعداد أو يدويًا، ثم أنهِ المهمة." }: { task: Task; onProgress: (value: number) => void; onDetails: Update; title?: string; description?: string }) {
+export function ReviewTracker({ task, onProgress, onDetails, onStart, onPause, title = "مراجعة الدروس", description = "ابدأ المراجعة وسجّل الدقائق بالعداد أو يدويًا.", actionLabel = "المراجعة" }: { task: Task; onProgress: (value: number) => void; onDetails: Update; onStart: () => void; onPause: () => void; title?: string; description?: string; actionLabel?: string }) {
   const [running, setRunning] = useState(false);
-  const [seconds, setSeconds] = useState(typeof task.details?.reviewSeconds === "number" ? task.details.reviewSeconds : 0);
+  const [seconds, setSeconds] = useState(typeof task.details?.reviewSeconds === "number" ? task.details.reviewSeconds : task.current * 60);
   useEffect(() => { if (!running) return; const timer = window.setInterval(() => setSeconds((value) => value + 1), 1000); return () => window.clearInterval(timer); }, [running]);
   const minutes = Math.floor(seconds / 60);
-  return <Card className="task-specialized-fields"><SectionHeader title={title} description={description} /><div className="sport-timer"><Clock3 size={23} /><strong dir="ltr">{String(minutes).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}</strong><span>وقت المراجعة</span></div><div className="quick-progress-actions">{running ? <Button variant="outline" onClick={() => { setRunning(false); onDetails({ reviewSeconds: seconds }); onProgress(minutes); }}><Pause size={16} />إيقاف وحفظ</Button> : <Button variant="secondary" onClick={() => setRunning(true)}><Play size={16} />ابدأ المراجعة</Button>}<Button variant="ghost" onClick={() => { setRunning(false); setSeconds(0); onDetails({ reviewSeconds: 0 }); onProgress(0); }}>تصفير</Button><Button variant="secondary" onClick={() => { setRunning(false); onDetails({ reviewSeconds: seconds }); onProgress(task.target); }}><Check size={16} />إنهاء المهمة</Button></div><p className="field-hint">الهدف اليومي: {task.target} دقيقة.</p></Card>;
+  const stopAndSave = () => {
+    setRunning(false);
+    onProgress(minutes);
+    onDetails({ reviewSeconds: seconds });
+    if (minutes < task.target) onPause();
+  };
+  const setMinutes = (value: number) => {
+    const next = Math.max(0, Math.min(task.target, Number.isFinite(value) ? value : 0));
+    setRunning(false);
+    setSeconds(next * 60);
+    onProgress(next);
+    onDetails({ reviewSeconds: next * 60 });
+    if (running && next < task.target) onPause();
+  };
+  return <Card className="task-specialized-fields task-action-card">
+    <SectionHeader title={title} description={description} />
+    <div className="sport-timer"><Clock3 size={23} /><strong dir="ltr">{String(minutes).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}</strong><span>وقت المهمة</span></div>
+    <div className="quick-progress-actions task-timer-actions">
+      {running ? <Button variant="outline" onClick={stopAndSave}><Pause size={16} />إيقاف وحفظ</Button> : <Button variant="primary" onClick={() => { onStart(); setRunning(true); }}><Play size={16} />{seconds > 0 ? `استئناف ${actionLabel}` : `ابدأ ${actionLabel}`}</Button>}
+      <Button variant="secondary" onClick={() => { setRunning(false); onProgress(task.target); onDetails({ reviewSeconds: seconds }); }}><Check size={16} />إنهاء المهمة</Button>
+    </div>
+    <Input label="تسجيل الدقائق يدويًا" type="number" min={0} max={task.target} value={task.current} onChange={(event) => setMinutes(Number(event.target.value))} />
+    <p className="field-hint">الهدف اليومي: {task.target} دقيقة. احفظ الوقت عند التوقف.</p>
+  </Card>;
 }

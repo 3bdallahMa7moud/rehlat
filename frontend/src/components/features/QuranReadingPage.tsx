@@ -25,7 +25,7 @@ export function QuranReadingPage({ taskId }: { taskId?: string }) {
   })();
   const progress = task ? Math.min(100, Math.round((task.current / Math.max(1, task.target)) * 100)) : 0;
   const savedAyah = typeof details.quranAyahStart === "number" ? details.quranAyahStart : 1;
-  const savedSurah = typeof details.quranSurah === "number" ? details.quranSurah : (task?.supportingText ?? "").includes("الكهف") ? 18 : 1;
+  const savedSurah = typeof details.quranSurah === "number" ? details.quranSurah : task?.config?.type === "quran" ? task.config.surah : (task?.supportingText ?? "").includes("الكهف") ? 18 : 1;
   const surahName = quranSurahNames[savedSurah - 1] ?? "القرآن الكريم";
   const goToReader = () => document.getElementById("quran-reader-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const goToSavedPosition = () => {

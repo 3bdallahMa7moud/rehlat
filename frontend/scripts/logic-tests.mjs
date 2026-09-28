@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { getProjectDateKey, getProjectDayStart, formatRelativeTime } from "../src/lib/date-time.ts";
 import { calculateProgress, PARTIAL_COMPLETION_WEIGHT } from "../src/lib/progress.ts";
 import { getTaskEarnedPoints, getTaskPartialPoints } from "../src/lib/points.ts";
-import { getTaskDetailElapsedSeconds } from "../src/lib/task-details.ts";
+import { getTaskDetailElapsedSeconds, getTaskElapsedSeconds, normalizeTask } from "../src/lib/task-details.ts";
+import { defaultTaskConfig, taskDefinitionSnapshot, taskVisibleFor } from "../src/lib/task-config.ts";
 import { calculateStreak } from "../src/lib/streak.ts";
 import { activityEvents } from "../src/mocks/activity.ts";
 import { createActivityEvent } from "../src/domain/activity/activity-factory.ts";
@@ -23,6 +24,21 @@ import { queryReport } from "../src/lib/report-query.ts";
 import { createReportExportModel, reportExportSheets } from "../src/lib/report-export.ts";
 
 const task = (status, overrides = {}) => ({ id: status, status, target: 10, current: 3, actualMinutes: 0, type: "general", fullPoints: 10, ...overrides });
+
+const scheduledTask = task("not_started", { assigneeIds: ["participant-a"], schedule: { mode: "weekdays", weekdays: [1] } });
+assert.equal(taskVisibleFor(scheduledTask, "participant-a", "2026-09-28"), true);
+assert.equal(taskVisibleFor(scheduledTask, "participant-b", "2026-09-28"), false);
+assert.equal(taskVisibleFor(scheduledTask, "participant-a", "2026-09-29"), false);
+assert.equal(taskVisibleFor({ ...scheduledTask, archived: true }, "participant-a", "2026-09-28"), false);
+assert.equal(taskVisibleFor({ ...scheduledTask, schedule: { mode: "once", date: "2026-09-29" } }, "participant-a", "2026-09-28"), false);
+assert.equal(taskVisibleFor({ ...scheduledTask, schedule: { mode: "once", date: "2026-09-29" } }, "participant-a", "2026-09-29"), true);
+assert.deepEqual(taskDefinitionSnapshot(task("completed", { details: { notes: "saved" }, awardedPoints: 5 })).details, undefined);
+assert.equal(defaultTaskConfig("prayer").prayers.length, 5);
+const configuredPrayer = normalizeTask(task("not_started", { id: "custom-prayer", title: "صلاة الفجر والمغرب", type: "prayer", target: 2, current: 0, unit: "صلاة", config: { type: "prayer", prayers: ["الفجر", "المغرب"], includeSunnah: false, includeTasbeeh: false } }));
+assert.deepEqual(configuredPrayer.detailItems.map((detail) => detail.title), ["الفجر", "المغرب"]);
+const configuredCanonicalPrayer = normalizeTask(task("partial", { id: "prayer", title: "صلاة المغرب", type: "prayer", target: 1, current: 1, unit: "صلاة", details: { completedPrayers: ["الفجر"] }, config: { type: "prayer", prayers: ["المغرب"], includeSunnah: false, includeTasbeeh: false } }));
+assert.deepEqual(configuredCanonicalPrayer.detailItems.map((detail) => detail.title), ["المغرب"]);
+assert.deepEqual(configuredCanonicalPrayer.details.completedPrayers, []);
 
 assert.equal(PARTIAL_COMPLETION_WEIGHT, 0.5);
 assert.equal(calculateRankingScore({ participantId: "zero", score: 0, progress: 80, streak: 4, actualMinutes: 60 }), 0);
@@ -74,6 +90,24 @@ assert.equal(completeTaskOutcome(timedOutcome, "closed")?.actualMinutes, 12);
 const startedAt = "2026-09-22T10:00:00.000Z";
 assert.equal(getTaskDetailElapsedSeconds({ elapsedSeconds: 30, status: "running", lastStartedAt: startedAt }, Date.parse("2026-09-22T10:02:00.000Z")), 150);
 assert.equal(getTaskDetailElapsedSeconds({ elapsedSeconds: 150, status: "paused" }, Date.parse("2026-09-22T11:00:00.000Z")), 150);
+
+const repairedPrayerTask = normalizeTask(task("completed", {
+  id: "prayer",
+  title: "المحافظة على الصلوات",
+  category: "faith",
+  type: "general",
+  goalLabel: "الصلوات المكتملة",
+  target: 5,
+  current: 5,
+  unit: "صلوات",
+  actualMinutes: 12,
+  detailItems: [{ id: "general-action", title: "المحافظة على الصلوات", target: 5, current: 5, unit: "مرة", fullPoints: 5, status: "completed", elapsedSeconds: 720 }],
+}));
+assert.equal(repairedPrayerTask.type, "prayer");
+assert.deepEqual(repairedPrayerTask.details?.completedPrayers, ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"]);
+assert.deepEqual(repairedPrayerTask.detailItems?.map((detail) => detail.id), ["prayer-1", "prayer-2", "prayer-3", "prayer-4", "prayer-5"]);
+assert.equal(repairedPrayerTask.detailItems?.filter((detail) => detail.status === "completed").length, 5);
+assert.equal(getTaskElapsedSeconds(repairedPrayerTask), 720);
 
 assert.equal(getProjectDateKey("2026-09-21T21:30:00.000Z"), "2026-09-22");
 assert.equal(getProjectDayStart("2026-09-22").toISOString(), "2026-09-21T21:00:00.000Z");

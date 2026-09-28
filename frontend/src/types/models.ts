@@ -13,6 +13,19 @@ export type TaskCategory =
   | "health"
   | "character";
 export type TaskType = "quran" | "prayer" | "adhkar" | "reading" | "sport" | "water" | "sleep" | "general";
+export type TaskSchedule =
+  | { mode: "daily" }
+  | { mode: "weekdays"; weekdays: number[] }
+  | { mode: "once"; date: string };
+export type TaskConfig =
+  | { type: "quran"; surah: number; readingMode: "ayahs" | "pages"; batchSize: number; reciter: string }
+  | { type: "prayer"; prayers: string[]; includeSunnah: boolean; includeTasbeeh: boolean }
+  | { type: "adhkar"; session: "morning" | "evening"; showTasbeeh: boolean }
+  | { type: "reading"; bookName: string; author: string; totalPages: number; startPage: number }
+  | { type: "sport"; activity: string; timerEnabled: boolean }
+  | { type: "water"; targetMl: number; quickAmounts: number[]; calculatorEnabled: boolean }
+  | { type: "sleep"; bedtime: string; wakeTime: string; routineEnabled: boolean }
+  | { type: "general"; tracking: "count" | "minutes"; steps: string[] };
 export type NotificationKind = "success" | "warning" | "info" | "encouragement" | "ai";
 
 export interface Participant {
@@ -62,6 +75,10 @@ export interface Task {
   supportingText?: string;
   scheduledTime?: string;
   details?: Record<string, string | number | boolean | string[]>;
+  config?: TaskConfig;
+  schedule?: TaskSchedule;
+  assigneeIds?: string[];
+  archived?: boolean;
 }
 
 export interface DailyProgress {

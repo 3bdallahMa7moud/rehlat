@@ -237,7 +237,7 @@ export function AssistantConversation({ expanded = false, onClose, onToggleHisto
 }
 
 export function AIAssistantWidget() {
-  const { ai, openAi, closeAi } = useDemo();
+  const { ai, closeAi } = useDemo();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -249,23 +249,14 @@ export function AIAssistantWidget() {
     return () => window.removeEventListener("keydown", handleEscape);
   }, [ai.isOpen, closeAi]);
 
-  if (pathname === "/ai") return null;
+  if (pathname === "/ai" || !ai.isOpen) return null;
 
   return (
-    <>
-      <button type="button" className={styles.fab} aria-label="فتح مساعد رحلة التغيير" title="مساعد رحلة التغيير" onClick={openAi} aria-expanded={ai.isOpen}>
-        <span className={styles.fabLogo}><BrandLogo decorative className={styles.brandLogo} /></span>
-        <span className={styles.fabCopy}><strong>مساعدك</strong><small>جاهز لخطوتك التالية</small></span>
-        <Sparkles size={15} className={styles.fabSparkle} aria-hidden="true" />
-      </button>
-      {ai.isOpen && (
-        <div className={styles.widgetBackdrop} onMouseDown={(event) => { if (event.currentTarget === event.target) closeAi(); }}>
-          <div className={styles.widget} role="dialog" aria-modal="true" aria-label="مساعد رحلة التغيير">
-            <AssistantConversation onClose={closeAi} />
-          </div>
-        </div>
-      )}
-    </>
+    <div className={styles.widgetBackdrop} onMouseDown={(event) => { if (event.currentTarget === event.target) closeAi(); }}>
+      <div className={styles.widget} role="dialog" aria-modal="true" aria-label="مساعد رحلة التغيير">
+        <AssistantConversation onClose={closeAi} />
+      </div>
+    </div>
   );
 }
 

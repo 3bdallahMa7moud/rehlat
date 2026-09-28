@@ -212,16 +212,6 @@
   color: var(--primary);
 }
 
-.note {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin: 9px 0 0;
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .stats {
   width: min(100%, 980px);
   display: grid;
