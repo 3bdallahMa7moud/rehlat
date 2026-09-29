@@ -54,7 +54,7 @@ export function OfflineBanner() {
     return <aside className="offline-banner offline-banner-offline" role="status" aria-live="polite"><WifiOff size={17} aria-hidden="true" /><span>أنت غير متصل الآن. ستبقى تعديلاتك المحلية محفوظة.</span></aside>;
   }
   if (showReconnect) {
-    return <aside className="offline-banner offline-banner-online" role="status" aria-live="polite"><Check size={17} aria-hidden="true" /><span>عاد الاتصال. نتابع مزامنة الرحلة.</span></aside>;
+    return <aside className="offline-banner offline-banner-online" role="status" aria-live="polite"><Check size={17} aria-hidden="true" /><span>عاد الاتصال. يمكنك متابعة رحلتك.</span></aside>;
   }
   if (canInstall && !installDismissed && sessionReady && isAuthenticated && installRoutes.test(pathname)) {
     return <aside className="offline-banner offline-banner-install" role="status" aria-live="polite"><Download size={17} aria-hidden="true" /><span>ثبّت رحلة التغيير للوصول السريع من جهازك.</span><button type="button" onClick={() => void promptInstall()}>تثبيت التطبيق</button><button type="button" className="offline-banner-dismiss" aria-label="تأجيل اقتراح التثبيت أسبوعًا" onClick={dismissInstall}><X size={16} aria-hidden="true" /></button></aside>;

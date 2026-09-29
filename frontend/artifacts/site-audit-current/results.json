@@ -1,0 +1,3072 @@
+{
+  "auditedAt": "2026-09-28T22:44:19.373Z",
+  "errors": [],
+  "pages": [
+    {
+      "role": "participant",
+      "route": "/dashboard",
+      "viewport": "desktop",
+      "screenshot": "participant-dashboard-desktop.jpg",
+      "url": "/dashboard",
+      "title": "رحلة التغيير",
+      "h1": [
+        "رحلة اليوم"
+      ],
+      "headings": [
+        "خذ البداية على مهل.",
+        "مهام اليوم",
+        "مجموعة الصباح",
+        "ما يحدث الآن",
+        "المتصلون الآن",
+        "الترتيب اليوم",
+        "رسائل تشجيع"
+      ],
+      "textLength": 2066,
+      "controls": 29,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "عرض التفاصيل",
+          "width": 98,
+          "height": 19
+        },
+        {
+          "tag": "A",
+          "text": "عرض كل المهام",
+          "width": 105,
+          "height": 19
+        },
+        {
+          "tag": "A",
+          "text": "أذكار المساء",
+          "width": 83,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 36
+        },
+        {
+          "tag": "A",
+          "text": "قراءة الكتاب",
+          "width": 85,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 36
+        },
+        {
+          "tag": "A",
+          "text": "مراجعة الدروس",
+          "width": 102,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 36
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 2448,
+      "clientHeight": 900,
+      "imageCount": 1,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "الثلاثاء، ٢٩ سبتمبر رحلة اليوم أهلًا رازي، اليوم ينتظر أول خطوة منك. ابدأ يومي خيارات اليوم لم تبدأ 0 مهام مكتملة من 11 خذ البداية على مهل. بقي لك 11 مهام، وحققت 0 تقدمًا جزئيًا. اختر محطة واحدة فقط الآن. ٠% تقدم اليوم كيف تُحسب النسبة"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-desktop.jpg",
+      "url": "/tasks",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مهامي"
+      ],
+      "headings": [
+        "المحافظة على الصلوات",
+        "مهام الصباح",
+        "كل المهام"
+      ],
+      "textLength": 1544,
+      "controls": 44,
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "text": "ابدأ المهمة",
+          "width": 296,
+          "height": 35
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "ابدأ المهمة",
+          "width": 296,
+          "height": 35
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "الكل",
+          "width": 47,
+          "height": 33
+        },
+        {
+          "tag": "BUTTON",
+          "text": "الصباحية",
+          "width": 66,
+          "height": 33
+        },
+        {
+          "tag": "BUTTON",
+          "text": "قيد التنفيذ",
+          "width": 77,
+          "height": 33
+        },
+        {
+          "tag": "BUTTON",
+          "text": "الكل",
+          "width": 47,
+          "height": 33
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1891,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "مهامي تابع مهامك اليومية وابدأ تنفيذ ما عليك اليوم. 11 مهام اليوم إجمالي المحطات 0 مكتملة تم حفظها اليوم 11 متبقية خطوات يمكنك البدء بها مهام الصباح ابدأ يومك بالمهام الأساسية روتين البداية المحافظة على الصلوات الفجر والظهر والعصر مكتم"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/prayer",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-prayer-desktop.jpg",
+      "url": "/tasks/prayer",
+      "title": "رحلة التغيير",
+      "h1": [
+        "المحافظة على الصلوات"
+      ],
+      "headings": [
+        "سجّل صلاتك اليوم",
+        "السنن الرواتب",
+        "التسبيح"
+      ],
+      "textLength": 1395,
+      "controls": 21,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "كل المهام",
+          "width": 70,
+          "height": 32
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1582,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "محطة الإيمان اليومية المحافظة على الصلوات الفجر والظهر والعصر مكتملة الثلاثاء، ٢٩ سبتمبر المواعيد المعروضة إرشادية؛ راجع مواقيت مدينتك الموعد الإرشادي القادم: الفجر الفجر 02:36:46 ﴿ وَأَقِمِ الصَّلَاةَ لِذِكْرِي ﴾ تسجيل صلوات اليوم تأمل "
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/quran",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-quran-desktop.jpg",
+      "url": "/tasks/quran",
+      "title": "رحلة التغيير",
+      "h1": [
+        "القرآن الكريم"
+      ],
+      "headings": [
+        "تقدم القراءة",
+        "ورد اليوم",
+        "آخر موضع",
+        "سُورَةُ الكَهۡفِ",
+        "تفسير الآية"
+      ],
+      "textLength": 2768,
+      "controls": 25,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 228,
+          "height": 21
+        },
+        {
+          "tag": "A",
+          "text": "الرئيسية",
+          "width": 35,
+          "height": 18
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1452,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "القرآن الكريم صفحة القراءة والتدبر والتفسير بحث تقدم القراءة قراءة اليوم 0 من 8 صفحات 0% الهدف اليومي متبقي 8 صفحات ورد اليوم سورة الكهف تابع من الآية 1 0% متابعة القراءة آخر موضع سورة الكهف الآية 1 · موضعك المحفوظ الانتقال إلى آخر مو"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/adhkar",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-adhkar-desktop.jpg",
+      "url": "/tasks/adhkar",
+      "title": "رحلة التغيير",
+      "h1": [
+        "أذكار الصباح"
+      ],
+      "headings": [
+        "اقرأ على راحتك",
+        "تسبيح بهدوء",
+        "محتويات الورد"
+      ],
+      "textLength": 1060,
+      "controls": 30,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "كل المهام",
+          "width": 78,
+          "height": 19
+        },
+        {
+          "tag": "BUTTON",
+          "text": "−",
+          "width": 28,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "+",
+          "width": 28,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "ذكر واحد",
+          "width": 77,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "كل الأذكار",
+          "width": 83,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 24,
+          "height": 10
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 10,
+          "height": 10
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 10,
+          "height": 10
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1657,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "كل المهام / أذكار الصباح الثلاثاء، ٢٩ سبتمبر بداية اليوم أذكار الصباح ابدأ صباحك بسكينة. اقرأ ذكرًا بعد ذكر، وتابع ما أنجزته دون استعجال. ابدأ القراءة يحفظ تقدمك تلقائيًا 0% من الورد 0 من 6 أذكار مكتملة أذكار الصباح 0% مكتمل أذكار المسا"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/adhkar-evening",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-adhkar-evening-desktop.jpg",
+      "url": "/tasks/adhkar-evening",
+      "title": "رحلة التغيير",
+      "h1": [
+        "أذكار المساء"
+      ],
+      "headings": [
+        "اقرأ على راحتك",
+        "تسبيح بهدوء",
+        "محتويات الورد"
+      ],
+      "textLength": 1039,
+      "controls": 30,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "كل المهام",
+          "width": 78,
+          "height": 19
+        },
+        {
+          "tag": "BUTTON",
+          "text": "−",
+          "width": 28,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "+",
+          "width": 28,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "ذكر واحد",
+          "width": 77,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "كل الأذكار",
+          "width": 83,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 24,
+          "height": 10
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 10,
+          "height": 10
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 10,
+          "height": 10
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1657,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "كل المهام / أذكار المساء الثلاثاء، ٢٩ سبتمبر محطة المساء أذكار المساء اختم يومك على مهل. اقرأ ذكرًا بعد ذكر، وتابع ما أنجزته دون استعجال. ابدأ القراءة يحفظ تقدمك تلقائيًا 0% من الورد 0 من 6 أذكار مكتملة أذكار الصباح 0% مكتمل أذكار المسا"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/reading",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-reading-desktop.jpg",
+      "url": "/tasks/reading",
+      "title": "رحلة التغيير",
+      "h1": [
+        "العادات الذرية"
+      ],
+      "headings": [
+        "جاهز للقراءة؟"
+      ],
+      "textLength": 438,
+      "controls": 5,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 1,
+          "height": 1
+        },
+        {
+          "tag": "A",
+          "text": "كل المهام",
+          "width": 89,
+          "height": 23
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1168,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "كل المهام قراءة الكتاب مهمة اليوم العادات الذرية أضف اسم المؤلف من إعدادات الكتاب 0 أيام إعدادات الكتاب جلسة القراءة جاهز للقراءة؟ جاهز ابدأ من الصفحة 1 جلسة قصيرة ومنتظمة أفضل من انتظار الوقت المثالي. ابدأ جلسة القراءة هدف اليوم 0 من 2"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/lesson-review",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-lesson-review-desktop.jpg",
+      "url": "/tasks/lesson-review",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مراجعة الدروس"
+      ],
+      "headings": [
+        "مراجعة الدروس",
+        "وقت المهمة",
+        "تقدم اليوم",
+        "الوقت المسجل"
+      ],
+      "textLength": 767,
+      "controls": 10,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "مراجعة الدروس",
+          "width": 102,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 36
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1502,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "تطوير الذات مراجعة الدروس راجع درس اليوم، ثم سجّل وقت المراجعة من العداد. لم تبدأ دقائق المراجعة مراجعة درس اليوم 0 / 30 دقيقة مراجعة الدروس ابدأ المراجعة وسجّل الدقائق بالعداد أو يدويًا. 00:00 وقت المهمة ابدأ المراجعة إنهاء المهمة تسج"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/sport",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-sport-desktop.jpg",
+      "url": "/tasks/sport",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مشي سريع"
+      ],
+      "headings": [
+        "مشي سريع",
+        "وقت المهمة",
+        "تقدم اليوم",
+        "الوقت المسجل"
+      ],
+      "textLength": 702,
+      "controls": 10,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "مشي سريع",
+          "width": 75,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 36
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1502,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "رياضة مشي سريع ابدأ نشاطك وسجّل مدته من العداد أو بإدخال الدقائق. لم تبدأ المدة المستهدفة الممشى القريب 0 / 30 دقيقة مشي سريع ابدأ العداد الآن، وأوقفه لحفظ مدة نشاطك. 00:00 وقت النشاط ابدأ العداد تصفير النشاط هدف اليوم: 30 دقيقة. احفظ"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/water",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-water-desktop.jpg",
+      "url": "/tasks/water",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مياهك اليوم"
+      ],
+      "headings": [
+        "كل كوب يقرّبك",
+        "سجّل كوبًا",
+        "احسب احتياج جسمك",
+        "كيف تعرف أنك على المسار الصحيح؟"
+      ],
+      "textLength": 1017,
+      "controls": 9,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 231,
+          "height": 36
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1162,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "العناية اليومية مياهك اليوم اعرف احتياجك التقريبي، وسجّل كل كوب في ثوانٍ. كل المهام تقدم اليوم كل كوب يقرّبك باقي ٢٫٤٥ لتر لتكمل هدفك. 0% 0% من هدفك شربت ٠ مل 0 كوب تقريبًا ناقصك ٢٫٤٥ لتر 10 أكواب بحجم 250 مل هدفك ٢٫٤٥ لتر 10 أكواب تقري"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/skill",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-skill-desktop.jpg",
+      "url": "/tasks/skill",
+      "title": "رحلة التغيير",
+      "h1": [
+        "تطبيق المهارة"
+      ],
+      "headings": [
+        "تطبيق المهارة",
+        "وقت المهمة",
+        "تقدم اليوم",
+        "الوقت المسجل"
+      ],
+      "textLength": 752,
+      "controls": 10,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "تطبيق المهارة",
+          "width": 96,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 36
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1502,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "مهارة تطبيق المهارة خصص وقتًا للتدريب واحفظ الدقائق التي أنجزتها. لم تبدأ التركيز المستهدف دورة التصميم 0 / 45 دقيقة تطبيق المهارة ابدأ وقت التدريب أو سجّل ما أنجزته، ثم احفظ تقدمك. 00:00 وقت المهمة ابدأ التدريب إنهاء المهمة تسجيل الدق"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/family",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-family-desktop.jpg",
+      "url": "/tasks/family",
+      "title": "رحلة التغيير",
+      "h1": [
+        "جلسة مع الأهل"
+      ],
+      "headings": [
+        "جلسة مع الأهل",
+        "وقت المهمة",
+        "تقدم اليوم",
+        "الوقت المسجل"
+      ],
+      "textLength": 676,
+      "controls": 9,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "جلسة مع الأهل",
+          "width": 102,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 36
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1360,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "أهل وبيت جلسة مع الأهل اقضِ وقتًا حاضرًا مع أهلك، ثم سجّل مدة الجلسة. لم تبدأ الوقت المستهدف بدون هاتف 0 / 20 دقيقة جلسة مع الأهل اقضِ وقتًا حاضرًا مع أهلك، ثم سجّل الدقائق التي قضيتها معهم. الدقائق المنجزة ملاحظات اليوم وقت المهمة ال"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/sleep",
+      "viewport": "desktop",
+      "screenshot": "participant-tasks-sleep-desktop.jpg",
+      "url": "/tasks/sleep",
+      "title": "رحلة التغيير",
+      "h1": [
+        "نوم هادئ"
+      ],
+      "headings": [
+        "ليلة هادئة تبدأ بخطوة",
+        "إيقاع آخر 7 ليالٍ",
+        "روتين ما قبل النوم"
+      ],
+      "textLength": 852,
+      "controls": 7,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1521,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "محطة المساء نوم هادئ جهّز ليلتك وسجّل نومك في ثوانٍ. الثلاثاء، ٢٩ سبتمبر كل المهام ✦ ✧ · جاهز لليلة هادئة ليلة هادئة تبدأ بخطوة هدف الليلة ليس الكمال؛ فقط امنح جسمك وقتًا كافيًا للراحة. موعد النوم ١٠:٣٠ م ✦ 0 س 00 د من هدف 8 ساعات ✦ الاس"
+    },
+    {
+      "role": "participant",
+      "route": "/focus",
+      "viewport": "desktop",
+      "screenshot": "participant-focus-desktop.jpg",
+      "url": "/focus",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التركيز"
+      ],
+      "headings": [
+        "مدة الجلسة"
+      ],
+      "textLength": 192,
+      "controls": 5,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1098,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "منطقة هادئة التركيز ابدأ جلسة هادئة للعمل على أهدافك مدة الجلسة 25 دقيقة 45 دقيقة 60 دقيقة بدون مدة 25:00 جاهز للتركيز ابدأ التركيز أطول جلسة 0 د عدد الجلسات 0 جلسات إجمالي التركيز اليوم 0 د"
+    },
+    {
+      "role": "participant",
+      "route": "/streaks",
+      "viewport": "desktop",
+      "screenshot": "participant-streaks-desktop.jpg",
+      "url": "/streaks",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الاستريك"
+      ],
+      "headings": [
+        "0 يومًا متتاليًا",
+        "شهر سبتمبر 2026",
+        "استمرارية المهام"
+      ],
+      "textLength": 2308,
+      "controls": 5,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 2026,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "متابعة العادات اليومية الاستريك تابع استمراريتك اليومية واستمرارية كل مهمة، وحافظ على الإيقاع الذي يناسب رحلتك. استمراريتك الحالية 0 يومًا متتاليًا أحسنت، واصل على هذا الإيقاع الرائع! أطول استمرارية 0 يومًا حالة اليوم قيد المتابعة اله"
+    },
+    {
+      "role": "participant",
+      "route": "/competition",
+      "viewport": "desktop",
+      "screenshot": "participant-competition-desktop.jpg",
+      "url": "/competition",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الترتيب"
+      ],
+      "headings": [
+        "كل المشاركين"
+      ],
+      "textLength": 371,
+      "controls": 0,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1098,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "المجموعة الترتيب مقارنة مشجعة تركّز على التقدم والاستمرارية. 1 نو نورة 960 نقطة 18 أيام 2 سر سارة 880 نقطة 9 أيام 3 رز رازي 845 نقطة 12 أيام كل المشاركين يُحدّث الترتيب تلقائيًا من تقدم المجموعة المحفوظ. 1 نو نورة 82% من رحلة اليوم 960"
+    },
+    {
+      "role": "participant",
+      "route": "/honors",
+      "viewport": "desktop",
+      "screenshot": "participant-honors-desktop.jpg",
+      "url": "/honors",
+      "title": "رحلة التغيير",
+      "h1": [
+        "لوحة الشرف"
+      ],
+      "headings": [
+        "بداية الرحلة",
+        "ألقابك",
+        "الترتيب العام"
+      ],
+      "textLength": 948,
+      "controls": 1,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "عرض الترتيب الكامل",
+          "width": 125,
+          "height": 19
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1683,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "تميّز المجموعة لوحة الشرف احتفاء هادئ بالاستمرارية والإنجازات المسجلة فعليًا. لقبك الحالي بداية الرحلة 0 يومًا متتالية · أفضل سلسلة 0 يومًا المحطة التالية: 3 يومًا 0 / 3 يومًا ألقابك ألقاب تعكس استمراريتك وتقدمك الحقيقي. حارس الزمرد "
+    },
+    {
+      "role": "participant",
+      "route": "/analytics",
+      "viewport": "desktop",
+      "screenshot": "participant-analytics-desktop.jpg",
+      "url": "/analytics",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التحليلات"
+      ],
+      "headings": [
+        "صورة تقدمك",
+        "ابدأ بإشارة صغيرة اليوم",
+        "اتجاه التقدم",
+        "توزيع الحالات"
+      ],
+      "textLength": 764,
+      "controls": 5,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1229,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "افهم نمط تقدمك التحليلات راقب اتجاهك وإيقاع أيامك، ثم اختر خطوة عملية تناسب ما سجّلته فعلًا. العودة لمهام اليوم الفترة المعروضة صورة تقدمك 1 يوم ضمن التحليل آخر 7 أيام آخر 30 يومًا كل الأيام متوسط التقدم 0% متوسط الأيام المعروضة إجمالي"
+    },
+    {
+      "role": "participant",
+      "route": "/reports",
+      "viewport": "desktop",
+      "screenshot": "participant-reports-desktop.jpg",
+      "url": "/reports",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التقارير"
+      ],
+      "headings": [
+        "اختيار الفترة والفلاتر",
+        "تقرير رحلة التغيير",
+        "ملخص الأداء",
+        "ملخص المهام والحالات",
+        "أبرز النتائج",
+        "النشاط المسجل في الفترة"
+      ],
+      "textLength": 1552,
+      "controls": 9,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1595,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "ملخص الفترة التقارير ملخص منظم للفترة المختارة، مبني على نشاطك المحفوظ وقابل للمراجعة والطباعة. مهام اليوم حفظ PDF تصدير Excel نطاق العرض اختيار الفترة والفلاتر يتحدث الملخص وكل الأقسام عند تغيير أي خيار. اليوم آخر 7 أيام الشهر الحالي "
+    },
+    {
+      "role": "participant",
+      "route": "/history",
+      "viewport": "desktop",
+      "screenshot": "participant-history-desktop.jpg",
+      "url": "/history",
+      "title": "رحلة التغيير",
+      "h1": [
+        "السجل"
+      ],
+      "headings": [
+        "صورتك السريعة",
+        "البداية التالية هي الأهم",
+        "أيام رحلتك"
+      ],
+      "textLength": 604,
+      "controls": 6,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1098,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "رحلتك يومًا بيوم السجل راجع ما أنجزته في كل يوم، وافهم أين وصلت قبل أن تختار خطوتك التالية. العودة لمهام اليوم ملخص الفترة صورتك السريعة آخر 7 أيام متوسط التقدم 0% عبر 1 يوم إجمالي الوقت المسجل ١ س ٥ د في الفترة المعروضة الأيام المكتملة "
+    },
+    {
+      "role": "participant",
+      "route": "/ai",
+      "viewport": "desktop",
+      "screenshot": "participant-ai-desktop.jpg",
+      "url": "/ai",
+      "title": "مساعد رحلة التغيير | رحلة التغيير",
+      "h1": [
+        "المحادثات"
+      ],
+      "headings": [],
+      "textLength": 387,
+      "controls": 11,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 195,
+          "height": 18
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 29,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "محادثة جديدة",
+          "width": 92,
+          "height": 35
+        },
+        {
+          "tag": "BUTTON",
+          "text": "نسخ",
+          "width": 36,
+          "height": 20
+        },
+        {
+          "tag": "BUTTON",
+          "text": "رتّب لي ما تبقّى من اليوم",
+          "width": 131,
+          "height": 32
+        },
+        {
+          "tag": "BUTTON",
+          "text": "ساعدني أبدأ بأصغر خطوة",
+          "width": 134,
+          "height": 32
+        },
+        {
+          "tag": "BUTTON",
+          "text": "كيف أحافظ على سلسلتي؟",
+          "width": 140,
+          "height": 32
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 38,
+          "height": 38
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 972,
+      "clientHeight": 900,
+      "imageCount": 2,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "المحادثات 1 محفوظة محادثة جديدة ابحث في المحادثات محادثة جديدة الآن تُحفظ محادثاتك على هذا الجهاز فقط رحلة التغيير معك في خطوتك التالية محادثة جديدة أهلًا يا رازي، يومك ماشي بشكل جميل. تحب نرتب المهمة التالية؟ ٢٢ سبتمبر في ١٢:٥٥ م نسخ ج"
+    },
+    {
+      "role": "participant",
+      "route": "/messages",
+      "viewport": "desktop",
+      "screenshot": "participant-messages-desktop.jpg",
+      "url": "/messages",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الرسائل"
+      ],
+      "headings": [
+        "نورة"
+      ],
+      "textLength": 353,
+      "controls": 5,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1098,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "تشجيع متبادل الرسائل مساحة هادئة لرسائل الدعم، أجمل وأوضح من إشعار عابر. الوارد 2 رسائل نو نورة كفو عليك 🔥 باقي لك مهمة واحدة ونقفل اليوم كامل. ٢٢ سبتمبر في ١٢:٤٨ م مش المشرف ثباتك اليوم جميل، خذ الخطوة التالية بهدوء. ٢١ سبتمبر في ٩:٠٠ "
+    },
+    {
+      "role": "participant",
+      "route": "/notifications",
+      "viewport": "desktop",
+      "screenshot": "participant-notifications-desktop.jpg",
+      "url": "/notifications",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الإشعارات"
+      ],
+      "headings": [],
+      "textLength": 404,
+      "controls": 7,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1098,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "مركز المتابعة الإشعارات تنبيهات مهمة تبقى واضحة، وتحديثات خفيفة لا تقاطع يومك. تحديد الكل كمقروء 3 كل الإشعارات 2 غير مقروءة 1 تحتاج انتباهًا 1 إنجازات الكل غير المقروء المهم حافظ على سلسلتك مهم باقي مهمة واحدة حتى تسجل اليوم بنجاح. ٢٢"
+    },
+    {
+      "role": "participant",
+      "route": "/settings",
+      "viewport": "desktop",
+      "screenshot": "participant-settings-desktop.jpg",
+      "url": "/settings",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الإعدادات"
+      ],
+      "headings": [
+        "رازي"
+      ],
+      "textLength": 439,
+      "controls": 8,
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 48,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 48,
+          "height": 28
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1098,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "تفضيلاتك الإعدادات تحكم في مظهر التجربة وصوتها وحركتها من مكان واحد. رز الحساب الحالي رازي تُحفظ التفضيلات والرمز لهذا الحساب على هذا الجهاز. تسجيل الخروج المظهر ألوان متوازنة مشتقة من هوية الشعار. الوضع الفاتح أصوات التفاعل مؤثرات "
+    },
+    {
+      "role": "participant",
+      "route": "/quran",
+      "viewport": "desktop",
+      "screenshot": "participant-quran-desktop.jpg",
+      "url": "/quran",
+      "title": "رحلة التغيير",
+      "h1": [
+        "القرآن الكريم"
+      ],
+      "headings": [
+        "تقدم القراءة",
+        "ورد اليوم",
+        "آخر موضع",
+        "سُورَةُ الكَهۡفِ",
+        "تفسير الآية"
+      ],
+      "textLength": 2768,
+      "controls": 25,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 228,
+          "height": 21
+        },
+        {
+          "tag": "A",
+          "text": "الرئيسية",
+          "width": 35,
+          "height": 18
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1454,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "القرآن الكريم صفحة القراءة والتدبر والتفسير بحث تقدم القراءة قراءة اليوم 0 من 8 صفحات 0% الهدف اليومي متبقي 8 صفحات ورد اليوم سورة الكهف تابع من الآية 1 0% متابعة القراءة آخر موضع سورة الكهف الآية 1 · موضعك المحفوظ الانتقال إلى آخر مو"
+    },
+    {
+      "role": "participant",
+      "route": "/dashboard",
+      "viewport": "mobile",
+      "screenshot": "participant-dashboard-mobile.jpg",
+      "url": "/dashboard",
+      "title": "رحلة التغيير",
+      "h1": [
+        "رحلة اليوم"
+      ],
+      "headings": [
+        "خذ البداية على مهل.",
+        "مهام اليوم",
+        "مجموعة الصباح",
+        "ما يحدث الآن",
+        "المتصلون الآن",
+        "الترتيب اليوم",
+        "رسائل تشجيع"
+      ],
+      "textLength": 1762,
+      "controls": 27,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "عرض التفاصيل",
+          "width": 98,
+          "height": 19
+        },
+        {
+          "tag": "A",
+          "text": "عرض كل المهام",
+          "width": 105,
+          "height": 19
+        },
+        {
+          "tag": "A",
+          "text": "أذكار المساء",
+          "width": 83,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 44
+        },
+        {
+          "tag": "A",
+          "text": "قراءة الكتاب",
+          "width": 85,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 44
+        },
+        {
+          "tag": "A",
+          "text": "مراجعة الدروس",
+          "width": 102,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 44
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 4067,
+      "clientHeight": 844,
+      "imageCount": 1,
+      "brokenImages": 1,
+      "hasEmptyState": false,
+      "bodyExcerpt": "الثلاثاء، ٢٩ سبتمبر رحلة اليوم أهلًا رازي، اليوم ينتظر أول خطوة منك. ابدأ يومي لم تبدأ 0 مهام مكتملة من 11 خذ البداية على مهل. بقي لك 11 مهام، وحققت 0 تقدمًا جزئيًا. اختر محطة واحدة فقط الآن. ٠% تقدم اليوم كيف تُحسب النسبة؟ الوقت الفعل"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-mobile.jpg",
+      "url": "/tasks",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مهامي"
+      ],
+      "headings": [
+        "المحافظة على الصلوات",
+        "مهام الصباح",
+        "كل المهام"
+      ],
+      "textLength": 1161,
+      "controls": 23,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3167,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "مهامي تابع مهامك اليومية وابدأ تنفيذ ما عليك اليوم. 11 مهام اليوم 0 مكتملة 11 متبقية خطوتك التالية 0% من اليوم دين المحافظة على الصلوات الفجر والظهر والعصر مكتملة الصلوات المكتملة 0 / 5 صلوات ابدأ المهمة 11 مهام متبقية البحث عن مهمة الف"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/prayer",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-prayer-mobile.jpg",
+      "url": "/tasks/prayer",
+      "title": "رحلة التغيير",
+      "h1": [
+        "المحافظة على الصلوات"
+      ],
+      "headings": [
+        "سجّل صلاتك اليوم",
+        "السنن الرواتب",
+        "التسبيح"
+      ],
+      "textLength": 1367,
+      "controls": 21,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "كل المهام",
+          "width": 70,
+          "height": 32
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 34,
+          "height": 31
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3800,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "محطة الإيمان اليومية المحافظة على الصلوات الفجر والظهر والعصر مكتملة الثلاثاء، ٢٩ سبتمبر المواعيد المعروضة إرشادية؛ راجع مواقيت مدينتك الموعد الإرشادي القادم: الفجر الفجر 02:36:24 ﴿ وَأَقِمِ الصَّلَاةَ لِذِكْرِي ﴾ تسجيل صلوات اليوم تأمل "
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/quran",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-quran-mobile.jpg",
+      "url": "/tasks/quran",
+      "title": "رحلة التغيير",
+      "h1": [
+        "القرآن الكريم"
+      ],
+      "headings": [
+        "تقدم القراءة",
+        "ورد اليوم",
+        "آخر موضع",
+        "سُورَةُ الكَهۡفِ",
+        "تفسير الآية"
+      ],
+      "textLength": 2754,
+      "controls": 25,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 234,
+          "height": 28
+        },
+        {
+          "tag": "A",
+          "text": "الرئيسية",
+          "width": 35,
+          "height": 18
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3023,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "القرآن الكريم صفحة القراءة والتدبر والتفسير بحث تقدم القراءة قراءة اليوم 0 من 8 صفحات 0% الهدف اليومي متبقي 8 صفحات ورد اليوم سورة الكهف تابع من الآية 1 0% متابعة القراءة آخر موضع سورة الكهف الآية 1 · موضعك المحفوظ الانتقال إلى آخر مو"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/adhkar",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-adhkar-mobile.jpg",
+      "url": "/tasks/adhkar",
+      "title": "رحلة التغيير",
+      "h1": [
+        "أذكار الصباح"
+      ],
+      "headings": [
+        "اقرأ على راحتك",
+        "تسبيح بهدوء",
+        "محتويات الورد"
+      ],
+      "textLength": 781,
+      "controls": 24,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "كل المهام",
+          "width": 78,
+          "height": 19
+        },
+        {
+          "tag": "BUTTON",
+          "text": "−",
+          "width": 28,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "+",
+          "width": 28,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "ذكر واحد",
+          "width": 77,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "كل الأذكار",
+          "width": 83,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 24,
+          "height": 10
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 10,
+          "height": 10
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 10,
+          "height": 10
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 2133,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "كل المهام / أذكار الصباح بداية اليوم أذكار الصباح ابدأ صباحك بسكينة. اقرأ ذكرًا بعد ذكر، وتابع ما أنجزته دون استعجال. ابدأ القراءة يحفظ تقدمك تلقائيًا 0% من الورد 0 من 6 أذكار مكتملة أذكار الصباح 0% مكتمل أذكار المساء 0% مكتمل ورد الصبا"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/adhkar-evening",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-adhkar-evening-mobile.jpg",
+      "url": "/tasks/adhkar-evening",
+      "title": "رحلة التغيير",
+      "h1": [
+        "أذكار المساء"
+      ],
+      "headings": [
+        "اقرأ على راحتك",
+        "تسبيح بهدوء",
+        "محتويات الورد"
+      ],
+      "textLength": 781,
+      "controls": 24,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "كل المهام",
+          "width": 78,
+          "height": 19
+        },
+        {
+          "tag": "BUTTON",
+          "text": "−",
+          "width": 28,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "+",
+          "width": 28,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "ذكر واحد",
+          "width": 77,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "كل الأذكار",
+          "width": 83,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 24,
+          "height": 10
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 10,
+          "height": 10
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 10,
+          "height": 10
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 2133,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "كل المهام / أذكار المساء محطة المساء أذكار المساء اختم يومك على مهل. اقرأ ذكرًا بعد ذكر، وتابع ما أنجزته دون استعجال. ابدأ القراءة يحفظ تقدمك تلقائيًا 0% من الورد 0 من 6 أذكار مكتملة أذكار الصباح 0% مكتمل أذكار المساء 0% مكتمل ورد المسا"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/reading",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-reading-mobile.jpg",
+      "url": "/tasks/reading",
+      "title": "رحلة التغيير",
+      "h1": [
+        "العادات الذرية"
+      ],
+      "headings": [
+        "جاهز للقراءة؟"
+      ],
+      "textLength": 438,
+      "controls": 5,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 1,
+          "height": 1
+        },
+        {
+          "tag": "A",
+          "text": "كل المهام",
+          "width": 89,
+          "height": 23
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1697,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "كل المهام قراءة الكتاب مهمة اليوم العادات الذرية أضف اسم المؤلف من إعدادات الكتاب 0 أيام إعدادات الكتاب جلسة القراءة جاهز للقراءة؟ جاهز ابدأ من الصفحة 1 جلسة قصيرة ومنتظمة أفضل من انتظار الوقت المثالي. ابدأ جلسة القراءة هدف اليوم 0 من 2"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/lesson-review",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-lesson-review-mobile.jpg",
+      "url": "/tasks/lesson-review",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مراجعة الدروس"
+      ],
+      "headings": [
+        "مراجعة الدروس",
+        "وقت المهمة",
+        "تقدم اليوم",
+        "الوقت المسجل"
+      ],
+      "textLength": 767,
+      "controls": 10,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "مراجعة الدروس",
+          "width": 102,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 44
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1994,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "تطوير الذات مراجعة الدروس راجع درس اليوم، ثم سجّل وقت المراجعة من العداد. لم تبدأ دقائق المراجعة مراجعة درس اليوم 0 / 30 دقيقة مراجعة الدروس ابدأ المراجعة وسجّل الدقائق بالعداد أو يدويًا. 00:00 وقت المهمة ابدأ المراجعة إنهاء المهمة تسج"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/sport",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-sport-mobile.jpg",
+      "url": "/tasks/sport",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مشي سريع"
+      ],
+      "headings": [
+        "مشي سريع",
+        "وقت المهمة",
+        "تقدم اليوم",
+        "الوقت المسجل"
+      ],
+      "textLength": 702,
+      "controls": 10,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "مشي سريع",
+          "width": 75,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 44
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1994,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "رياضة مشي سريع ابدأ نشاطك وسجّل مدته من العداد أو بإدخال الدقائق. لم تبدأ المدة المستهدفة الممشى القريب 0 / 30 دقيقة مشي سريع ابدأ العداد الآن، وأوقفه لحفظ مدة نشاطك. 00:00 وقت النشاط ابدأ العداد تصفير النشاط هدف اليوم: 30 دقيقة. احفظ"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/water",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-water-mobile.jpg",
+      "url": "/tasks/water",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مياهك اليوم"
+      ],
+      "headings": [
+        "كل كوب يقرّبك",
+        "سجّل كوبًا",
+        "احسب احتياج جسمك",
+        "كيف تعرف أنك على المسار الصحيح؟"
+      ],
+      "textLength": 1001,
+      "controls": 9,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 2029,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "العناية اليومية مياهك اليوم اعرف احتياجك التقريبي، وسجّل كل كوب في ثوانٍ. كل المهام تقدم اليوم كل كوب يقرّبك باقي ٢٫٤٥ لتر لتكمل هدفك. 0% 0% من هدفك شربت ٠ مل 0 كوب تقريبًا ناقصك ٢٫٤٥ لتر 10 أكواب بحجم 250 مل هدفك ٢٫٤٥ لتر 10 أكواب تقري"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/skill",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-skill-mobile.jpg",
+      "url": "/tasks/skill",
+      "title": "رحلة التغيير",
+      "h1": [
+        "تطبيق المهارة"
+      ],
+      "headings": [
+        "تطبيق المهارة",
+        "وقت المهمة",
+        "تقدم اليوم",
+        "الوقت المسجل"
+      ],
+      "textLength": 752,
+      "controls": 10,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "تطبيق المهارة",
+          "width": 96,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 44
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1973,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "مهارة تطبيق المهارة خصص وقتًا للتدريب واحفظ الدقائق التي أنجزتها. لم تبدأ التركيز المستهدف دورة التصميم 0 / 45 دقيقة تطبيق المهارة ابدأ وقت التدريب أو سجّل ما أنجزته، ثم احفظ تقدمك. 00:00 وقت المهمة ابدأ التدريب إنهاء المهمة تسجيل الدق"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/family",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-family-mobile.jpg",
+      "url": "/tasks/family",
+      "title": "رحلة التغيير",
+      "h1": [
+        "جلسة مع الأهل"
+      ],
+      "headings": [
+        "جلسة مع الأهل",
+        "وقت المهمة",
+        "تقدم اليوم",
+        "الوقت المسجل"
+      ],
+      "textLength": 676,
+      "controls": 9,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "جلسة مع الأهل",
+          "width": 102,
+          "height": 29
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 36,
+          "height": 44
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1896,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "أهل وبيت جلسة مع الأهل اقضِ وقتًا حاضرًا مع أهلك، ثم سجّل مدة الجلسة. لم تبدأ الوقت المستهدف بدون هاتف 0 / 20 دقيقة جلسة مع الأهل اقضِ وقتًا حاضرًا مع أهلك، ثم سجّل الدقائق التي قضيتها معهم. الدقائق المنجزة ملاحظات اليوم وقت المهمة ال"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/sleep",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-sleep-mobile.jpg",
+      "url": "/tasks/sleep",
+      "title": "رحلة التغيير",
+      "h1": [
+        "نوم هادئ"
+      ],
+      "headings": [
+        "ليلة هادئة تبدأ بخطوة",
+        "إيقاع آخر 7 ليالٍ",
+        "روتين ما قبل النوم"
+      ],
+      "textLength": 849,
+      "controls": 7,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 2224,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "محطة المساء نوم هادئ جهّز ليلتك وسجّل نومك في ثوانٍ. الثلاثاء، ٢٩ سبتمبر كل المهام ✦ ✧ · جاهز لليلة هادئة ليلة هادئة تبدأ بخطوة هدف الليلة ليس الكمال؛ فقط امنح جسمك وقتًا كافيًا للراحة. موعد النوم ١٠:٣٠ م 0 س 00 د من هدف 8 ساعات الاستيقا"
+    },
+    {
+      "role": "participant",
+      "route": "/focus",
+      "viewport": "mobile",
+      "screenshot": "participant-focus-mobile.jpg",
+      "url": "/focus",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التركيز"
+      ],
+      "headings": [
+        "مدة الجلسة"
+      ],
+      "textLength": 192,
+      "controls": 5,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1226,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "منطقة هادئة التركيز ابدأ جلسة هادئة للعمل على أهدافك مدة الجلسة 25 دقيقة 45 دقيقة 60 دقيقة بدون مدة 25:00 جاهز للتركيز ابدأ التركيز أطول جلسة 0 د عدد الجلسات 0 جلسات إجمالي التركيز اليوم 0 د"
+    },
+    {
+      "role": "participant",
+      "route": "/streaks",
+      "viewport": "mobile",
+      "screenshot": "participant-streaks-mobile.jpg",
+      "url": "/streaks",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الاستريك"
+      ],
+      "headings": [
+        "0 يومًا متتاليًا",
+        "شهر سبتمبر 2026",
+        "استمرارية المهام"
+      ],
+      "textLength": 2308,
+      "controls": 5,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3913,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "متابعة العادات اليومية الاستريك تابع استمراريتك اليومية واستمرارية كل مهمة، وحافظ على الإيقاع الذي يناسب رحلتك. استمراريتك الحالية 0 يومًا متتاليًا أحسنت، واصل على هذا الإيقاع الرائع! أطول استمرارية 0 يومًا حالة اليوم قيد المتابعة اله"
+    },
+    {
+      "role": "participant",
+      "route": "/competition",
+      "viewport": "mobile",
+      "screenshot": "participant-competition-mobile.jpg",
+      "url": "/competition",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الترتيب"
+      ],
+      "headings": [
+        "كل المشاركين"
+      ],
+      "textLength": 371,
+      "controls": 0,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1450,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "المجموعة الترتيب مقارنة مشجعة تركّز على التقدم والاستمرارية. 1 نو نورة 960 نقطة 18 أيام 2 سر سارة 880 نقطة 9 أيام 3 رز رازي 845 نقطة 12 أيام كل المشاركين يُحدّث الترتيب تلقائيًا من تقدم المجموعة المحفوظ. 1 نو نورة 82% من رحلة اليوم 960"
+    },
+    {
+      "role": "participant",
+      "route": "/honors",
+      "viewport": "mobile",
+      "screenshot": "participant-honors-mobile.jpg",
+      "url": "/honors",
+      "title": "رحلة التغيير",
+      "h1": [
+        "لوحة الشرف"
+      ],
+      "headings": [
+        "بداية الرحلة",
+        "ألقابك",
+        "الترتيب العام"
+      ],
+      "textLength": 888,
+      "controls": 1,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "عرض الترتيب الكامل",
+          "width": 125,
+          "height": 19
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1999,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "تميّز المجموعة لوحة الشرف احتفاء هادئ بالاستمرارية والإنجازات المسجلة فعليًا. لقبك الحالي بداية الرحلة 0 يومًا متتالية · أفضل سلسلة 0 يومًا المحطة التالية: 3 يومًا 0 / 3 يومًا ألقابك ألقاب تعكس استمراريتك وتقدمك الحقيقي. حارس الزمرد "
+    },
+    {
+      "role": "participant",
+      "route": "/analytics",
+      "viewport": "mobile",
+      "screenshot": "participant-analytics-mobile.jpg",
+      "url": "/analytics",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التحليلات"
+      ],
+      "headings": [
+        "صورة تقدمك",
+        "ابدأ بإشارة صغيرة اليوم",
+        "اتجاه التقدم",
+        "توزيع الحالات"
+      ],
+      "textLength": 764,
+      "controls": 5,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 2152,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "افهم نمط تقدمك التحليلات راقب اتجاهك وإيقاع أيامك، ثم اختر خطوة عملية تناسب ما سجّلته فعلًا. العودة لمهام اليوم الفترة المعروضة صورة تقدمك 1 يوم ضمن التحليل آخر 7 أيام آخر 30 يومًا كل الأيام متوسط التقدم 0% متوسط الأيام المعروضة إجمالي"
+    },
+    {
+      "role": "participant",
+      "route": "/reports",
+      "viewport": "mobile",
+      "screenshot": "participant-reports-mobile.jpg",
+      "url": "/reports",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التقارير"
+      ],
+      "headings": [
+        "اختيار الفترة والفلاتر",
+        "تقرير رحلة التغيير",
+        "ملخص الأداء",
+        "ملخص المهام والحالات",
+        "أبرز النتائج",
+        "النشاط المسجل في الفترة"
+      ],
+      "textLength": 1552,
+      "controls": 9,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3067,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "ملخص الفترة التقارير ملخص منظم للفترة المختارة، مبني على نشاطك المحفوظ وقابل للمراجعة والطباعة. مهام اليوم حفظ PDF تصدير Excel نطاق العرض اختيار الفترة والفلاتر يتحدث الملخص وكل الأقسام عند تغيير أي خيار. اليوم آخر 7 أيام الشهر الحالي "
+    },
+    {
+      "role": "participant",
+      "route": "/history",
+      "viewport": "mobile",
+      "screenshot": "participant-history-mobile.jpg",
+      "url": "/history",
+      "title": "رحلة التغيير",
+      "h1": [
+        "السجل"
+      ],
+      "headings": [
+        "صورتك السريعة",
+        "البداية التالية هي الأهم",
+        "أيام رحلتك"
+      ],
+      "textLength": 604,
+      "controls": 6,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1561,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "رحلتك يومًا بيوم السجل راجع ما أنجزته في كل يوم، وافهم أين وصلت قبل أن تختار خطوتك التالية. العودة لمهام اليوم ملخص الفترة صورتك السريعة آخر 7 أيام متوسط التقدم 0% عبر 1 يوم إجمالي الوقت المسجل ١ س ٥ د في الفترة المعروضة الأيام المكتملة "
+    },
+    {
+      "role": "participant",
+      "route": "/ai",
+      "viewport": "mobile",
+      "screenshot": "participant-ai-mobile.jpg",
+      "url": "/ai",
+      "title": "مساعد رحلة التغيير | رحلة التغيير",
+      "h1": [
+        "المحادثات"
+      ],
+      "headings": [],
+      "textLength": 217,
+      "controls": 9,
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 35,
+          "height": 35
+        },
+        {
+          "tag": "BUTTON",
+          "text": "محادثة جديدة",
+          "width": 35,
+          "height": 35
+        },
+        {
+          "tag": "BUTTON",
+          "text": "نسخ",
+          "width": 36,
+          "height": 20
+        },
+        {
+          "tag": "BUTTON",
+          "text": "رتّب لي ما تبقّى من اليوم",
+          "width": 131,
+          "height": 32
+        },
+        {
+          "tag": "BUTTON",
+          "text": "ساعدني أبدأ بأصغر خطوة",
+          "width": 134,
+          "height": 32
+        },
+        {
+          "tag": "BUTTON",
+          "text": "كيف أحافظ على سلسلتي؟",
+          "width": 140,
+          "height": 32
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 38,
+          "height": 38
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 922,
+      "clientHeight": 844,
+      "imageCount": 2,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "رحلة التغيير معك في خطوتك التالية أهلًا يا رازي، يومك ماشي بشكل جميل. تحب نرتب المهمة التالية؟ ٢٢ سبتمبر في ١٢:٥٥ م نسخ رتّب لي ما تبقّى من اليوم ساعدني أبدأ بأصغر خطوة كيف أحافظ على سلسلتي؟ محادثتك خاصة بهذه الجلسة"
+    },
+    {
+      "role": "participant",
+      "route": "/messages",
+      "viewport": "mobile",
+      "screenshot": "participant-messages-mobile.jpg",
+      "url": "/messages",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الرسائل"
+      ],
+      "headings": [
+        "نورة"
+      ],
+      "textLength": 353,
+      "controls": 5,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1174,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "تشجيع متبادل الرسائل مساحة هادئة لرسائل الدعم، أجمل وأوضح من إشعار عابر. الوارد 2 رسائل نو نورة كفو عليك 🔥 باقي لك مهمة واحدة ونقفل اليوم كامل. ٢٢ سبتمبر في ١٢:٤٨ م مش المشرف ثباتك اليوم جميل، خذ الخطوة التالية بهدوء. ٢١ سبتمبر في ٩:٠٠ "
+    },
+    {
+      "role": "participant",
+      "route": "/notifications",
+      "viewport": "mobile",
+      "screenshot": "participant-notifications-mobile.jpg",
+      "url": "/notifications",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الإشعارات"
+      ],
+      "headings": [],
+      "textLength": 404,
+      "controls": 7,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1069,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "مركز المتابعة الإشعارات تنبيهات مهمة تبقى واضحة، وتحديثات خفيفة لا تقاطع يومك. تحديد الكل كمقروء 3 كل الإشعارات 2 غير مقروءة 1 تحتاج انتباهًا 1 إنجازات الكل غير المقروء المهم حافظ على سلسلتك مهم باقي مهمة واحدة حتى تسجل اليوم بنجاح. ٢٢"
+    },
+    {
+      "role": "participant",
+      "route": "/settings",
+      "viewport": "mobile",
+      "screenshot": "participant-settings-mobile.jpg",
+      "url": "/settings",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الإعدادات"
+      ],
+      "headings": [
+        "رازي"
+      ],
+      "textLength": 439,
+      "controls": 8,
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 48,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 48,
+          "height": 28
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1410,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "تفضيلاتك الإعدادات تحكم في مظهر التجربة وصوتها وحركتها من مكان واحد. رز الحساب الحالي رازي تُحفظ التفضيلات والرمز لهذا الحساب على هذا الجهاز. تسجيل الخروج المظهر ألوان متوازنة مشتقة من هوية الشعار. الوضع الفاتح أصوات التفاعل مؤثرات "
+    },
+    {
+      "role": "participant",
+      "route": "/quran",
+      "viewport": "mobile",
+      "screenshot": "participant-quran-mobile.jpg",
+      "url": "/quran",
+      "title": "رحلة التغيير",
+      "h1": [
+        "القرآن الكريم"
+      ],
+      "headings": [
+        "تقدم القراءة",
+        "ورد اليوم",
+        "آخر موضع",
+        "سُورَةُ الكَهۡفِ",
+        "تفسير الآية"
+      ],
+      "textLength": 2754,
+      "controls": 25,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 234,
+          "height": 28
+        },
+        {
+          "tag": "A",
+          "text": "الرئيسية",
+          "width": 35,
+          "height": 18
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3018,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "القرآن الكريم صفحة القراءة والتدبر والتفسير بحث تقدم القراءة قراءة اليوم 0 من 8 صفحات 0% الهدف اليومي متبقي 8 صفحات ورد اليوم سورة الكهف تابع من الآية 1 0% متابعة القراءة آخر موضع سورة الكهف الآية 1 · موضعك المحفوظ الانتقال إلى آخر مو"
+    },
+    {
+      "role": "admin",
+      "route": "/admin",
+      "viewport": "desktop",
+      "screenshot": "admin-admin-desktop.jpg",
+      "url": "/admin",
+      "title": "رحلة التغيير",
+      "h1": [
+        "نظرة عامة"
+      ],
+      "headings": [
+        "إجراءات سريعة",
+        "آخر النشاط",
+        "الترتيب الحالي"
+      ],
+      "textLength": 559,
+      "controls": 7,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "عرض الترتيب",
+          "width": 86,
+          "height": 19
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1178,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "لوحة الإدارة نظرة عامة متابعة المجموعة والإنجازات الحالية من مكان واحد. إدارة المشاركين المشاركون4 3 متصلون الآن متوسط التقدم53% وقت المجموعة١ س ٥ د في الفترة الأسبوعية إجراءات سريعة الوصول إلى أكثر الأدوات استخدامًا. إدارة المهام "
+    },
+    {
+      "role": "admin",
+      "route": "/admin/participants",
+      "viewport": "desktop",
+      "screenshot": "admin-admin-participants-desktop.jpg",
+      "url": "/admin/participants",
+      "title": "رحلة التغيير",
+      "h1": [
+        "المشاركون"
+      ],
+      "headings": [],
+      "textLength": 226,
+      "controls": 22,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1098,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "الإدارة المشاركون متابعة المجموعة وتحرير الحسابات والصلاحيات. مشارك جديد المشارك الحالة التقدم الإجراءات رز رازي في جلسة تركيز نشط 0% نو نورة تنجز مهامها نشط 82% سر سارة استراحة قصيرة متوقف 74% خل خالد آخر نشاط أمس هادئ 54%"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/participants/razi",
+      "viewport": "desktop",
+      "screenshot": "admin-admin-participants-razi-desktop.jpg",
+      "url": "/admin/participants/razi",
+      "title": "رحلة التغيير",
+      "h1": [
+        "رازي"
+      ],
+      "headings": [
+        "رازي",
+        "الصلاحيات",
+        "مهام اليوم",
+        "آخر النشاط",
+        "رسالة تشجيع"
+      ],
+      "textLength": 731,
+      "controls": 9,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1561,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "تفاصيل مشارك رازي صورة موحدة للمعلومات والتقدم والنشاط والتشجيع. كل المشاركين رز مشارك رازي في جلسة تركيز تقدم اليوم 0% السلسلة 12 يومًا النقاط 845 إعادة تعيين PIN الصلاحيات حدد إمكانية دخول المشارك إلى صفحات الإدارة. صلاحية مشرف حفظ ا"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/tasks",
+      "viewport": "desktop",
+      "screenshot": "admin-admin-tasks-desktop.jpg",
+      "url": "/admin/tasks",
+      "title": "رحلة التغيير",
+      "h1": [
+        "إدارة المهام"
+      ],
+      "headings": [
+        "المحافظة على الصلوات",
+        "ورد القرآن",
+        "أذكار الصباح",
+        "أذكار المساء",
+        "قراءة الكتاب",
+        "مراجعة الدروس",
+        "مشي سريع",
+        "شرب الماء",
+        "تطبيق المهارة",
+        "جلسة مع الأهل"
+      ],
+      "textLength": 1577,
+      "controls": 38,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 389,
+          "height": 21
+        },
+        {
+          "tag": "BUTTON",
+          "text": "الكل",
+          "width": 45,
+          "height": 34
+        },
+        {
+          "tag": "BUTTON",
+          "text": "النشطة",
+          "width": 59,
+          "height": 34
+        },
+        {
+          "tag": "BUTTON",
+          "text": "المؤرشفة",
+          "width": 71,
+          "height": 34
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 2007,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "مساحة المشرف إدارة المهام اضبط تفاصيل كل مهمة، ومن يراها، وكيف تظهر في صفحة المشارك. إضافة مهمة تفصيلية 11 إجمالي المهام 11 مهمة نشطة 0 مهمة مؤرشفة 5 حساب متاح للإسناد الكل النشطة المؤرشفة نشطة صلاة · الإيمان المحافظة على الصلوات الفجر و"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/tasks/new",
+      "viewport": "desktop",
+      "screenshot": "admin-admin-tasks-new-desktop.jpg",
+      "url": "/admin/tasks/new",
+      "title": "رحلة التغيير",
+      "h1": [
+        "إضافة مهمة تفصيلية"
+      ],
+      "headings": [
+        "نوع المهمة",
+        "البيانات الأساسية",
+        "إعدادات مهمة عامة",
+        "الجدول والمشاركون",
+        "النقاط والحفظ",
+        "اسم المهمة لم يُكتب بعد",
+        "اسم المهمة سيظهر هنا"
+      ],
+      "textLength": 1168,
+      "controls": 29,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "إدارة المهام",
+          "width": 80,
+          "height": 18
+        },
+        {
+          "tag": "A",
+          "text": "إلغاء",
+          "width": 24,
+          "height": 19
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 2156,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "إدارة المهاممهمة جديدة إضافة مهمة تفصيلية اختر النوع ثم اضبط كل ما يحتاجه المشارك داخل صفحته. إلغاء إنشاء المهمة 01 النوع 02 البيانات 03 الإعدادات 04 الجدول 05 النقاط 01 نوع المهمة الحقول التالية تتغير حسب النوع المختار. مهمة عامة عدّاد"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/tasks/prayer/edit",
+      "viewport": "desktop",
+      "screenshot": "admin-admin-tasks-prayer-edit-desktop.jpg",
+      "url": "/admin/tasks/prayer/edit",
+      "title": "رحلة التغيير",
+      "h1": [
+        "تعديل المحافظة على الصلوات"
+      ],
+      "headings": [
+        "نوع المهمة",
+        "البيانات الأساسية",
+        "إعدادات صلاة",
+        "الجدول والمشاركون",
+        "النقاط والحفظ",
+        "المحافظة على الصلوات",
+        "المحافظة على الصلوات"
+      ],
+      "textLength": 1327,
+      "controls": 34,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "إدارة المهام",
+          "width": 80,
+          "height": 18
+        },
+        {
+          "tag": "A",
+          "text": "إلغاء",
+          "width": 24,
+          "height": 19
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 2230,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "إدارة المهامتحرير المهمة تعديل المحافظة على الصلوات اختر النوع ثم اضبط كل ما يحتاجه المشارك داخل صفحته. إلغاء حفظ التعديلات 01 النوع 02 البيانات 03 الإعدادات 04 الجدول 05 النقاط 01 نوع المهمة الحقول التالية تتغير حسب النوع المختار. مهمة"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/reports",
+      "viewport": "desktop",
+      "screenshot": "admin-admin-reports-desktop.jpg",
+      "url": "/admin/reports",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التقارير والتحليلات",
+        "تقرير الأداء"
+      ],
+      "headings": [
+        "اتجاه الأداء",
+        "توزيع الوقت حسب المجالات",
+        "أفضل الأسابيع",
+        "أقل الأسابيع",
+        "أعلى إنجاز في الفترة",
+        "ملخص التقرير وأبرز النتائج",
+        "أداء المجالات",
+        "التقارير السابقة",
+        "الملخص",
+        "الأيام"
+      ],
+      "textLength": 1230,
+      "controls": 7,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1651,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "لوحة المشرف التقارير والتحليلات متابعة الأداء والتقدم اليومي والأسبوعي والشهري. حفظ PDF تصدير Excel نسبة الإنجاز في الفترة ٠% متوسط الحالات المسجلة في الفترة إجمالي الوقت الفعلي ١ س ٥ د خلال شهري حالات يوم ناجح 0 حد النجاح 90% حالا"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/analytics",
+      "viewport": "desktop",
+      "screenshot": "admin-admin-analytics-desktop.jpg",
+      "url": "/admin/reports",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التقارير والتحليلات",
+        "تقرير الأداء"
+      ],
+      "headings": [
+        "أداء المشاركين",
+        "الملخص",
+        "الأيام",
+        "المهام",
+        "المشاركون"
+      ],
+      "textLength": 697,
+      "controls": 10,
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "text": "يومي",
+          "width": 53,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "أسبوعي",
+          "width": 66,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "شهري",
+          "width": 57,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "نظرة عامة",
+          "width": 76,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "تفاصيل المشاركين",
+          "width": 116,
+          "height": 36
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 807,
+          "height": 21
+        },
+        {
+          "tag": "A",
+          "text": "عرض المشارك",
+          "width": 89,
+          "height": 18
+        }
+      ],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1098,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "لوحة المشرف التقارير والتحليلات متابعة الأداء والتقدم اليومي والأسبوعي والشهري. حفظ PDF تصدير Excel نسبة الإنجاز في الفترة ٠% متوسط الحالات المسجلة في الفترة إجمالي الوقت الفعلي ١ س ٥ د خلال شهري حالات يوم ناجح 0 حد النجاح 90% حالا"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/activity",
+      "viewport": "desktop",
+      "screenshot": "admin-admin-activity-desktop.jpg",
+      "url": "/admin/activity",
+      "title": "رحلة التغيير",
+      "h1": [
+        "سجل النشاط"
+      ],
+      "headings": [],
+      "textLength": 309,
+      "controls": 2,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1098,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "الإدارة سجل النشاط تصفية وتتبع نشاط المجموعة حسب النوع أو اسم المشارك أو المهمة. كل النشاطات المشارك الحدث المهمة الوقت نو نورة أنجزت أذكار المساء ٢٢ سبتمبر في ١٢:٥٨ م رز رازي أوقف مؤقتًا ورد القرآن ٢٢ سبتمبر في ١٢:٥٢ م سر سارة بدأت مشي "
+    },
+    {
+      "role": "admin",
+      "route": "/admin/data",
+      "viewport": "desktop",
+      "screenshot": "admin-admin-data-desktop.jpg",
+      "url": "/admin/data",
+      "title": "رحلة التغيير",
+      "h1": [
+        "إدارة البيانات"
+      ],
+      "headings": [
+        "المشارك المستهدف",
+        "فترة زمنية محددة",
+        "السجل الكامل للمشارك"
+      ],
+      "textLength": 1123,
+      "controls": 6,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1300,
+      "clientHeight": 900,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "الإدارة إدارة البيانات حدد المشارك أولًا، ثم راجع السجلات التي ستمسحها قبل التأكيد. المشارك المستهدف كل إجراء في هذه الصفحة يخص المشارك الذي تختاره هنا فقط. اختر مشاركًا قبل المتابعة سيُحتفظ بنسخة مؤقتة من البيانات قبل المسح. الاستعاد"
+    },
+    {
+      "role": "admin",
+      "route": "/admin",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-mobile.jpg",
+      "url": "/admin",
+      "title": "رحلة التغيير",
+      "h1": [
+        "نظرة عامة"
+      ],
+      "headings": [
+        "إجراءات سريعة",
+        "آخر النشاط",
+        "الترتيب الحالي"
+      ],
+      "textLength": 559,
+      "controls": 7,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "عرض الترتيب",
+          "width": 86,
+          "height": 19
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1703,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "لوحة الإدارة نظرة عامة متابعة المجموعة والإنجازات الحالية من مكان واحد. إدارة المشاركين المشاركون4 3 متصلون الآن متوسط التقدم53% وقت المجموعة١ س ٥ د في الفترة الأسبوعية إجراءات سريعة الوصول إلى أكثر الأدوات استخدامًا. إدارة المهام "
+    },
+    {
+      "role": "admin",
+      "route": "/admin/participants",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-participants-mobile.jpg",
+      "url": "/admin/participants",
+      "title": "رحلة التغيير",
+      "h1": [
+        "المشاركون"
+      ],
+      "headings": [],
+      "textLength": 194,
+      "controls": 22,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1891,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "الإدارة المشاركون متابعة المجموعة وتحرير الحسابات والصلاحيات. مشارك جديد رز رازي في جلسة تركيز نشط 0% نو نورة تنجز مهامها نشط 82% سر سارة استراحة قصيرة متوقف 74% خل خالد آخر نشاط أمس هادئ 54%"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/participants/razi",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-participants-razi-mobile.jpg",
+      "url": "/admin/participants/razi",
+      "title": "رحلة التغيير",
+      "h1": [
+        "رازي"
+      ],
+      "headings": [
+        "رازي",
+        "الصلاحيات",
+        "مهام اليوم",
+        "آخر النشاط",
+        "رسالة تشجيع"
+      ],
+      "textLength": 731,
+      "controls": 9,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 2163,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "تفاصيل مشارك رازي صورة موحدة للمعلومات والتقدم والنشاط والتشجيع. كل المشاركين رز مشارك رازي في جلسة تركيز تقدم اليوم 0% السلسلة 12 يومًا النقاط 845 إعادة تعيين PIN الصلاحيات حدد إمكانية دخول المشارك إلى صفحات الإدارة. صلاحية مشرف حفظ ا"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/tasks",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-tasks-mobile.jpg",
+      "url": "/admin/tasks",
+      "title": "رحلة التغيير",
+      "h1": [
+        "إدارة المهام"
+      ],
+      "headings": [
+        "المحافظة على الصلوات",
+        "ورد القرآن",
+        "أذكار الصباح",
+        "أذكار المساء",
+        "قراءة الكتاب",
+        "مراجعة الدروس",
+        "مشي سريع",
+        "شرب الماء",
+        "تطبيق المهارة",
+        "جلسة مع الأهل"
+      ],
+      "textLength": 1577,
+      "controls": 38,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 307,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "text": "الكل",
+          "width": 114,
+          "height": 34
+        },
+        {
+          "tag": "BUTTON",
+          "text": "النشطة",
+          "width": 114,
+          "height": 34
+        },
+        {
+          "tag": "BUTTON",
+          "text": "المؤرشفة",
+          "width": 114,
+          "height": 34
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 4604,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "مساحة المشرف إدارة المهام اضبط تفاصيل كل مهمة، ومن يراها، وكيف تظهر في صفحة المشارك. إضافة مهمة تفصيلية 11 إجمالي المهام 11 مهمة نشطة 0 مهمة مؤرشفة 5 حساب متاح للإسناد الكل النشطة المؤرشفة نشطة صلاة · الإيمان المحافظة على الصلوات الفجر و"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/tasks/new",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-tasks-new-mobile.jpg",
+      "url": "/admin/tasks/new",
+      "title": "رحلة التغيير",
+      "h1": [
+        "إضافة مهمة تفصيلية"
+      ],
+      "headings": [
+        "نوع المهمة",
+        "البيانات الأساسية",
+        "إعدادات مهمة عامة",
+        "الجدول والمشاركون",
+        "النقاط والحفظ",
+        "اسم المهمة لم يُكتب بعد",
+        "اسم المهمة سيظهر هنا"
+      ],
+      "textLength": 1096,
+      "controls": 30,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "إدارة المهام",
+          "width": 80,
+          "height": 18
+        },
+        {
+          "tag": "A",
+          "text": "إلغاء",
+          "width": 24,
+          "height": 19
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3332,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "إدارة المهاممهمة جديدة إضافة مهمة تفصيلية اختر النوع ثم اضبط كل ما يحتاجه المشارك داخل صفحته. إلغاء إنشاء المهمة 01 النوع 02 البيانات 03 الإعدادات 04 الجدول 05 النقاط 01 نوع المهمة الحقول التالية تتغير حسب النوع المختار. مهمة عامة عدّاد"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/tasks/prayer/edit",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-tasks-prayer-edit-mobile.jpg",
+      "url": "/admin/tasks/prayer/edit",
+      "title": "رحلة التغيير",
+      "h1": [
+        "تعديل المحافظة على الصلوات"
+      ],
+      "headings": [
+        "نوع المهمة",
+        "البيانات الأساسية",
+        "إعدادات صلاة",
+        "الجدول والمشاركون",
+        "النقاط والحفظ",
+        "المحافظة على الصلوات",
+        "المحافظة على الصلوات"
+      ],
+      "textLength": 1256,
+      "controls": 35,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "إدارة المهام",
+          "width": 80,
+          "height": 18
+        },
+        {
+          "tag": "A",
+          "text": "إلغاء",
+          "width": 24,
+          "height": 19
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 16,
+          "height": 16
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3398,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "إدارة المهامتحرير المهمة تعديل المحافظة على الصلوات اختر النوع ثم اضبط كل ما يحتاجه المشارك داخل صفحته. إلغاء حفظ التعديلات 01 النوع 02 البيانات 03 الإعدادات 04 الجدول 05 النقاط 01 نوع المهمة الحقول التالية تتغير حسب النوع المختار. مهمة"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/reports",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-reports-mobile.jpg",
+      "url": "/admin/reports",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التقارير والتحليلات",
+        "تقرير الأداء"
+      ],
+      "headings": [
+        "اتجاه الأداء",
+        "توزيع الوقت حسب المجالات",
+        "أفضل الأسابيع",
+        "أقل الأسابيع",
+        "أعلى إنجاز في الفترة",
+        "ملخص التقرير وأبرز النتائج",
+        "أداء المجالات",
+        "التقارير السابقة",
+        "الملخص",
+        "الأيام"
+      ],
+      "textLength": 1230,
+      "controls": 7,
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "text": "يومي",
+          "width": 53,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "أسبوعي",
+          "width": 66,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "شهري",
+          "width": 57,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "نظرة عامة",
+          "width": 76,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "تفاصيل المشاركين",
+          "width": 116,
+          "height": 36
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 2917,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "لوحة المشرف التقارير والتحليلات متابعة الأداء والتقدم اليومي والأسبوعي والشهري. حفظ PDF تصدير Excel نسبة الإنجاز في الفترة ٠% متوسط الحالات المسجلة في الفترة إجمالي الوقت الفعلي ١ س ٥ د خلال شهري حالات يوم ناجح 0 حد النجاح 90% حالا"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/analytics",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-analytics-mobile.jpg",
+      "url": "/admin/reports",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التقارير والتحليلات",
+        "تقرير الأداء"
+      ],
+      "headings": [
+        "أداء المشاركين",
+        "الملخص",
+        "الأيام",
+        "المهام",
+        "المشاركون"
+      ],
+      "textLength": 697,
+      "controls": 10,
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "text": "يومي",
+          "width": 53,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "أسبوعي",
+          "width": 66,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "شهري",
+          "width": 57,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "نظرة عامة",
+          "width": 76,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "تفاصيل المشاركين",
+          "width": 116,
+          "height": 36
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 276,
+          "height": 28
+        },
+        {
+          "tag": "A",
+          "text": "عرض المشارك",
+          "width": 300,
+          "height": 36
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1625,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "لوحة المشرف التقارير والتحليلات متابعة الأداء والتقدم اليومي والأسبوعي والشهري. حفظ PDF تصدير Excel نسبة الإنجاز في الفترة ٠% متوسط الحالات المسجلة في الفترة إجمالي الوقت الفعلي ١ س ٥ د خلال شهري حالات يوم ناجح 0 حد النجاح 90% حالا"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/activity",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-activity-mobile.jpg",
+      "url": "/admin/activity",
+      "title": "رحلة التغيير",
+      "h1": [
+        "سجل النشاط"
+      ],
+      "headings": [],
+      "textLength": 282,
+      "controls": 2,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1573,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "الإدارة سجل النشاط تصفية وتتبع نشاط المجموعة حسب النوع أو اسم المشارك أو المهمة. كل النشاطات نو نورة أنجزت أذكار المساء ٢٢ سبتمبر في ١٢:٥٨ م رز رازي أوقف مؤقتًا ورد القرآن ٢٢ سبتمبر في ١٢:٥٢ م سر سارة بدأت مشي سريع ٢١ سبتمبر في ٨:٤٢ م خل"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/data",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-data-mobile.jpg",
+      "url": "/admin/data",
+      "title": "رحلة التغيير",
+      "h1": [
+        "إدارة البيانات"
+      ],
+      "headings": [
+        "المشارك المستهدف",
+        "فترة زمنية محددة",
+        "السجل الكامل للمشارك"
+      ],
+      "textLength": 1123,
+      "controls": 6,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1725,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "الإدارة إدارة البيانات حدد المشارك أولًا، ثم راجع السجلات التي ستمسحها قبل التأكيد. المشارك المستهدف كل إجراء في هذه الصفحة يخص المشارك الذي تختاره هنا فقط. اختر مشاركًا قبل المتابعة سيُحتفظ بنسخة مؤقتة من البيانات قبل المسح. الاستعاد"
+    },
+    {
+      "role": "auth",
+      "route": "/login",
+      "viewport": "desktop",
+      "screenshot": "auth-login-desktop.jpg",
+      "url": "/login",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مرحبًا بك في رحلة التغيير"
+      ],
+      "headings": [
+        "رِحْلَةُ التَّغْيِير"
+      ],
+      "textLength": 274,
+      "controls": 7,
+      "smallControls": [],
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 900,
+      "clientHeight": 900,
+      "imageCount": 2,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "رحلة التغيير خطوة صغيرة اليوم تصنع تغييرًا كبيرًا مرحبًا بك في رحلة التغيير اختر حسابك للمتابعة رز رازي 12 أيام متتالية نو نورة 18 أيام متتالية سر سارة 9 أيام متتالية خل خالد 6 أيام متتالية مش المشرف مشرف إدارة المجموعة المتابعة إلى رمز"
+    },
+    {
+      "role": "auth",
+      "route": "/login",
+      "viewport": "mobile",
+      "screenshot": "auth-login-mobile.jpg",
+      "url": "/login",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مرحبًا بك في رحلة التغيير"
+      ],
+      "headings": [
+        "رِحْلَةُ التَّغْيِير"
+      ],
+      "textLength": 207,
+      "controls": 7,
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "text": "فاتح",
+          "width": 38,
+          "height": 44
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 844,
+      "clientHeight": 844,
+      "imageCount": 2,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "مرحبًا بك في رحلة التغيير اختر حسابك للمتابعة رز رازي 12 أيام متتالية نو نورة 18 أيام متتالية سر سارة 9 أيام متتالية خل خالد 6 أيام متتالية مش المشرف مشرف المتابعة إلى رمز الدخول يمكنك تغيير الحساب لاحقًا"
+    }
+  ]
+}

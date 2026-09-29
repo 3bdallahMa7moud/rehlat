@@ -30,7 +30,7 @@
 .historyHeader { min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-inline: 3px; }
 .historyHeader h1 { margin: 0; color: var(--ink); font-size: 17px; line-height: 1.3; }
 .historyHeader span { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
-.historyClose { display: none; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--muted); }
+.historyClose { display: none; width: 44px; height: 44px; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--muted); }
 .historyClose:hover { background: var(--surface); color: var(--ink); }
 
 .newChatButton {
@@ -64,7 +64,7 @@
 .historyItemMain small { display: block; margin-top: 2px; color: var(--muted-soft); font-size: 11px; }
 .historyItemIcon { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 8px; background: var(--surface-raised); color: var(--muted); }
 .historyItemActive .historyItemIcon { background: var(--primary-soft); color: var(--primary); }
-.historyDelete { width: 29px; height: 29px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--muted-soft); opacity: 0; transition: opacity 150ms ease, color 150ms ease, background-color 150ms ease; }
+.historyDelete { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--muted-soft); opacity: 0; transition: opacity 150ms ease, color 150ms ease, background-color 150ms ease; }
 .historyItem:hover .historyDelete, .historyItem:focus-within .historyDelete { opacity: 1; }
 .historyDelete:hover { background: var(--danger-soft); color: var(--danger); }
 .historyEmpty { margin: 28px 8px; color: var(--muted); font-size: 10px; text-align: center; }
@@ -95,8 +95,8 @@
 .brandLogo img { width: 100%; height: 100%; object-fit: contain; }
 .onlineDot { position: absolute; right: 0; bottom: 1px; width: 9px; height: 9px; border: 2px solid var(--surface); border-radius: 50%; background: var(--success); }
 .headerActions { display: flex; align-items: center; gap: 4px; }
-.iconAction, .resetButton { min-height: 35px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--muted); font-size: 9px; font-weight: 600; transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease; }
-.iconAction { width: 35px; padding: 0; }
+.iconAction, .resetButton { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--muted); font-size: 9px; font-weight: 600; transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease; }
+.iconAction { width: 44px; padding: 0; }
 .resetButton { padding: 0 9px; }
 .iconAction:hover, .resetButton:hover { border-color: var(--line); background: var(--surface-raised); color: var(--ink); }
 .resetButtonArmed { border-color: color-mix(in srgb, var(--danger) 30%, var(--line)); background: var(--danger-soft); color: var(--danger); }
@@ -114,11 +114,15 @@
   padding: 22px clamp(18px, 4vw, 56px);
   background: var(--surface);
 }
+.messagesStarter { display: flex; flex-direction: column; }
 .conversationCompact .messages { padding: 18px; }
-.emptyState { min-height: 100%; display: grid; align-content: center; justify-items: center; gap: 7px; color: var(--muted); text-align: center; }
+.emptyState { min-height: 180px; display: grid; flex: 1; align-content: center; justify-items: center; gap: 7px; color: var(--muted); text-align: center; }
 .emptyIcon { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 4px; border-radius: 14px; background: var(--primary-soft); color: var(--primary); }
 .emptyState strong { color: var(--ink); font-size: 15px; }
 .emptyState p { max-width: 330px; margin: 0; font-size: 10px; line-height: 1.8; }
+.starterActions { width: min(100%, 330px); display: grid; gap: 7px; margin-top: 12px; }
+.starterActions button { min-height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-raised); color: var(--ink); padding: 8px 12px; font: inherit; font-size: 11px; text-align: right; cursor: pointer; }
+.starterActions button:hover:not(:disabled), .starterActions button:focus-visible { border-color: var(--teal); background: var(--mint-soft); color: var(--teal-strong); }
 .message { display: flex; align-items: flex-start; gap: 8px; animation: messageIn 220ms ease both; }
 .userMessage { justify-content: flex-start; padding-right: min(15%, 110px); }
 .assistantMessage { justify-content: flex-start; padding-left: min(12%, 80px); }
@@ -150,13 +154,13 @@
 .suggestions > span svg { color: var(--teal-strong); }
 .suggestions > div { min-width: 0; display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; }
 .suggestions > div::-webkit-scrollbar { display: none; }
-.suggestions button { min-height: 32px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); padding: 0 9px; font-size: 11px; font-weight: 600; transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease; }
+.suggestions button { min-height: 44px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); padding: 0 9px; font-size: 11px; font-weight: 600; transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease; }
 .suggestions button:hover:not(:disabled) { border-color: var(--teal); background: var(--mint-soft); color: var(--teal-strong); }
 .composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-raised); padding: 5px 6px 5px 12px; transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease; }
 .composer:focus-within { border-color: var(--teal); background: var(--surface); box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 10%, transparent); }
 .composer textarea { width: 100%; min-height: 38px; max-height: 112px; resize: none; overflow-y: auto; border: 0; outline: 0; background: transparent; color: var(--ink); padding: 8px 2px 5px; font: inherit; font-size: 11px; line-height: 1.65; }
 .composer textarea::placeholder { color: var(--muted-soft); }
-.sendButton { width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 10px; background: var(--primary); color: var(--surface); transition: opacity 150ms ease, background-color 150ms ease; }
+.sendButton { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 10px; background: var(--primary); color: var(--surface); transition: opacity 150ms ease, background-color 150ms ease; }
 .sendButton:hover:not(:disabled) { background: var(--primary-strong); }
 .sendButton:disabled { opacity: .35; }
 .sendButton svg { transform: rotate(180deg); }
@@ -181,6 +185,7 @@
   .historyPanel { position: fixed; z-index: 92; top: 0; right: 0; bottom: 0; width: min(310px, 88vw); visibility: hidden; border-left: 1px solid var(--line); box-shadow: -18px 0 50px rgba(6, 20, 27, .2); padding-top: max(16px, env(safe-area-inset-top)); pointer-events: none; transform: translateX(105%); transition: transform 220ms cubic-bezier(.22, 1, .36, 1), visibility 0s linear 220ms; }
   .historyPanelOpen { visibility: visible; pointer-events: auto; transform: translateX(0); transition-delay: 0s; }
   .historyClose { display: grid; }
+  .historyDelete { opacity: 1; }
 }
 
 @media (max-width: 620px) {
@@ -188,7 +193,7 @@
   .avatar { width: 37px; height: 37px; }
   .identity strong { font-size: 10px; }
   .availability { font-size: 11px; }
-  .resetButton { width: 35px; padding: 0; }
+  .resetButton { width: 44px; padding: 0; }
   .resetButton span { display: none; }
   .messages { gap: 14px; padding: 15px 11px; }
   .assistantMessage { padding-left: 0; }
@@ -199,7 +204,7 @@
   .bubble p { font-size: 10px; }
   .composerArea { padding: 8px 9px 7px; }
   .suggestions > span { display: none; }
-  .suggestions button { min-height: 32px; font-size: 11px; }
+  .suggestions button { font-size: 11px; }
   .composer textarea { font-size: 10px; }
   .keyboardHint { display: none !important; }
   .widgetBackdrop { z-index: 95; display: flex; align-items: flex-end; background: rgba(6, 20, 27, .46); }

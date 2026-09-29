@@ -1,0 +1,345 @@
+{
+  "auditedAt": "2026-09-28T22:57:23.656Z",
+  "errors": [],
+  "pages": [
+    {
+      "role": "participant",
+      "route": "/tasks/adhkar",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-adhkar-mobile-full.jpg",
+      "url": "/tasks/adhkar",
+      "title": "رحلة التغيير",
+      "h1": [
+        "أذكار الصباح"
+      ],
+      "headings": [
+        "اقرأ على راحتك",
+        "تسبيح بهدوء",
+        "محتويات الورد"
+      ],
+      "textLength": 781,
+      "controls": 24,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "كل المهام",
+          "width": 78,
+          "height": 19
+        },
+        {
+          "tag": "BUTTON",
+          "text": "−",
+          "width": 28,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "+",
+          "width": 28,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "ذكر واحد",
+          "width": 77,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "كل الأذكار",
+          "width": 83,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 24,
+          "height": 10
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 10,
+          "height": 10
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 10,
+          "height": 10
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 2133,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "pendingImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "كل المهام / أذكار الصباح بداية اليوم أذكار الصباح ابدأ صباحك بسكينة. اقرأ ذكرًا بعد ذكر، وتابع ما أنجزته دون استعجال. ابدأ القراءة يحفظ تقدمك تلقائيًا 0% من الورد 0 من 6 أذكار مكتملة أذكار الصباح 0% مكتمل أذكار المساء 0% مكتمل ورد الصبا"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/reading",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-reading-mobile-full.jpg",
+      "url": "/tasks/reading",
+      "title": "رحلة التغيير",
+      "h1": [
+        "العادات الذرية"
+      ],
+      "headings": [
+        "جاهز للقراءة؟"
+      ],
+      "textLength": 438,
+      "controls": 5,
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "width": 1,
+          "height": 1
+        },
+        {
+          "tag": "A",
+          "text": "كل المهام",
+          "width": 89,
+          "height": 23
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1697,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "pendingImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "كل المهام قراءة الكتاب مهمة اليوم العادات الذرية أضف اسم المؤلف من إعدادات الكتاب 0 أيام إعدادات الكتاب جلسة القراءة جاهز للقراءة؟ جاهز ابدأ من الصفحة 1 جلسة قصيرة ومنتظمة أفضل من انتظار الوقت المثالي. ابدأ جلسة القراءة هدف اليوم 0 من 2"
+    },
+    {
+      "role": "participant",
+      "route": "/tasks/sleep",
+      "viewport": "mobile",
+      "screenshot": "participant-tasks-sleep-mobile-full.jpg",
+      "url": "/tasks/sleep",
+      "title": "رحلة التغيير",
+      "h1": [
+        "نوم هادئ"
+      ],
+      "headings": [
+        "ليلة هادئة تبدأ بخطوة",
+        "إيقاع آخر 7 ليالٍ",
+        "روتين ما قبل النوم"
+      ],
+      "textLength": 849,
+      "controls": 7,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 2224,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "pendingImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "محطة المساء نوم هادئ جهّز ليلتك وسجّل نومك في ثوانٍ. الثلاثاء، ٢٩ سبتمبر كل المهام ✦ ✧ · جاهز لليلة هادئة ليلة هادئة تبدأ بخطوة هدف الليلة ليس الكمال؛ فقط امنح جسمك وقتًا كافيًا للراحة. موعد النوم ١٠:٣٠ م 0 س 00 د من هدف 8 ساعات الاستيقا"
+    },
+    {
+      "role": "participant",
+      "route": "/reports",
+      "viewport": "mobile",
+      "screenshot": "participant-reports-mobile-full.jpg",
+      "url": "/reports",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التقارير"
+      ],
+      "headings": [
+        "اختيار الفترة والفلاتر",
+        "تقرير رحلة التغيير",
+        "ملخص الأداء",
+        "ملخص المهام والحالات",
+        "أبرز النتائج",
+        "النشاط المسجل في الفترة"
+      ],
+      "textLength": 1674,
+      "controls": 9,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3221,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "pendingImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "ملخص الفترة التقارير ملخص منظم للفترة المختارة، مبني على نشاطك المحفوظ وقابل للمراجعة والطباعة. مهام اليوم حفظ PDF تصدير Excel نطاق العرض اختيار الفترة والفلاتر يتحدث الملخص وكل الأقسام عند تغيير أي خيار. اليوم آخر 7 أيام الشهر الحالي "
+    },
+    {
+      "role": "admin",
+      "route": "/admin/tasks/new",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-tasks-new-mobile-full.jpg",
+      "url": "/admin/tasks/new",
+      "title": "رحلة التغيير",
+      "h1": [
+        "إضافة مهمة تفصيلية"
+      ],
+      "headings": [
+        "نوع المهمة",
+        "البيانات الأساسية",
+        "إعدادات مهمة عامة",
+        "الجدول والمشاركون",
+        "النقاط والحفظ",
+        "اسم المهمة لم يُكتب بعد",
+        "اسم المهمة سيظهر هنا"
+      ],
+      "textLength": 1096,
+      "controls": 30,
+      "smallControls": [
+        {
+          "tag": "A",
+          "text": "إدارة المهام",
+          "width": 80,
+          "height": 18
+        },
+        {
+          "tag": "A",
+          "text": "إلغاء",
+          "width": 24,
+          "height": 19
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3332,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "pendingImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "إدارة المهاممهمة جديدة إضافة مهمة تفصيلية اختر النوع ثم اضبط كل ما يحتاجه المشارك داخل صفحته. إلغاء إنشاء المهمة 01 النوع 02 البيانات 03 الإعدادات 04 الجدول 05 النقاط 01 نوع المهمة الحقول التالية تتغير حسب النوع المختار. مهمة عامة عدّاد"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/participants",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-participants-mobile-full.jpg",
+      "url": "/admin/participants",
+      "title": "رحلة التغيير",
+      "h1": [
+        "المشاركون"
+      ],
+      "headings": [],
+      "textLength": 194,
+      "controls": 22,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1891,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "pendingImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "الإدارة المشاركون متابعة المجموعة وتحرير الحسابات والصلاحيات. مشارك جديد رز رازي في جلسة تركيز نشط 8% نو نورة تنجز مهامها نشط 82% سر سارة استراحة قصيرة متوقف 74% خل خالد آخر نشاط أمس هادئ 54%"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/reports",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-reports-mobile-full.jpg",
+      "url": "/admin/reports",
+      "title": "رحلة التغيير",
+      "h1": [
+        "التقارير والتحليلات",
+        "تقرير الأداء"
+      ],
+      "headings": [
+        "اتجاه الأداء",
+        "توزيع الوقت حسب المجالات",
+        "أفضل الأسابيع",
+        "أقل الأسابيع",
+        "أعلى إنجاز في الفترة",
+        "ملخص التقرير وأبرز النتائج",
+        "أداء المجالات",
+        "التقارير السابقة",
+        "الملخص",
+        "الأيام"
+      ],
+      "textLength": 1297,
+      "controls": 8,
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "text": "يومي",
+          "width": 53,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "أسبوعي",
+          "width": 66,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "شهري",
+          "width": 57,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "نظرة عامة",
+          "width": 76,
+          "height": 36
+        },
+        {
+          "tag": "BUTTON",
+          "text": "تفاصيل المشاركين",
+          "width": 116,
+          "height": 36
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3016,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "pendingImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "لوحة المشرف التقارير والتحليلات متابعة الأداء والتقدم اليومي والأسبوعي والشهري. حفظ PDF تصدير Excel نسبة الإنجاز في الفترة ٨% متوسط الحالات المسجلة في الفترة إجمالي الوقت الفعلي ١ س ٥ د خلال شهري حالات يوم ناجح 0 حد النجاح 90% حالا"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/data",
+      "viewport": "mobile",
+      "screenshot": "admin-admin-data-mobile-full.jpg",
+      "url": "/admin/data",
+      "title": "رحلة التغيير",
+      "h1": [
+        "إدارة البيانات"
+      ],
+      "headings": [
+        "المشارك المستهدف",
+        "فترة زمنية محددة",
+        "السجل الكامل للمشارك"
+      ],
+      "textLength": 1123,
+      "controls": 6,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 1725,
+      "clientHeight": 844,
+      "imageCount": 0,
+      "brokenImages": 0,
+      "pendingImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "الإدارة إدارة البيانات حدد المشارك أولًا، ثم راجع السجلات التي ستمسحها قبل التأكيد. المشارك المستهدف كل إجراء في هذه الصفحة يخص المشارك الذي تختاره هنا فقط. اختر مشاركًا قبل المتابعة سيُحتفظ بنسخة مؤقتة من البيانات قبل المسح. الاستعاد"
+    }
+  ]
+}

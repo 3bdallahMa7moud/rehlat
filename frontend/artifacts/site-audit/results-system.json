@@ -1,0 +1,212 @@
+{
+  "auditedAt": "2026-09-28T19:10:39.124Z",
+  "errors": [],
+  "pages": [
+    {
+      "role": "auth",
+      "route": "/login",
+      "viewport": "desktop",
+      "screenshot": "auth-login-desktop.jpg",
+      "url": "/login",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مرحبًا بك في رحلة التغيير"
+      ],
+      "headings": [
+        "رِحْلَةُ التَّغْيِير"
+      ],
+      "textLength": 274,
+      "controls": 7,
+      "smallControls": [],
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 900,
+      "clientHeight": 900,
+      "imageCount": 2,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "رحلة التغيير خطوة صغيرة اليوم تصنع تغييرًا كبيرًا مرحبًا بك في رحلة التغيير اختر حسابك للمتابعة رز رازي 12 أيام متتالية نو نورة 18 أيام متتالية سر سارة 9 أيام متتالية خل خالد 6 أيام متتالية مش المشرف مشرف إدارة المجموعة المتابعة إلى رمز"
+    },
+    {
+      "role": "auth",
+      "route": "/setup-pin",
+      "viewport": "desktop",
+      "screenshot": "auth-setup-pin-desktop.jpg",
+      "url": "/login",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مرحبًا بك في رحلة التغيير"
+      ],
+      "headings": [
+        "رِحْلَةُ التَّغْيِير"
+      ],
+      "textLength": 274,
+      "controls": 7,
+      "smallControls": [],
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 900,
+      "clientHeight": 900,
+      "imageCount": 2,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "رحلة التغيير خطوة صغيرة اليوم تصنع تغييرًا كبيرًا مرحبًا بك في رحلة التغيير اختر حسابك للمتابعة رز رازي 12 أيام متتالية نو نورة 18 أيام متتالية سر سارة 9 أيام متتالية خل خالد 6 أيام متتالية مش المشرف مشرف إدارة المجموعة المتابعة إلى رمز"
+    },
+    {
+      "role": "auth",
+      "route": "/forbidden",
+      "viewport": "desktop",
+      "screenshot": "auth-forbidden-desktop.jpg",
+      "url": "/forbidden",
+      "title": "غير مصرح | رحلة التغيير",
+      "h1": [
+        "هذه المساحة للمشرف"
+      ],
+      "headings": [],
+      "textLength": 84,
+      "controls": 1,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1026,
+      "clientHeight": 900,
+      "imageCount": 1,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "هذه المساحة للمشرف حسابك الحالي لا يملك صلاحية فتح صفحات الإدارة. العودة إلى رحلتي"
+    },
+    {
+      "role": "auth",
+      "route": "/missing-page",
+      "viewport": "desktop",
+      "screenshot": "auth-missing-page-desktop.jpg",
+      "url": "/missing-page",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الصفحة غير موجودة"
+      ],
+      "headings": [],
+      "textLength": 112,
+      "controls": 1,
+      "smallControls": [],
+      "scrollWidth": 1425,
+      "clientWidth": 1425,
+      "scrollHeight": 1026,
+      "clientHeight": 900,
+      "imageCount": 1,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "404 الصفحة غير موجودة الرابط قديم أو غير صحيح. ارجع إلى رحلتك اليومية واختر وجهتك من هناك. العودة إلى الرئيسية"
+    },
+    {
+      "role": "auth",
+      "route": "/login",
+      "viewport": "mobile",
+      "screenshot": "auth-login-mobile.jpg",
+      "url": "/login",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مرحبًا بك في رحلة التغيير"
+      ],
+      "headings": [
+        "رِحْلَةُ التَّغْيِير"
+      ],
+      "textLength": 207,
+      "controls": 7,
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "text": "داكن",
+          "width": 38,
+          "height": 44
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 844,
+      "clientHeight": 844,
+      "imageCount": 2,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "مرحبًا بك في رحلة التغيير اختر حسابك للمتابعة رز رازي 12 أيام متتالية نو نورة 18 أيام متتالية سر سارة 9 أيام متتالية خل خالد 6 أيام متتالية مش المشرف مشرف المتابعة إلى رمز الدخول يمكنك تغيير الحساب لاحقًا"
+    },
+    {
+      "role": "auth",
+      "route": "/setup-pin",
+      "viewport": "mobile",
+      "screenshot": "auth-setup-pin-mobile.jpg",
+      "url": "/login",
+      "title": "رحلة التغيير",
+      "h1": [
+        "مرحبًا بك في رحلة التغيير"
+      ],
+      "headings": [
+        "رِحْلَةُ التَّغْيِير"
+      ],
+      "textLength": 207,
+      "controls": 7,
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "text": "داكن",
+          "width": 38,
+          "height": 44
+        }
+      ],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 844,
+      "clientHeight": 844,
+      "imageCount": 2,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "مرحبًا بك في رحلة التغيير اختر حسابك للمتابعة رز رازي 12 أيام متتالية نو نورة 18 أيام متتالية سر سارة 9 أيام متتالية خل خالد 6 أيام متتالية مش المشرف مشرف المتابعة إلى رمز الدخول يمكنك تغيير الحساب لاحقًا"
+    },
+    {
+      "role": "auth",
+      "route": "/forbidden",
+      "viewport": "mobile",
+      "screenshot": "auth-forbidden-mobile.jpg",
+      "url": "/forbidden",
+      "title": "غير مصرح | رحلة التغيير",
+      "h1": [
+        "هذه المساحة للمشرف"
+      ],
+      "headings": [],
+      "textLength": 84,
+      "controls": 1,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 966,
+      "clientHeight": 844,
+      "imageCount": 1,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "هذه المساحة للمشرف حسابك الحالي لا يملك صلاحية فتح صفحات الإدارة. العودة إلى رحلتي"
+    },
+    {
+      "role": "auth",
+      "route": "/missing-page",
+      "viewport": "mobile",
+      "screenshot": "auth-missing-page-mobile.jpg",
+      "url": "/missing-page",
+      "title": "رحلة التغيير",
+      "h1": [
+        "الصفحة غير موجودة"
+      ],
+      "headings": [],
+      "textLength": 112,
+      "controls": 1,
+      "smallControls": [],
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 966,
+      "clientHeight": 844,
+      "imageCount": 1,
+      "brokenImages": 0,
+      "hasEmptyState": false,
+      "bodyExcerpt": "404 الصفحة غير موجودة الرابط قديم أو غير صحيح. ارجع إلى رحلتك اليومية واختر وجهتك من هناك. العودة إلى الرئيسية"
+    }
+  ]
+}

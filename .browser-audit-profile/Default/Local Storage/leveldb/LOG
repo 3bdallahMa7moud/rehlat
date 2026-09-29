@@ -1,0 +1,32 @@
+2026/09/29-01:42:48.595 7814 Creating DB D:\journey-of-change\.browser-audit-profile\Default\Local Storage\leveldb since it was missing.
+2026/09/29-01:42:48.601 7814 Reusing MANIFEST D:\journey-of-change\.browser-audit-profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/09/29-01:44:48.859 5fc4 Level-0 table #5: started
+2026/09/29-01:44:48.864 5fc4 Level-0 table #5: 12934 bytes OK
+2026/09/29-01:44:48.867 5fc4 Delete type=0 #3
+2026/09/29-01:49:35.134 5fc4 Level-0 table #7: started
+2026/09/29-01:49:35.141 5fc4 Level-0 table #7: 14998 bytes OK
+2026/09/29-01:49:35.145 5fc4 Delete type=0 #4
+2026/09/29-01:50:34.664 5fc4 Level-0 table #9: started
+2026/09/29-01:50:34.698 5fc4 Level-0 table #9: 17614 bytes OK
+2026/09/29-01:50:34.701 5fc4 Delete type=0 #6
+2026/09/29-01:51:48.859 5fc4 Level-0 table #11: started
+2026/09/29-01:51:48.864 5fc4 Level-0 table #11: 12519 bytes OK
+2026/09/29-01:51:48.866 5fc4 Delete type=0 #8
+2026/09/29-01:53:48.859 5fc4 Level-0 table #13: started
+2026/09/29-01:53:48.896 5fc4 Level-0 table #13: 12895 bytes OK
+2026/09/29-01:53:48.900 5fc4 Delete type=0 #10
+2026/09/29-01:56:56.704 5fc4 Level-0 table #15: started
+2026/09/29-01:56:56.707 5fc4 Level-0 table #15: 17385 bytes OK
+2026/09/29-01:56:56.710 5fc4 Delete type=0 #12
+2026/09/29-01:56:56.710 7814 Compacting 4@0 + 1@1 files
+2026/09/29-01:56:56.714 7814 Generated table #16@0: 6 keys, 8728 bytes
+2026/09/29-01:56:56.714 7814 Compacted 4@0 + 1@1 files => 8728 bytes
+2026/09/29-01:56:56.715 7814 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/09/29-01:56:56.716 7814 Delete type=2 #7
+2026/09/29-01:56:56.716 7814 Delete type=2 #9
+2026/09/29-01:56:56.716 7814 Delete type=2 #11
+2026/09/29-01:56:56.716 7814 Delete type=2 #13
+2026/09/29-01:56:56.716 7814 Delete type=2 #15
+2026/09/29-01:57:48.864 5fc4 Level-0 table #18: started
+2026/09/29-01:57:48.870 5fc4 Level-0 table #18: 16991 bytes OK
+2026/09/29-01:57:48.872 5fc4 Delete type=0 #14

@@ -1,7 +1,7 @@
 "use client";
 
 import { CircleCheck, CircleDashed, CircleMinus, CircleX, Clock3, Play, Sparkles, Timer } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ActivityIcon } from "@/design/activity-visuals";
@@ -26,6 +26,35 @@ function StatusGlyph({ status }: { status: TaskStatus }) {
 }
 
 type CompletionOutcome = "completed" | "partial" | "not_completed" | "closed";
+
+function AnimatedTaskCount({ value }: { value: number }) {
+  const [display, setDisplay] = useState(value);
+  const displayRef = useRef(value);
+
+  useEffect(() => {
+    const from = displayRef.current;
+    if (from === value || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      displayRef.current = value;
+      setDisplay(value);
+      return;
+    }
+    let frame = 0;
+    let startedAt = 0;
+    const tick = (now: number) => {
+      if (!startedAt) startedAt = now;
+      const progress = Math.min(1, (now - startedAt) / 360);
+      const eased = 1 - (1 - progress) ** 3;
+      const next = progress === 1 ? value : Math.round((from + (value - from) * eased) * 10) / 10;
+      displayRef.current = next;
+      setDisplay(next);
+      if (progress < 1) frame = window.requestAnimationFrame(tick);
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [value]);
+
+  return <span>{display}</span>;
+}
 
 export function TaskCard({ task, compact = false, openOnClick = false }: { task: Task; compact?: boolean; openOnClick?: boolean }) {
   const { setTaskStatus, completeTask } = useDemo();
@@ -65,7 +94,7 @@ export function TaskCard({ task, compact = false, openOnClick = false }: { task:
         </div>
       </div>
       {task.group === "morning" && <div className="morning-group"><Sparkles size={14} /><span>ضمن مجموعة الصباح: مهام روتينك قبل انشغال اليوم.</span></div>}
-      <div className="task-goal-row"><span>{task.goalLabel}</span><strong>{task.current} / {task.target} {task.unit}</strong></div>
+      <div className="task-goal-row"><span>{task.goalLabel}</span><strong><AnimatedTaskCount value={task.current} /> / {task.target} {task.unit}</strong></div>
       <ProgressBar value={progress} tone={tone === "warning" ? "warning" : tone === "success" ? "success" : tone === "teal" ? "teal" : "primary"} />
       {!compact && <div className="task-meta"><span><Timer size={15} />الوقت الفعلي: {formatMinutes(task.actualMinutes)}</span>{task.durationMinutes && <span><Clock3 size={15} />الهدف الزمني: {formatMinutes(task.durationMinutes)}</span>}</div>}
       <div className="task-card-footer">

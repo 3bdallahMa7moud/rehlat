@@ -114,7 +114,11 @@ export function PrayerActivityPage({ taskId }: { taskId: string }) {
   if (!task) return <Card className="prayer-empty"><Landmark size={30} /><h2>مهمة الصلاة غير موجودة</h2><p>ارجع إلى المهام واختر مهمة الصلاة.</p><Link href="/tasks"><Button variant="outline">العودة إلى المهام</Button></Link></Card>;
 
   const updateDetails = (details: Details) => updateTaskDetails(task.id, details);
-  const togglePrayer = (name: string) => {
+  const togglePrayer = (prayer: (typeof prayers)[number]) => {
+    const { name } = prayer;
+    const completed = completedPrayers.includes(name);
+    if (!completed && nowSeconds < prayer.minutes * 60) return;
+
     const next = completedPrayers.includes(name) ? completedPrayers.filter((item) => item !== name) : [...completedPrayers, name];
     updateDetails({ completedPrayers: next });
   };
@@ -154,28 +158,29 @@ export function PrayerActivityPage({ taskId }: { taskId: string }) {
       </aside>
 
       <section className="prayer-main-column" aria-label="تسجيل الصلاة">
-        <Card id="daily-prayers" className="prayer-section-card prayer-times-section" padding="sm">
-          <div className="prayer-section-heading"><div><span className="prayer-section-icon"><CalendarDays size={21} /></span><div><h2>سجّل صلاتك اليوم</h2><p>اضغط على الصلاة بعد أدائها لتسجيلها</p></div></div><strong>{completedPrayers.length} من {visiblePrayers.length} مكتملة</strong></div>
-          <div className="prayer-times-grid">
-            {visiblePrayers.map((prayer) => {
-              const PrayerIcon = prayer.icon;
-              const completed = completedPrayers.includes(prayer.name);
-              const upcoming = prayer.name === nextPrayer.name && !completed;
-              return <button type="button" key={prayer.name} aria-pressed={completed} className={cn("prayer-time-card", `prayer-tone-${prayer.tone}`, completed && "is-complete", upcoming && "is-upcoming")} onClick={() => togglePrayer(prayer.name)}>
-                <span className="prayer-time-icon"><PrayerIcon size={26} /></span>
-                <strong>{prayer.name}</strong>
-                <time>{prayer.time} <small>إرشادي</small></time>
-                <span className="prayer-time-status">{completed ? <><CircleCheck size={17} />تمت الصلاة</> : upcoming ? <><Clock3 size={17} />سجّل بعد أدائها</> : <><Circle size={17} />لم تُسجّل بعد</>}</span>
-              </button>;
-            })}
-          </div>
-        </Card>
-
         <section className="prayer-verse-banner" aria-label="تذكير اليوم">
           <span className="prayer-verse-leaf"><Leaf size={27} /></span>
           <div><Quote size={19} /><p>﴿ وَأَقِمِ الصَّلَاةَ لِذِكْرِي ﴾</p><span>طه · ١٤</span></div>
           <Link href="/tasks" className="prayer-back-link">كل المهام</Link>
         </section>
+
+        <Card id="daily-prayers" className="prayer-section-card prayer-times-section" padding="sm">
+          <div className="prayer-section-heading"><div><span className="prayer-section-icon"><CalendarDays size={21} /></span><div><h2>سجّل صلاتك اليوم</h2><p>اضغط على الصلاة بعد دخول وقتها وأدائها لتسجيلها</p></div></div><strong>{completedPrayers.length} من {visiblePrayers.length} مكتملة</strong></div>
+          <div className="prayer-times-grid">
+            {visiblePrayers.map((prayer) => {
+              const PrayerIcon = prayer.icon;
+              const completed = completedPrayers.includes(prayer.name);
+              const upcoming = prayer.name === nextPrayer.name && !completed;
+              const locked = !completed && nowSeconds < prayer.minutes * 60;
+              return <button type="button" key={prayer.name} aria-pressed={completed} disabled={locked} title={locked ? `متاحة عند دخول وقت ${prayer.time}` : undefined} className={cn("prayer-time-card", `prayer-tone-${prayer.tone}`, completed && "is-complete", upcoming && "is-upcoming", locked && "is-locked")} onClick={() => togglePrayer(prayer)}>
+                <span className="prayer-time-icon"><PrayerIcon size={26} /></span>
+                <strong>{prayer.name}</strong>
+                <time>{prayer.time} <small>إرشادي</small></time>
+                <span className="prayer-time-status">{completed ? <><CircleCheck size={17} />تمت الصلاة</> : locked ? <><Clock3 size={17} />لم يحن وقتها بعد</> : <><Circle size={17} />لم تُسجّل بعد</>}</span>
+              </button>;
+            })}
+          </div>
+        </Card>
 
         <section className="prayer-summary-grid" aria-label="ملخص الصلاة اليوم">
           <Card className="prayer-summary-card" padding="sm"><span className="prayer-summary-icon prayer-summary-icon-main"><Landmark size={22} /></span><div><small>الصلوات اليوم</small><strong>{completedPrayers.length} <em>/ {visiblePrayers.length}</em></strong><p>تمت الصلاة</p></div><div className="prayer-summary-progress"><b>{prayerProgress}%</b><ProgressBar value={prayerProgress} tone="teal" /></div></Card>

@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Activity, ArrowDown, ArrowLeft, ArrowUp, BarChart3, CalendarDays, CheckCircle2, Clock3, FileSpreadsheet, FileText, Lightbulb, Search, Target, Trophy, Users } from "lucide-react";
 import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, SectionHeader, Tabs, UserAvatar } from "@/components/ui";
 import { createReportExportModel } from "@/lib/report-export";
+import { getEmptySavedAdminReportsSnapshot, getSavedAdminReportsSnapshot, subscribeSavedAdminReports, writeSavedAdminReports, type SavedAdminReport } from "@/data/reports/local-report-history";
+import { createLocalId } from "@/data/local-id";
 import { ReportPrintSheet } from "@/components/features/ReportPrintSheet";
 import { formatMinutes, formatPercentage } from "@/lib/format";
 import { getDailyReflection } from "@/lib/daily-reflection";
@@ -35,6 +37,7 @@ function LineChart({ points }: { points: Array<{ label: string; progress: number
 
 export function RealAdminReportsView({ initialView = "overview" }: { initialView?: "overview" | "participants" }) {
   const { getReport, participants, tasks, pushToast } = useDemo();
+  const savedReports = useSyncExternalStore(subscribeSavedAdminReports, getSavedAdminReportsSnapshot, getEmptySavedAdminReportsSnapshot);
   const [period, setPeriod] = useState<ReportPeriod>("monthly");
   const [view, setView] = useState<"overview" | "participants">(initialView);
   const [participantSearch, setParticipantSearch] = useState("");
@@ -62,6 +65,21 @@ export function RealAdminReportsView({ initialView = "overview" }: { initialView
   const bestDay = bestDays[0];
   const categoryTotal = taskRows.reduce((sum, row) => sum + row.minutes, 0);
   const reportModel = createReportExportModel(report);
+  const saveReport = () => {
+    if (!report.hasData) return;
+    const snapshot: SavedAdminReport = { id: createLocalId("report"), savedAt: new Date().toISOString(), period, dateRange: report.dateRange, model: reportModel };
+    const next = [snapshot, ...savedReports].slice(0, 12);
+    if (!writeSavedAdminReports(next)) { pushToast({ tone: "error", title: "تعذر حفظ التقرير", body: "تحقق من مساحة التخزين في المتصفح ثم حاول مرة أخرى." }); return; }
+    pushToast({ tone: "success", title: "حُفظت نسخة التقرير", body: "يمكنك الرجوع إليها من التقارير السابقة في هذا المتصفح." });
+  };
+  const removeSavedReport = (id: string) => {
+    const next = savedReports.filter((item) => item.id !== id);
+    if (!writeSavedAdminReports(next)) { pushToast({ tone: "error", title: "تعذر حذف النسخة" }); return; }
+  };
+  const exportSavedReport = async (snapshot: SavedAdminReport) => {
+    const { exportXlsxReport } = await import("@/lib/xlsx-export");
+    await exportXlsxReport(snapshot.model, `journey-report-saved-${snapshot.dateRange.start}`);
+  };
   const exportExcel = async () => { if (!report.hasData) return; const { exportXlsxReport } = await import("@/lib/xlsx-export"); await exportXlsxReport(reportModel, `journey-report-${period}`); pushToast({ tone: "success", title: "تم تصدير Excel", body: "يحتوي الملف على الملخص والأيام والمهام والمشاركين للفترة المختارة." }); };
   const exportPdf = () => { if (!report.hasData) return; window.print(); pushToast({ tone: "info", title: "حفظ PDF", body: "اختر «حفظ كملف PDF» من نافذة الطباعة." }); };
   return <div dir="rtl" className="admin-report-page report-dashboard">
@@ -73,7 +91,7 @@ export function RealAdminReportsView({ initialView = "overview" }: { initialView
     <section className="report-main-grid"><Card className="report-chart-card"><SectionHeader title="اتجاه الأداء" description="الإنجاز اليومي والوقت الفعلي خلال الفترة المحددة." /><LineChart points={report.points} /></Card><Card className="report-donut-card"><SectionHeader title="توزيع الوقت حسب المجالات" description="من سجلات الوقت الفعلي." />{categoryTotal ? <div className="report-donut-wrap"><div className="report-donut" style={{ background: `conic-gradient(${taskRows.map((row, index) => `${categoryColors[index % categoryColors.length]} ${taskRows.slice(0, index).reduce((sum, item) => sum + item.minutes, 0) / categoryTotal * 360}deg ${(taskRows.slice(0, index + 1).reduce((sum, item) => sum + item.minutes, 0) / categoryTotal) * 360}deg`).join(", ")})` }}><div><strong>{formatMinutes(categoryTotal)}</strong><span>إجمالي الوقت</span></div></div><div className="report-legend">{taskRows.slice(0, 6).map((row, index) => <span key={row.category}><i style={{ background: categoryColors[index % categoryColors.length] }} />{categoryLabels[row.category]} <b>{Math.round(row.minutes / categoryTotal * 100)}%</b></span>)}</div></div> : <EmptyState title="لا يوجد توزيع زمني بعد" description="ابدأ بتسجيل وقت المهام ليظهر التوزيع هنا." />}</Card></section>
     <section className="report-insight-grid"><Card><SectionHeader title={period === "monthly" ? "أفضل الأسابيع" : "أفضل الأيام"} action={<Trophy size={20} className="report-section-icon report-positive" />} />{bestDays.length ? <div className="report-day-list">{bestDays.map((day) => <div key={day.label}><span>{day.label}</span><ProgressBar value={day.progress} tone="success" /><strong>{day.progress}%</strong></div>)}</div> : <EmptyState title="لا توجد فترات مسجلة" />}</Card><Card><SectionHeader title={period === "monthly" ? "أقل الأسابيع" : "أقل الأيام"} action={<ArrowDown size={20} className="report-section-icon report-negative" />} />{lowestDays.length ? <div className="report-day-list">{lowestDays.map((day) => <div key={day.label}><span>{day.label}</span><ProgressBar value={day.progress} tone="warning" /><strong>{day.progress}%</strong></div>)}</div> : <EmptyState title="لا توجد فترات مسجلة" />}</Card><Card className="report-ranking-card"><SectionHeader title="أعلى إنجاز في الفترة" action={<Users size={20} className="report-section-icon" />} />{participantRows.length ? <div className="report-ranking-list">{participantRows.slice(0, 5).map((row, index) => <article key={row.participantId}><span className={`report-rank report-rank-${index + 1}`}>{index + 1}</span><UserAvatar initials={row.participant.initials} color={row.participant.avatarColor} size="sm" /><div><strong>{row.name}</strong><small>{row.successfulDays} حالات يوم ناجح · {formatMinutes(row.actualMinutes)}</small></div><b>{row.completionRate}%</b></article>)}</div> : <EmptyState title="لا توجد بيانات مشاركين في الفترة" />}</Card></section>
     <section className="report-lower-grid"><Card><SectionHeader title="ملخص التقرير وأبرز النتائج" action={<Lightbulb size={20} className="report-section-icon report-positive" />} /><div className="report-insights">{report.hasData ? <><p><ArrowUp size={16} />متوسط إنجاز المجموعة في الفترة هو {kpiCompletion}% عبر {report.recordedDays} حالات يوم مسجلة.</p>{bestDay && <p><Activity size={16} />أفضل أداء مسجل كان في {bestDay.label} بنسبة {bestDay.progress}%.</p>}<p><Clock3 size={16} />تم توثيق {formatMinutes(totalMinutes)} من الوقت الفعلي خلال الفترة.</p></> : <EmptyState title="لا توجد بيانات مسجلة لهذه الفترة" description="ستظهر النتائج عند تسجيل نشاط فعلي." />}</div></Card><Card><SectionHeader title="أداء المجالات" /><div className="report-domain-list">{taskRows.slice(0, 5).map((row) => <div key={row.category}><span>{categoryLabels[row.category]}</span><ProgressBar value={row.tasks ? row.completion / row.tasks : 0} tone="teal" /><b>{row.tasks ? Math.round(row.completion / row.tasks) : 0}%</b></div>)}{!taskRows.length && <EmptyState title="لا توجد مهام مسجلة في الفترة" />}</div></Card></section>
-    <section className="report-history-grid"><Card padding="none" className="report-history-card"><div className="report-card-heading"><div><h2>التقارير السابقة</h2><p>التقارير المحفوظة والجاهزة للرجوع إليها.</p></div><FileText size={21} /></div><EmptyState title="لا توجد تقارير محفوظة بعد" description="سيظهر هنا سجل التقارير عند توفر تاريخ محفوظ." /></Card><Card className="report-motivation-card"><span className="report-motivation-icon"><Lightbulb size={22} /></span><div><small>تذكير اليوم</small><h3>{reflection.title}</h3><p>{reflection.body}</p></div></Card></section>
+    <section className="report-history-grid"><Card padding="none" className="report-history-card"><div className="report-card-heading"><div><h2>التقارير السابقة</h2><p>نسخ محفوظة في هذا المتصفح، ببياناتها وقت الحفظ.</p></div><Button size="sm" variant="outline" disabled={!report.hasData} onClick={saveReport}><FileText size={16} />حفظ التقرير الحالي</Button></div>{savedReports.length ? <div className="report-saved-list">{savedReports.map((snapshot) => <article key={snapshot.id} className="report-saved-item"><div><strong>تقرير {periodLabels[snapshot.period]} · {snapshot.dateRange.start} — {snapshot.dateRange.end}</strong><small>حُفظ في {new Intl.DateTimeFormat("ar-EG", { dateStyle: "medium", timeStyle: "short" }).format(new Date(snapshot.savedAt))}</small><span>الإنجاز: {snapshot.model.summary[0]?.["نسبة الإنجاز"] ?? "—"}% · الوقت: {snapshot.model.summary[0]?.["إجمالي الوقت الفعلي بالدقائق"] ?? "—"} دقيقة</span></div><div className="report-saved-actions"><Button size="sm" variant="outline" onClick={() => void exportSavedReport(snapshot)}><FileSpreadsheet size={15} />Excel</Button><Button size="sm" variant="ghost" onClick={() => removeSavedReport(snapshot.id)}>حذف النسخة</Button></div></article>)}</div> : <EmptyState title="لا توجد نسخ محفوظة بعد" description={report.hasData ? "اضغط «حفظ التقرير الحالي» للاحتفاظ بنسخة من هذه النتائج." : "سجّل نشاطًا أولًا، ثم احفظ نسخة من التقرير."} />}</Card><Card className="report-motivation-card"><span className="report-motivation-icon"><Lightbulb size={22} /></span><div><small>تذكير اليوم</small><h3>{reflection.title}</h3><p>{reflection.body}</p></div></Card></section>
     </> : <section className="report-participants-section" aria-label="تفاصيل أداء المشاركين">
       <Card className="report-participants-card">
         <div className="report-participants-heading"><div><span className="eyebrow">تفاصيل الفترة</span><h2>أداء المشاركين</h2><p>تظهر الحسابات التي لديها نشاط محفوظ في الفترة المختارة.</p></div><strong>{visibleParticipants.length} من {participantRows.length}</strong></div>

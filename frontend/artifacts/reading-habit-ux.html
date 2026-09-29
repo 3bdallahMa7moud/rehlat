@@ -1,0 +1,331 @@
+<div id="reading-habit-mockup" dir="rtl" aria-label="تصور مقترح لصفحة عادة قراءة الكتاب">
+  <style>
+    #reading-habit-mockup {
+      --reading-bg: light-dark(#f3f8f8, #0e171c);
+      --reading-surface: light-dark(#ffffff, #152229);
+      --reading-surface-soft: light-dark(#edf7f4, #1b3033);
+      --reading-ink: light-dark(#123044, #eef7f7);
+      --reading-muted: light-dark(#66808d, #a9bdc4);
+      --reading-line: light-dark(#d9e7e6, #2d4147);
+      --reading-primary: light-dark(#147f79, #5bc8bf);
+      --reading-primary-ink: light-dark(#ffffff, #08211f);
+      --reading-warm: light-dark(#f3c76a, #d6ad58);
+      color-scheme: light dark;
+      overflow: hidden;
+      border: 1px solid var(--reading-line);
+      border-radius: 22px;
+      background: var(--reading-bg);
+      color: var(--reading-ink);
+      font-family: Cairo, "Segoe UI", sans-serif;
+      box-shadow: 0 24px 70px light-dark(rgba(23, 77, 82, .12), rgba(0, 0, 0, .28));
+    }
+    #reading-habit-mockup * { box-sizing: border-box; }
+    #reading-habit-mockup button,
+    #reading-habit-mockup input,
+    #reading-habit-mockup textarea { font: inherit; }
+    #reading-habit-mockup button { cursor: pointer; }
+    #reading-habit-mockup .rh-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid var(--reading-line);
+      background: var(--reading-surface);
+      padding: 14px 22px;
+    }
+    #reading-habit-mockup .rh-breadcrumb { color: var(--reading-muted); font-size: 12px; }
+    #reading-habit-mockup .rh-breadcrumb strong { color: var(--reading-ink); font-weight: 500; }
+    #reading-habit-mockup .rh-state-switcher { display: flex; gap: 4px; border: 1px solid var(--reading-line); border-radius: 12px; padding: 3px; }
+    #reading-habit-mockup .rh-state-switcher button {
+      min-height: 34px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--reading-muted);
+      padding: 0 12px;
+      font-size: 12px;
+    }
+    #reading-habit-mockup .rh-state-switcher button.is-active { background: var(--reading-primary); color: var(--reading-primary-ink); }
+    #reading-habit-mockup .rh-page { padding: 22px; }
+    #reading-habit-mockup .rh-book-header {
+      display: grid;
+      grid-template-columns: 70px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    #reading-habit-mockup .rh-cover {
+      display: grid;
+      width: 70px;
+      height: 92px;
+      place-items: center;
+      border-radius: 8px 14px 14px 8px;
+      background: linear-gradient(145deg, #123d4d, #17837d);
+      color: #fff;
+      box-shadow: -6px 7px 16px rgba(18, 61, 77, .2);
+    }
+    #reading-habit-mockup .rh-cover svg { width: 28px; height: 28px; }
+    #reading-habit-mockup .rh-book-copy { min-width: 0; }
+    #reading-habit-mockup .rh-kicker { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; color: var(--reading-primary); font-size: 12px; font-weight: 500; }
+    #reading-habit-mockup .rh-streak { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; background: color-mix(in srgb, var(--reading-warm) 20%, transparent); color: light-dark(#805a08, #f2d48e); padding: 4px 8px; }
+    #reading-habit-mockup h1 { margin: 7px 0 2px; font-size: clamp(23px, 3vw, 32px); font-weight: 500; line-height: 1.3; }
+    #reading-habit-mockup .rh-book-copy p { margin: 0; color: var(--reading-muted); font-size: 13px; }
+    #reading-habit-mockup .rh-ghost-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 40px;
+      border: 1px solid var(--reading-line);
+      border-radius: 11px;
+      background: var(--reading-surface);
+      color: var(--reading-muted);
+      padding: 0 12px;
+    }
+    #reading-habit-mockup .rh-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(250px, .72fr); gap: 16px; }
+    #reading-habit-mockup .rh-session,
+    #reading-habit-mockup .rh-side {
+      border: 1px solid var(--reading-line);
+      border-radius: 18px;
+      background: var(--reading-surface);
+    }
+    #reading-habit-mockup .rh-session { min-height: 395px; padding: 22px; }
+    #reading-habit-mockup .rh-session-heading { display: flex; align-items: start; justify-content: space-between; gap: 18px; }
+    #reading-habit-mockup .rh-session-heading span { color: var(--reading-primary); font-size: 12px; }
+    #reading-habit-mockup .rh-session-heading h2 { margin: 4px 0 0; font-size: 21px; font-weight: 500; }
+    #reading-habit-mockup .rh-goal { color: var(--reading-muted); font-size: 12px; text-align: left; }
+    #reading-habit-mockup .rh-goal strong { display: block; color: var(--reading-ink); font-size: 18px; font-weight: 500; }
+    #reading-habit-mockup .rh-focus {
+      display: grid;
+      justify-items: center;
+      gap: 13px;
+      max-width: 520px;
+      margin: 28px auto 10px;
+      text-align: center;
+    }
+    #reading-habit-mockup .rh-focus-icon { display: grid; width: 56px; height: 56px; place-items: center; border-radius: 17px; background: var(--reading-surface-soft); color: var(--reading-primary); }
+    #reading-habit-mockup .rh-focus-icon svg { width: 25px; height: 25px; }
+    #reading-habit-mockup .rh-focus h3 { margin: 0; font-size: 22px; font-weight: 500; }
+    #reading-habit-mockup .rh-focus p { max-width: 440px; margin: 0; color: var(--reading-muted); font-size: 13px; line-height: 1.8; }
+    #reading-habit-mockup .rh-timer { color: var(--reading-ink); font-size: 36px; font-variant-numeric: tabular-nums; font-weight: 500; letter-spacing: .04em; direction: ltr; }
+    #reading-habit-mockup .rh-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      border: 0;
+      border-radius: 13px;
+      background: var(--reading-primary);
+      color: var(--reading-primary-ink);
+      padding: 0 22px;
+      font-weight: 500;
+    }
+    #reading-habit-mockup .rh-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 42px;
+      border: 1px solid var(--reading-line);
+      border-radius: 11px;
+      background: transparent;
+      color: var(--reading-ink);
+      padding: 0 14px;
+    }
+    #reading-habit-mockup .rh-reading-actions { display: none; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    #reading-habit-mockup .rh-finish-form { display: none; width: min(100%, 500px); gap: 12px; text-align: right; }
+    #reading-habit-mockup .rh-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #reading-habit-mockup label { display: grid; gap: 6px; color: var(--reading-muted); font-size: 12px; }
+    #reading-habit-mockup input,
+    #reading-habit-mockup textarea {
+      width: 100%;
+      border: 1px solid var(--reading-line);
+      border-radius: 10px;
+      background: var(--reading-bg);
+      color: var(--reading-ink);
+      padding: 10px 11px;
+    }
+    #reading-habit-mockup textarea { resize: vertical; }
+    #reading-habit-mockup .rh-form-action { display: flex; justify-content: flex-end; }
+    #reading-habit-mockup .rh-bookmark {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 18px;
+      border-top: 1px solid var(--reading-line);
+      padding-top: 16px;
+      color: var(--reading-muted);
+      font-size: 12px;
+    }
+    #reading-habit-mockup .rh-bookmark strong { color: var(--reading-ink); font-weight: 500; }
+    #reading-habit-mockup .rh-side { padding: 18px; }
+    #reading-habit-mockup .rh-side section + section { margin-top: 20px; border-top: 1px solid var(--reading-line); padding-top: 18px; }
+    #reading-habit-mockup .rh-side-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 11px; }
+    #reading-habit-mockup .rh-side-heading h3 { margin: 0; font-size: 14px; font-weight: 500; }
+    #reading-habit-mockup .rh-side-heading span { color: var(--reading-primary); font-size: 12px; }
+    #reading-habit-mockup .rh-progress { height: 9px; overflow: hidden; border-radius: 999px; background: var(--reading-surface-soft); }
+    #reading-habit-mockup .rh-progress > span { display: block; width: 21%; height: 100%; border-radius: inherit; background: var(--reading-primary); }
+    #reading-habit-mockup .rh-progress-copy { display: flex; justify-content: space-between; gap: 8px; margin-top: 7px; color: var(--reading-muted); font-size: 11px; }
+    #reading-habit-mockup .rh-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    #reading-habit-mockup .rh-day { display: grid; justify-items: center; gap: 6px; color: var(--reading-muted); font-size: 10px; }
+    #reading-habit-mockup .rh-day i { display: grid; width: 27px; height: 27px; place-items: center; border-radius: 9px; background: var(--reading-surface-soft); color: var(--reading-muted); font-style: normal; }
+    #reading-habit-mockup .rh-day.is-done i { background: var(--reading-primary); color: var(--reading-primary-ink); }
+    #reading-habit-mockup .rh-day.is-today i { box-shadow: 0 0 0 2px color-mix(in srgb, var(--reading-primary) 30%, transparent); }
+    #reading-habit-mockup .rh-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    #reading-habit-mockup .rh-stat { background: var(--reading-surface-soft); border-radius: 12px; padding: 11px; }
+    #reading-habit-mockup .rh-stat span { display: block; color: var(--reading-muted); font-size: 10px; }
+    #reading-habit-mockup .rh-stat strong { display: block; margin-top: 4px; font-size: 17px; font-weight: 500; }
+    #reading-habit-mockup .rh-management { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 15px; color: var(--reading-muted); font-size: 11px; }
+    #reading-habit-mockup .rh-management button { border: 0; background: transparent; color: var(--reading-primary); padding: 4px 0; }
+    #reading-habit-mockup[data-mode="reading"] .rh-focus-icon { background: color-mix(in srgb, var(--reading-primary) 17%, transparent); }
+    #reading-habit-mockup[data-mode="reading"] #rh-primary { display: none; }
+    #reading-habit-mockup[data-mode="reading"] .rh-reading-actions { display: flex; }
+    #reading-habit-mockup[data-mode="finished"] .rh-finish-form { display: grid; }
+    #reading-habit-mockup[data-mode="finished"] .rh-timer,
+    #reading-habit-mockup[data-mode="finished"] #rh-primary,
+    #reading-habit-mockup[data-mode="finished"] .rh-reading-actions { display: none; }
+    @media (max-width: 760px) {
+      #reading-habit-mockup .rh-topbar { align-items: stretch; flex-direction: column; }
+      #reading-habit-mockup .rh-state-switcher { width: 100%; }
+      #reading-habit-mockup .rh-state-switcher button { flex: 1; padding-inline: 6px; }
+      #reading-habit-mockup .rh-page { padding: 15px; }
+      #reading-habit-mockup .rh-book-header { grid-template-columns: 58px minmax(0, 1fr); }
+      #reading-habit-mockup .rh-cover { width: 58px; height: 78px; }
+      #reading-habit-mockup .rh-book-header > .rh-ghost-action { grid-column: 1 / -1; width: 100%; }
+      #reading-habit-mockup .rh-layout { grid-template-columns: 1fr; }
+      #reading-habit-mockup .rh-session { padding: 17px; }
+      #reading-habit-mockup .rh-session-heading { align-items: start; flex-direction: column; }
+      #reading-habit-mockup .rh-goal { text-align: right; }
+      #reading-habit-mockup .rh-field-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="rh-topbar">
+    <div class="rh-breadcrumb">مهام اليوم / <strong>عادة القراءة</strong></div>
+    <div class="rh-state-switcher" role="tablist" aria-label="حالات تجربة القراءة">
+      <button type="button" role="tab" data-mode="ready" aria-selected="true" class="is-active">قبل الجلسة</button>
+      <button type="button" role="tab" data-mode="reading" aria-selected="false">أثناء القراءة</button>
+      <button type="button" role="tab" data-mode="finished" aria-selected="false">بعد الجلسة</button>
+    </div>
+  </div>
+
+  <main class="rh-page">
+    <header class="rh-book-header">
+      <div class="rh-cover"><i data-lucide="book-open" aria-hidden="true"></i></div>
+      <div class="rh-book-copy">
+        <div class="rh-kicker">عادة يومية <span class="rh-streak"><i data-lucide="flame" aria-hidden="true"></i> 12 يومًا متتاليًا</span></div>
+        <h1>العادات الذرية</h1>
+        <p>جيمس كلير · آخر قراءة اليوم، 8:12 م</p>
+      </div>
+      <button class="rh-ghost-action" type="button"><i data-lucide="settings-2" aria-hidden="true"></i>إعدادات الكتاب</button>
+    </header>
+
+    <div class="rh-layout">
+      <section class="rh-session" aria-live="polite">
+        <div class="rh-session-heading">
+          <div><span id="rh-eyebrow">خطوتك التالية</span><h2 id="rh-session-title">أكمل من الصفحة 68</h2></div>
+          <div class="rh-goal">هدف اليوم<strong>8 صفحات</strong></div>
+        </div>
+
+        <div class="rh-focus">
+          <div class="rh-focus-icon"><i data-lucide="book-marked" aria-hidden="true"></i></div>
+          <h3 id="rh-focus-title">جلسة قصيرة تكفي</h3>
+          <p id="rh-focus-copy">ابدأ من آخر موضع محفوظ. سيُسجل الوقت تلقائيًا، وعند النهاية اكتب الصفحة التي وصلت إليها فقط.</p>
+          <div class="rh-timer" id="rh-timer">00:00:00</div>
+          <button class="rh-primary" id="rh-primary" type="button"><i data-lucide="play" aria-hidden="true"></i><span>ابدأ جلسة القراءة</span></button>
+          <div class="rh-reading-actions">
+            <button class="rh-secondary" type="button"><i data-lucide="pause" aria-hidden="true"></i>إيقاف مؤقت</button>
+            <button class="rh-secondary" type="button" data-mode-jump="finished"><i data-lucide="check" aria-hidden="true"></i>إنهاء الجلسة</button>
+          </div>
+          <div class="rh-finish-form">
+            <div class="rh-field-grid">
+              <label>بدأت من صفحة<input value="68" inputmode="numeric" aria-label="صفحة البداية"></label>
+              <label>وصلت إلى صفحة<input value="76" inputmode="numeric" aria-label="صفحة النهاية"></label>
+            </div>
+            <label>فكرة تستحق التذكر <textarea rows="2" placeholder="اختياري: اكتب اقتباسًا أو فكرة قصيرة"></textarea></label>
+            <div class="rh-form-action"><button class="rh-primary" type="button"><i data-lucide="save" aria-hidden="true"></i><span>حفظ الجلسة</span></button></div>
+          </div>
+        </div>
+
+        <div class="rh-bookmark"><i data-lucide="bookmark" aria-hidden="true"></i><span>آخر علامة: <strong>الفصل الثاني — اجعل العادة واضحة</strong></span></div>
+      </section>
+
+      <aside class="rh-side">
+        <section>
+          <div class="rh-side-heading"><h3>تقدم الكتاب</h3><span>21%</span></div>
+          <div class="rh-progress" role="progressbar" aria-label="تقدم الكتاب" aria-valuenow="21" aria-valuemin="0" aria-valuemax="100"><span></span></div>
+          <div class="rh-progress-copy"><span>68 من 320 صفحة</span><span>متبقي 252</span></div>
+        </section>
+        <section>
+          <div class="rh-side-heading"><h3>استمراريتك هذا الأسبوع</h3><span>5 من 7</span></div>
+          <div class="rh-week" aria-label="أيام القراءة هذا الأسبوع">
+            <span class="rh-day is-done"><i>✓</i><span>س</span></span>
+            <span class="rh-day is-done"><i>✓</i><span>ح</span></span>
+            <span class="rh-day is-done"><i>✓</i><span>ن</span></span>
+            <span class="rh-day"><i>—</i><span>ث</span></span>
+            <span class="rh-day is-done"><i>✓</i><span>ر</span></span>
+            <span class="rh-day is-done is-today"><i>✓</i><span>خ</span></span>
+            <span class="rh-day"><i>•</i><span>ج</span></span>
+          </div>
+        </section>
+        <section>
+          <div class="rh-side-heading"><h3>هذا الأسبوع</h3></div>
+          <div class="rh-stats">
+            <div class="rh-stat"><span>وقت القراءة</span><strong>1س 42د</strong></div>
+            <div class="rh-stat"><span>صفحات قرأتها</span><strong>37 صفحة</strong></div>
+          </div>
+          <div class="rh-management"><span>ملف الكتاب والمشاركة خيارات ثانوية</span><button type="button">إدارة الملف</button></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const root = document.getElementById("reading-habit-mockup");
+      const state = { mode: "ready", dense: false };
+      const content = {
+        ready: { eyebrow: "خطوتك التالية", title: "أكمل من الصفحة 68", focus: "جلسة قصيرة تكفي", copy: "ابدأ من آخر موضع محفوظ. سيُسجل الوقت تلقائيًا، وعند النهاية اكتب الصفحة التي وصلت إليها فقط.", timer: "00:00:00", action: "ابدأ جلسة القراءة" },
+        reading: { eyebrow: "الجلسة جارية", title: "أنت الآن في وضع القراءة", focus: "اقرأ بهدوء", copy: "أبعدنا الحقول والإعدادات أثناء الجلسة. يمكنك الإيقاف مؤقتًا أو إنهاء الجلسة عند الانتهاء.", timer: "00:22:14", action: "الجلسة مستمرة" },
+        finished: { eyebrow: "خطوة أخيرة", title: "سجّل موضع توقفك", focus: "أحسنت — أنهيت 22 دقيقة", copy: "أدخل صفحة النهاية فقط، وأضف فكرة قصيرة إذا أحببت. باقي التفاصيل تُحسب تلقائيًا.", timer: "00:22:14", action: "حفظ الجلسة" }
+      };
+
+      function render() {
+        const current = content[state.mode];
+        root.dataset.mode = state.mode;
+        root.classList.toggle("is-dense", state.dense);
+        root.querySelector("#rh-eyebrow").textContent = current.eyebrow;
+        root.querySelector("#rh-session-title").textContent = current.title;
+        root.querySelector("#rh-focus-title").textContent = current.focus;
+        root.querySelector("#rh-focus-copy").textContent = current.copy;
+        root.querySelector("#rh-timer").textContent = current.timer;
+        root.querySelector("#rh-primary span").textContent = current.action;
+        root.querySelectorAll("[data-mode]").forEach((button) => {
+          const active = button.dataset.mode === state.mode;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-selected", String(active));
+        });
+      }
+
+      root.querySelectorAll("[data-mode]").forEach((button) => button.addEventListener("click", () => {
+        state.mode = button.dataset.mode;
+        render();
+        window.openai?.setWidgetState?.({ modelContent: { readingPageState: state.mode } }).catch(() => {});
+      }));
+      root.querySelector("#rh-primary").addEventListener("click", () => {
+        if (state.mode === "ready") state.mode = "reading";
+        render();
+      });
+      root.querySelectorAll("[data-mode-jump]").forEach((button) => button.addEventListener("click", () => {
+        state.mode = button.dataset.modeJump;
+        render();
+      }));
+      render();
+
+      if (globalThis.Tweak) {
+        const tweak = new Tweak({ container: root, onChange: render });
+        tweak.addSelect(state, "mode", { label: "حالة الجلسة", options: [{ label: "قبل الجلسة", value: "ready" }, { label: "أثناء القراءة", value: "reading" }, { label: "بعد الجلسة", value: "finished" }], reference: "reading.session-state" });
+      }
+    })();
+  </script>
+</div>

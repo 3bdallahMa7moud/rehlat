@@ -22,7 +22,7 @@ import {
   Stars,
   Sunrise,
 } from "lucide-react";
-import { Badge, Button, Card, EmptyState, Input, ProgressBar } from "@/components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, Input, ProgressBar } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { formatDashboardDate, getProjectDateKey, PROJECT_TIMEZONE } from "@/lib/date-time";
 import { useDemo } from "@/state/DemoContext";
@@ -124,10 +124,11 @@ export function SleepActivityPage({ taskId }: { taskId: string }) {
   const task = tasks.find((item) => item.id === taskId);
   const details = task?.details;
   const sleepConfig = task?.config?.type === "sleep" ? task.config : null;
-  const transientKey = `journey-of-change/sleep-session/${activeParticipant.id}`;
+  const transientKey = `journey-of-change/sleep-session/${activeParticipant.id}/${taskId}`;
+  const legacyKey = `journey-of-change/sleep-session/${activeParticipant.id}`;
   const savedSessionIso = useSyncExternalStore(
     subscribeSleepSession,
-    () => window.localStorage.getItem(transientKey),
+    () => window.localStorage.getItem(transientKey) ?? (taskId === "sleep" ? window.localStorage.getItem(legacyKey) : null),
     () => null,
   );
   const activeSessionIso = validSessionTime(savedSessionIso)
@@ -135,11 +136,12 @@ export function SleepActivityPage({ taskId }: { taskId: string }) {
   const [clockTick, setClockTick] = useState(() => Date.now());
   const [editorOpen, setEditorOpen] = useState(false);
   const [manualError, setManualError] = useState("");
-  const plannedBedtime = getString(details, "sleptAt", sleepConfig?.bedtime ?? "22:30");
+  const plannedBedtime = getString(details, "sleptAt", activeSessionIso ? timeValueFromDate(new Date(activeSessionIso)) : sleepConfig?.bedtime ?? "22:30");
   const plannedWakeTime = getString(details, "wokeAt", sleepConfig?.wakeTime ?? "06:30");
   const [draftBedtime, setDraftBedtime] = useState(plannedBedtime);
   const [draftWakeTime, setDraftWakeTime] = useState(plannedWakeTime);
   const recordedHours = getNumber(details, "sleepDurationHours", task?.current ?? 0);
+  const recordedMinutes = getNumber(details, "sleepDurationMinutes", recordedHours * 60);
   const sleepQuality = getNumber(details, "sleepQuality");
   const sleepNote = getString(details, "sleepNote");
   const completedRoutine = Array.isArray(details?.sleepRoutine) ? details.sleepRoutine as string[] : [];
@@ -155,7 +157,7 @@ export function SleepActivityPage({ taskId }: { taskId: string }) {
 
   const liveMinutes = isSleeping && activeSessionIso
     ? Math.max(0, (clockTick - new Date(activeSessionIso).getTime()) / 60_000)
-    : recordedHours * 60;
+    : recordedMinutes;
   const displayHours = isSleeping ? liveMinutes / 60 : recordedHours;
   const progress = Math.min(100, Math.round((displayHours / targetHours) * 100));
   const remainingMinutes = Math.max(0, Math.round((targetHours - displayHours) * 60));
@@ -199,7 +201,6 @@ export function SleepActivityPage({ taskId }: { taskId: string }) {
     setDraftWakeTime(plannedWakeTime);
     setManualError("");
     setEditorOpen(true);
-    window.setTimeout(() => document.getElementById("sleep-manual-editor")?.scrollIntoView({ behavior: "smooth", block: "center" }), 20);
   };
 
   const startSleepNow = () => {
@@ -223,11 +224,13 @@ export function SleepActivityPage({ taskId }: { taskId: string }) {
       openEditor();
       return;
     }
-    const hours = Math.round(elapsedMinutes / 6) / 10;
+    const minutes = Math.round(elapsedMinutes);
+    const hours = Math.round(minutes / 6) / 10;
     const wakeTime = timeValueFromDate(now);
     updateTaskProgress(task.id, hours);
-    updateDetails({ wokeAt: wakeTime, sleepEndedIso: now.toISOString(), sleepState: "recorded", sleepRecorded: true, sleepDurationHours: hours });
+    updateDetails({ sleptAt: timeValueFromDate(new Date(activeSessionIso)), wokeAt: wakeTime, sleepEndedIso: now.toISOString(), sleepState: "recorded", sleepRecorded: true, sleepDurationHours: minutes / 60, sleepDurationMinutes: minutes });
     window.localStorage.removeItem(transientKey);
+    if (taskId === "sleep") window.localStorage.removeItem(legacyKey);
     publishSleepSession();
     setDraftWakeTime(wakeTime);
     pushToast({ tone: "success", title: "صباح هادئ", body: `تم تسجيل ${durationCopy(elapsedMinutes)} من النوم.` });
@@ -245,8 +248,9 @@ export function SleepActivityPage({ taskId }: { taskId: string }) {
     }
     const hours = Math.round(minutes / 6) / 10;
     updateTaskProgress(task.id, hours);
-    updateDetails({ sleptAt: draftBedtime, wokeAt: draftWakeTime, sleepStartedIso: "", sleepEndedIso: "", sleepState: "recorded", sleepRecorded: true, sleepDurationHours: hours });
+    updateDetails({ sleptAt: draftBedtime, wokeAt: draftWakeTime, sleepStartedIso: "", sleepEndedIso: "", sleepState: "recorded", sleepRecorded: true, sleepDurationHours: minutes / 60, sleepDurationMinutes: minutes });
     window.localStorage.removeItem(transientKey);
+    if (taskId === "sleep") window.localStorage.removeItem(legacyKey);
     publishSleepSession();
     setManualError("");
     setEditorOpen(false);
@@ -302,8 +306,8 @@ export function SleepActivityPage({ taskId }: { taskId: string }) {
       </div>
     </section>
 
-    {editorOpen && <Card id="sleep-manual-editor" className="sleep-editor-card" padding="lg">
-      <div className="sleep-section-heading"><div className="sleep-section-icon"><Edit3 size={20} /></div><div><h2>تعديل وقت الليلة</h2><p>يُحسب عبور منتصف الليل تلقائيًا.</p></div><button type="button" onClick={() => setEditorOpen(false)}>إلغاء</button></div>
+    <Dialog open={editorOpen} onClose={() => setEditorOpen(false)} title="تعديل وقت الليلة" description="يُحسب عبور منتصف الليل تلقائيًا.">
+      <div id="sleep-manual-editor" className="sleep-dialog-content">
       <div className="sleep-editor-grid">
         <Input type="time" label="وقت النوم" value={draftBedtime} onChange={(event) => { setDraftBedtime(event.target.value); setManualError(""); }} />
         <span className="sleep-editor-arrow"><ArrowLeft size={20} /></span>
@@ -312,7 +316,8 @@ export function SleepActivityPage({ taskId }: { taskId: string }) {
       </div>
       {manualError && <p className="sleep-editor-error">{manualError}</p>}
       <Button onClick={saveManualRecord}><Check size={18} />حفظ سجل النوم</Button>
-    </Card>}
+      </div>
+    </Dialog>
 
     <div className="sleep-content-grid">
       <main className="sleep-main-column">

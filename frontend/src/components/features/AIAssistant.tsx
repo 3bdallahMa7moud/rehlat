@@ -110,6 +110,7 @@ export function AssistantConversation({ expanded = false, onClose, onToggleHisto
   };
 
   const visibleSuggestions = expanded ? aiSuggestions.slice(0, 3) : aiSuggestions.slice(0, 2);
+  const showStarter = !ai.messages.some((message) => message.role === "user");
 
   return (
     <section className={cn(styles.conversation, expanded ? styles.conversationExpanded : styles.conversationCompact)} aria-label="المحادثة مع مساعد رحلة التغيير">
@@ -147,15 +148,7 @@ export function AssistantConversation({ expanded = false, onClose, onToggleHisto
         </div>
       </header>
 
-      <div className={styles.messages} role="log" aria-live="polite" aria-relevant="additions">
-        {!ai.messages.length && (
-          <div className={styles.emptyState}>
-            <span className={styles.emptyIcon}><Sparkles size={24} /></span>
-            <strong>بماذا تحب أن نبدأ؟</strong>
-            <p>احكِ لي ما يشغلك، وسنحوّله معًا إلى خطوة صغيرة وواضحة.</p>
-          </div>
-        )}
-
+      <div className={cn(styles.messages, showStarter && styles.messagesStarter)} role="log" aria-live="polite" aria-relevant="additions">
         {ai.messages.map((message) => (
           <article
             key={message.id}
@@ -180,6 +173,17 @@ export function AssistantConversation({ expanded = false, onClose, onToggleHisto
           </article>
         ))}
 
+        {showStarter && (
+          <div className={styles.emptyState}>
+            <span className={styles.emptyIcon}><Sparkles size={24} /></span>
+            <strong>بماذا تحب أن نبدأ؟</strong>
+            <p>اختر خطوة من الاقتراحات، أو اكتب ما يشغلك في الأسفل.</p>
+            <div className={styles.starterActions} aria-label="أسئلة للبدء">
+              {aiSuggestions.slice(0, 3).map((suggestion) => <button type="button" key={suggestion} onClick={() => send(suggestion)} disabled={ai.isTyping}>{suggestion}</button>)}
+            </div>
+          </div>
+        )}
+
         {ai.isTyping && (
           <div className={cn(styles.message, styles.assistantMessage)} aria-label="المساعد يكتب">
             <span className={styles.messageAvatar}><BrandLogo decorative className={styles.brandLogo} /></span>
@@ -200,7 +204,7 @@ export function AssistantConversation({ expanded = false, onClose, onToggleHisto
       </div>
 
       <div className={styles.composerArea}>
-        <div className={styles.suggestions} aria-label="اقتراحات جاهزة">
+        {!showStarter && <div className={styles.suggestions} aria-label="اقتراحات جاهزة">
           <span><Lightbulb size={14} /> جرّب أن تسأل</span>
           <div>
             {visibleSuggestions.map((suggestion) => (
@@ -209,7 +213,7 @@ export function AssistantConversation({ expanded = false, onClose, onToggleHisto
               </button>
             ))}
           </div>
-        </div>
+        </div>}
 
         <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); send(); }}>
           <textarea
