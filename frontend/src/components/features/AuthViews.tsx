@@ -275,7 +275,8 @@ export function LoginView() {
                   setError("");
                   setPin(value);
                 }}
-                onSubmit={(value) => setPin(value ?? "")}
+                onSubmit={(value) => verify(value ?? "")}
+                submitOnComplete={false}
                 error={error}
                 loading={loading}
                 success={success}

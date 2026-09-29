@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { forwardRef, useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Award, Check, ChevronDown, CircleCheck, Crown, Flame, Info, LoaderCircle, SearchX, TriangleAlert, X } from "lucide-react";
@@ -31,8 +32,8 @@ const badgeLabels = { not_started: "لم تبدأ", running: "قيد التنف�
 export function Badge({ tone = "neutral", children, className }: { tone?: "neutral" | "primary" | "teal" | "success" | "warning" | "danger"; children: ReactNode; className?: string }) { return <span className={cn("badge", `badge-${tone}`, className)}>{children}</span>; }
 export function StatusBadge({ status }: { status: keyof typeof badgeLabels }) { const tone = status === "completed" || status === "complete" ? "success" : status === "paused" || status === "almost_complete" ? "warning" : status === "running" || status === "in_progress" || status === "started" ? "primary" : status === "not_completed" ? "neutral" : "neutral"; return <Badge tone={tone}>{badgeLabels[status]}</Badge>; }
 
-export function UserAvatar({ initials, color = "navy", size = "md", online }: { initials: string; color?: "navy" | "teal" | "mint" | "amber"; size?: "sm" | "md" | "lg" | "xl"; online?: boolean }) {
-  return <span className={cn("avatar", `avatar-${color}`, `avatar-${size}`)} aria-label={initials}>{initials}{online && <span className="avatar-online" />}</span>;
+export function UserAvatar({ initials, color = "navy", size = "md", online, src }: { initials: string; color?: "navy" | "teal" | "mint" | "amber"; size?: "sm" | "md" | "lg" | "xl"; online?: boolean; src?: string }) {
+  return <span className={cn("avatar", `avatar-${color}`, `avatar-${size}`, src && "avatar-has-image")} aria-label={initials}>{src ? <Image src={src} alt="" fill sizes="132px" unoptimized className="avatar-image" /> : initials}{online && <span className="avatar-online" />}</span>;
 }
 
 export function StatusDot({ status, label }: { status: PresenceStatus; label?: string }) { return <span className="inline-flex items-center gap-2"><span className={cn("status-dot", `status-${status}`)} aria-hidden="true" />{label && <span>{label}</span>}</span>; }
@@ -147,7 +148,7 @@ export function ErrorState({ title = "تعذر تحميل البيانات.", on
 export function NotificationIcon({ tone }: { tone: "success" | "warning" | "info" | "error" }) { if (tone === "success") return <CircleCheck size={20} />; if (tone === "warning" || tone === "error") return <TriangleAlert size={20} />; return <Info size={20} />; }
 export function ToastViewport({ items, onDismiss }: { items: { id: string; title: string; body?: string; tone: "success" | "warning" | "info" | "error"; icon?: "achievement" | "milestone" | "title" }[]; onDismiss: (id: string) => void }) { return <div className="toast-viewport" aria-live="polite">{items.map((toast) => <div className={cn("toast", `toast-${toast.tone}`)} key={toast.id}>{toast.icon === "achievement" ? <Award size={20} aria-hidden="true" /> : toast.icon === "milestone" ? <Flame size={20} aria-hidden="true" /> : toast.icon === "title" ? <Crown size={20} aria-hidden="true" /> : <NotificationIcon tone={toast.tone} />}<div><strong>{toast.title}</strong>{toast.body && <p>{toast.body}</p>}</div><IconButton label="إغلاق الإشعار" onClick={() => onDismiss(toast.id)}><X size={17} /></IconButton></div>)}</div>; }
 
-export function PinInput({ value, onChange, onSubmit, error, loading, success, masked = true }: { value: string; onChange: (value: string) => void; onSubmit?: (code?: string) => void; error?: string; loading?: boolean; success?: boolean; masked?: boolean }) {
+export function PinInput({ value, onChange, onSubmit, error, loading, success, masked = true, submitOnComplete = true }: { value: string; onChange: (value: string) => void; onSubmit?: (code?: string) => void; error?: string; loading?: boolean; success?: boolean; masked?: boolean; submitOnComplete?: boolean }) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const chars = Array.from({ length: 4 }, (_, index) => value[index] ?? "");
   useEffect(() => {
@@ -176,7 +177,7 @@ export function PinInput({ value, onChange, onSubmit, error, loading, success, m
     onChange(joined);
     const target = Math.min(index + 1, 3);
     refs.current[target]?.focus();
-    if (joined.length === 4) window.setTimeout(() => onSubmit?.(joined), 40);
+    if (submitOnComplete && joined.length === 4) window.setTimeout(() => onSubmit?.(joined), 40);
   };
   return (
     <div className="pin-root">
@@ -198,7 +199,7 @@ export function PinInput({ value, onChange, onSubmit, error, loading, success, m
               if (pasted) {
                 onChange(pasted);
                 refs.current[Math.min(pasted.length, 3)]?.focus();
-                if (pasted.length === 4) window.setTimeout(() => onSubmit?.(pasted), 40);
+                if (submitOnComplete && pasted.length === 4) window.setTimeout(() => onSubmit?.(pasted), 40);
               }
             }}
             onKeyDown={(event) => {

@@ -144,6 +144,8 @@ a { color: inherit; text-decoration: none; }
 .badge-danger { background: var(--danger-soft); color: var(--danger); }
 
 .avatar { position: relative; display: inline-grid; flex: 0 0 auto; place-items: center; border-radius: 50%; font-weight: 700; letter-spacing: 0; }
+.avatar-has-image { overflow: visible; }
+.avatar-image { border-radius: inherit; object-fit: cover; overflow: hidden; }
 .avatar-navy { background: var(--primary-soft); color: var(--primary); }
 .avatar-teal { background: var(--mint-soft); color: var(--teal-strong); }
 .avatar-mint { background: var(--avatar-mint-bg); color: var(--avatar-mint-text); }
@@ -152,7 +154,7 @@ a { color: inherit; text-decoration: none; }
 .avatar-md { width: 38px; height: 38px; font-size: 12px; }
 .avatar-lg { width: 48px; height: 48px; font-size: 14px; }
 .avatar-xl { width: 64px; height: 64px; font-size: 18px; }
-.avatar-online { position: absolute; width: 10px; height: 10px; bottom: 0; left: 0; border: 2px solid var(--surface); border-radius: 50%; background: var(--success); }
+.avatar-online { position: absolute; z-index: 1; width: 10px; height: 10px; bottom: 0; left: 0; border: 2px solid var(--surface); border-radius: 50%; background: var(--success); }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted-soft); }
 .status-active { background: var(--success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 16%, transparent); animation: pulse 1.7s ease-in-out infinite; }
 .status-paused { background: var(--warning); }
@@ -191,7 +193,7 @@ a { color: inherit; text-decoration: none; }
 @keyframes dialog-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 .tabs { display: inline-flex; max-width: 100%; overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 3px; }
-.tab { min-height: 36px; border: 0; border-radius: 5px; background: transparent; color: var(--muted); padding: 0 12px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.tab { min-height: 44px; border: 0; border-radius: 5px; background: transparent; color: var(--muted); padding: 0 12px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .tab-active { background: var(--primary-soft); color: var(--primary); }
 .select-wrap { position: relative; display: inline-flex; min-width: 140px; }
 .dropdown-trigger { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; width: 100%; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); padding: 0 12px; font: inherit; text-align: right; }
@@ -1032,22 +1034,36 @@ html:has([data-task-manager]) { view-transition-name: none; }
 @media (max-width: 680px) {
   .honors-heading-row { align-items: stretch; flex-direction: column; }
   .honors-heading-row .tabs { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; }
-  .honors-podium { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 52px; padding-inline: 0; }
-  .honor-place { min-height: 210px; border-radius: 18px 18px 0 0; padding: 44px 7px 13px; }
-  .honor-place-1 { min-height: 250px; padding-top: 51px; }
-  .honor-avatar-wrap { width: 60px; height: 60px; border-radius: 18px; }
-  .honor-avatar-wrap .avatar { width: 48px; height: 48px; }
-  .honor-place-1 .honor-avatar-wrap { width: 72px; height: 72px; border-radius: 21px; }
-  .honor-place-1 .honor-avatar-wrap .avatar { width: 59px; height: 59px; font-size: 16px; }
-  .honor-rank-badge { left: -6px; width: 27px; height: 27px; }
-  .honor-place-1 .honor-rank-badge { width: 31px; height: 31px; }
-  .honor-person strong { max-width: 78px; overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+  .honors-podium { grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 18px; padding: 0; }
+  .honor-place, .honor-place-1 { display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-areas: "avatar person" "avatar description" "avatar metrics"; justify-items: stretch; align-content: center; gap: 3px 12px; min-height: 112px; border: 1px solid var(--line); border-radius: 16px; padding: 14px; text-align: right; }
+  .honor-place-1 { border-color: color-mix(in srgb, var(--gold) 48%, var(--line)); }
+  .honor-avatar-wrap, .honor-place-1 .honor-avatar-wrap { position: relative; top: auto; grid-area: avatar; display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border: 0; border-radius: 18px; box-shadow: none; }
+  .honor-avatar-wrap .avatar, .honor-place-1 .honor-avatar-wrap .avatar { width: 48px; height: 48px; font-size: 15px; }
+  .honor-avatar-wrap .avatar + .avatar { margin-right: -34px; }
+  .honor-rank-badge, .honor-place-1 .honor-rank-badge { left: -5px; bottom: -5px; width: 27px; height: 27px; }
+  .honor-person { grid-area: person; min-width: 0; margin: 0; }
+  .honor-person strong { max-width: none; overflow: visible; font-size: 14px; overflow-wrap: anywhere; white-space: normal; }
   .honor-person svg { width: 13px; }
-  .honor-place > p { display: none; }
-  .honor-metrics { display: grid; gap: 4px; }
-  .honor-metrics span { justify-content: center; padding: 3px 5px; }
-  .honor-spark { height: 38px; margin-top: 11px; }
-  .honors-ranking-card { margin-top: 18px; }
+  .honor-place > p { grid-area: description; display: block; min-height: 0; margin: 0; }
+  .honor-metrics { grid-area: metrics; justify-content: flex-start; }
+  .honor-metrics span { padding: 3px 7px; }
+  .honors-ranking-card { min-width: 0; overflow: hidden; margin-top: 18px; }
+  .honors-table-title { min-width: 0; flex-wrap: wrap; gap: 10px; padding: 16px; }
+  .honors-table-title > div { min-width: 0; }
+  .honors-table-title > div > div { min-width: 0; }
+  .honors-table-title p { overflow-wrap: anywhere; }
+  .honors-table-title .section-link { margin-inline-start: 48px; }
+  .honors-table-head { display: none; }
+  .honors-ranking-list { display: grid; min-width: 0; gap: 10px; padding: 0 12px 12px; }
+  .honors-ranking-list article { grid-template-columns: 30px minmax(0, 1fr) auto; grid-template-areas: "rank member score" "progress progress progress" "streak streak streak"; gap: 9px 10px; min-width: 0; min-height: 0; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .honors-ranking-list article:first-child { border-top: 1px solid var(--line); }
+  .honors-rank-number { grid-area: rank; }
+  .honors-member { grid-area: member; }
+  .honors-member strong { overflow: visible; overflow-wrap: anywhere; white-space: normal; }
+  .honors-progress { grid-area: progress; grid-template-columns: auto minmax(0, 1fr); min-width: 0; }
+  .honors-score { grid-area: score; white-space: nowrap; }
+  .honors-streak { grid-area: streak; }
+  .honors-ranking-list article > span:last-child { display: none; }
 }
 /* Admin task management polish */
 .admin-tasks-shell { display: grid; gap: 16px; }
@@ -1356,6 +1372,12 @@ html:has([data-task-manager]) { view-transition-name: none; }
 .report-saved-item strong { color: var(--ink); font-size: 12px; overflow-wrap: anywhere; }
 .report-saved-item small, .report-saved-item span { color: var(--muted); font-size: 10px; }
 .report-saved-actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 860px) {
+  .admin-table .admin-actions .icon-button[aria-label^="تفاصيل"]::after { content: "تفاصيل"; }
+  .admin-table .admin-actions .icon-button[aria-label^="تعديل"]::after { content: "تعديل"; }
+  .admin-table .admin-actions .icon-button[aria-label^="إعادة تعيين PIN"]::after { content: "إعادة PIN"; }
+  .admin-table .admin-actions .icon-button[aria-label^="حذف"]::after { content: "حذف"; }
+}
 @media (max-width: 700px) {
   .report-history-card .report-card-heading, .report-saved-item { align-items: stretch; flex-direction: column; }
   .report-history-card .report-card-heading .button { align-self: stretch; }
@@ -3089,6 +3111,10 @@ html:has([data-task-manager]) { view-transition-name: none; }
 
 .auth-login-page.auth-pin-mode .auth-user-banner {
   align-items: center;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   flex-direction: column;
   gap: 12px;
   justify-content: center;

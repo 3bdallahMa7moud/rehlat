@@ -32,17 +32,17 @@
 .cardFooter { flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 12px; }
 .cardFooter > span { color: var(--muted); font-size: 10px; }
 .cardFooter > div { justify-content: flex-end; flex-wrap: wrap; }
-.cardFooter a, .cardFooter button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 7px 9px; font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; transition: border-color 180ms ease, color 180ms ease, transform 180ms ease; }
+.cardFooter a, .cardFooter button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 7px 9px; font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; transition: border-color 180ms ease, color 180ms ease, transform 180ms ease; }
 .cardFooter a:hover, .cardFooter button:hover { border-color: var(--teal); color: var(--teal-strong); }
 .cardFooter a:active, .cardFooter button:active { transform: scale(.95); }
 .cardFooter a:focus-visible, .cardFooter button:focus-visible, .sectionNav a:focus-visible { outline: 2px solid var(--teal-strong); outline-offset: 2px; }
-.back { display: inline-flex; align-items: center; gap: 5px; margin-bottom: 15px; color: var(--teal-strong); font-size: 11px; font-weight: 700; }
+.back { display: inline-flex; min-height: 44px; align-items: center; gap: 5px; margin-bottom: 8px; color: var(--teal-strong); font-size: 11px; font-weight: 700; }
 .back:hover { text-decoration: underline; }
 .headerActions { display: flex; align-items: center; gap: 10px; }
-.cancelLink { color: var(--muted); font-size: 12px; }
+.cancelLink { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; }
 .cancelLink:hover { color: var(--ink); }
 .sectionNav { display: flex; gap: 8px; overflow-x: auto; padding: 3px 2px 8px; scrollbar-width: thin; }
-.sectionNav a { display: inline-flex; min-height: 42px; flex: 1 0 auto; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); padding: 8px 12px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.sectionNav a { display: inline-flex; min-height: 44px; flex: 1 0 auto; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); padding: 8px 12px; font-size: 11px; font-weight: 700; white-space: nowrap; }
 .sectionNav a:hover { border-color: var(--teal); color: var(--teal-strong); }
 .sectionNav span { color: var(--teal-strong); font-size: 10px; }
 .editorLayout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; align-items: start; gap: 17px; }

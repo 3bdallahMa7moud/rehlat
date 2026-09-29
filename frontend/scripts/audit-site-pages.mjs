@@ -7,6 +7,7 @@ const outputDir = path.resolve(process.env.AUDIT_OUTPUT_DIR ?? "artifacts/site-a
 const systemOnly = process.argv.includes("--system-only");
 const deepOnly = process.argv.includes("--deep-only");
 const darkOnly = process.argv.includes("--dark-only");
+const mobileOnly = process.argv.includes("--mobile-only");
 const participantRoutes = [
   "/dashboard", "/tasks", "/tasks/prayer", "/tasks/quran", "/tasks/adhkar", "/tasks/adhkar-evening",
   "/tasks/reading", "/tasks/lesson-review", "/tasks/sport", "/tasks/water", "/tasks/skill", "/tasks/family", "/tasks/sleep",
@@ -99,16 +100,16 @@ async function auditRoute(route, role, viewport) {
   console.log(`${viewport.name.padEnd(7)} ${route.padEnd(30)} ${metrics.url.padEnd(30)} ${metrics.scrollWidth > metrics.clientWidth ? "OVERFLOW" : "ok"} ${metrics.h1.join(" / ")}`);
 }
 
-const viewports = [{ name: "desktop", width: 1440, height: 900 }, { name: "mobile", width: 390, height: 844 }];
+const viewports = [{ name: "desktop", width: 1440, height: 900 }, { name: "mobile", width: Number(process.env.AUDIT_MOBILE_WIDTH ?? 390), height: 844 }];
 for (const [role, id, routes] of (systemOnly ? [] : darkOnly ? [["participant", "razi", ["/dashboard", "/tasks/adhkar-evening", "/tasks/reading", "/tasks/sleep"]], ["admin", "admin", ["/admin/tasks/new", "/admin/participants", "/admin/data"]]] : deepOnly ? [["participant", "razi", ["/tasks/adhkar", "/tasks/reading", "/tasks/sleep", "/reports"]], ["admin", "admin", ["/admin/tasks/new", "/admin/participants", "/admin/reports", "/admin/data"]]] : [["participant", "razi", participantRoutes], ["admin", "admin", adminRoutes]])) {
   await setSession(id);
   if (darkOnly) { await evaluate('localStorage.setItem("joc-theme", "dark")'); await send("Page.reload"); await wait(700); }
-  for (const viewport of (deepOnly || darkOnly ? viewports.filter((item) => item.name === "mobile") : viewports)) for (const route of routes) await auditRoute(route, role, viewport);
+  for (const viewport of (deepOnly || darkOnly || mobileOnly ? viewports.filter((item) => item.name === "mobile") : viewports)) for (const route of routes) await auditRoute(route, role, viewport);
 }
 await send("Page.navigate", { url: `${baseUrl}/login` });
 await wait(500);
 await evaluate('localStorage.removeItem("joc-session-participant")');
-if (!deepOnly && !darkOnly) for (const viewport of viewports) for (const route of (systemOnly ? ["/login", "/setup-pin", "/forbidden", "/missing-page"] : ["/login"])) await auditRoute(route, "auth", viewport);
+if (!deepOnly && !darkOnly) for (const viewport of (mobileOnly ? viewports.filter((item) => item.name === "mobile") : viewports)) for (const route of (systemOnly ? ["/login", "/setup-pin", "/forbidden", "/missing-page"] : ["/login"])) await auditRoute(route, "auth", viewport);
 await writeFile(path.join(outputDir, systemOnly ? "results-system.json" : deepOnly ? "results-deep.json" : darkOnly ? "results-dark.json" : "results.json"), JSON.stringify({ auditedAt: new Date().toISOString(), errors, pages: results }, null, 2));
 socket.close();
 console.log(JSON.stringify({ total: results.length, errors, overflow: results.filter((item) => item.scrollWidth > item.clientWidth).map((item) => `${item.route}:${item.viewport}`) }));

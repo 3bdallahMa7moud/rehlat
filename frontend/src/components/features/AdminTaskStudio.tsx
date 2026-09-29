@@ -94,6 +94,12 @@ function targetFor(draft: Draft) {
   return Number(draft.target);
 }
 
+function validDateKey(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 function validateDraft(draft: Draft) {
   const target = targetFor(draft);
   const full = Number(draft.fullPoints);
@@ -104,19 +110,20 @@ function validateDraft(draft: Draft) {
   if (draft.fullPoints.trim() === "" || !Number.isFinite(full) || full < 0 || (partial !== undefined && (!Number.isFinite(partial) || partial < 0 || partial > full))) return "راجع نقاط الإكمال والإنجاز الجزئي.";
   if (duration !== undefined && (!Number.isFinite(duration) || duration < 0)) return "أدخل مدة متوقعة صحيحة.";
   if (draft.scheduleMode === "weekdays" && !draft.selectedWeekdays.length) return "اختر يومًا واحدًا على الأقل.";
-  if (draft.scheduleMode === "once" && !/^\d{4}-\d{2}-\d{2}$/.test(draft.onceDate)) return "حدد تاريخ المهمة.";
+  if (draft.scheduleMode === "once" && !validDateKey(draft.onceDate)) return "حدد تاريخًا صحيحًا للمهمة.";
   if (draft.assignment === "selected" && !draft.assigneeIds.length) return "اختر مشاركًا واحدًا على الأقل.";
   const config = draft.config;
   if (config.type === "quran" && (!Number.isInteger(config.surah) || config.surah < 1 || config.surah > 114 || !Number.isInteger(config.batchSize) || config.batchSize < 1 || config.batchSize > 20)) return "راجع السورة وحجم دفعة الآيات.";
   if (config.type === "prayer" && !config.prayers.length) return "اختر صلاة واحدة على الأقل.";
-  if (config.type === "reading" && (!config.bookName.trim() || !Number.isInteger(config.totalPages) || config.totalPages < 0 || !Number.isInteger(config.startPage) || config.startPage < 1 || (config.totalPages > 0 && config.startPage > config.totalPages))) return "أدخل بيانات كتاب وصفحة بداية صحيحة.";
-  if (config.type === "water" && (config.targetMl < 250 || config.targetMl > 10000 || config.quickAmounts.some((value) => !Number.isFinite(value) || value < 50 || value > 1500))) return "راجع هدف الماء والكميات السريعة.";
+  if (config.type === "reading" && (!config.bookName.trim() || !Number.isInteger(config.totalPages) || config.totalPages < 0 || !Number.isInteger(config.startPage) || config.startPage < 1 || (config.totalPages > 0 && config.startPage + target - 1 > config.totalPages))) return "راجع صفحات الكتاب؛ الهدف يتجاوز الصفحات المتبقية.";
+  if (config.type === "water" && (!Number.isInteger(config.targetMl) || config.targetMl < 250 || config.targetMl > 10000 || config.quickAmounts.some((value) => !Number.isInteger(value) || value < 50 || value > 1500))) return "راجع هدف الماء والكميات السريعة.";
   if (config.type === "sleep" && (!/^\d{2}:\d{2}$/.test(config.bedtime) || !/^\d{2}:\d{2}$/.test(config.wakeTime) || target > 16)) return "راجع ساعات النوم وموعديه.";
   return "";
 }
 
 export function AdminTaskManager() {
-  const { taskDefinitions, tasks, archiveTask, duplicateTask, participants } = useDemo();
+  const { taskDefinitions, tasks, archiveTask, duplicateTask, participants: allAccounts } = useDemo();
+  const participants = allAccounts.filter((person) => person.role === "participant");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
   const filtered = taskDefinitions.filter((task) => {
@@ -146,13 +153,14 @@ export function AdminTaskEditor({ taskId }: { taskId?: string }) {
 
 function TaskEditorForm({ task }: { task?: Task }) {
   const router = useRouter();
-  const { participants, saveTaskDefinition } = useDemo();
+  const { participants: allAccounts, saveTaskDefinition } = useDemo();
+  const participants = allAccounts.filter((person) => person.role === "participant");
   const [draft, setDraft] = useState<Draft>(() => draftFor(task));
   const [attempted, setAttempted] = useState(false);
   const config = draft.config;
-  const validation = validateDraft(draft);
-  const target = targetFor(draft);
   const selectedPeople = participants.filter((person) => draft.assigneeIds.includes(person.id));
+  const validation = validateDraft(draft) || (draft.assignment === "selected" && !selectedPeople.length ? "اختر مشاركًا متاحًا واحدًا على الأقل." : "");
+  const target = targetFor(draft);
   const update = (patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch }));
   const updateConfig = (patch: Partial<TaskConfig>) => setDraft((current) => ({ ...current, config: { ...current.config, ...patch } as TaskConfig }));
   const changeType = (type: TaskType) => {
@@ -173,7 +181,7 @@ function TaskEditorForm({ task }: { task?: Task }) {
       fullPoints: Number(draft.fullPoints), partialPoints: draft.partialPoints === "" ? undefined : Number(draft.partialPoints),
       durationMinutes: draft.durationMinutes === "" ? undefined : Number(draft.durationMinutes), scheduledTime: draft.scheduledTime.trim(),
       config: config.type === "general" ? { ...config, steps: config.steps.map((step) => step.trim()).filter(Boolean) } : config, group: config.type === "adhkar" ? config.session : undefined,
-      schedule, assigneeIds: draft.assignment === "all" ? undefined : draft.assigneeIds, applyToday: draft.applyToday,
+      schedule, assigneeIds: draft.assignment === "all" ? undefined : selectedPeople.map((person) => person.id), applyToday: draft.applyToday,
     };
     saveTaskDefinition(task?.id ?? null, input);
     router.push("/admin/tasks");

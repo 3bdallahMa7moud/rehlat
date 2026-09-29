@@ -161,7 +161,7 @@ export function AssistantConversation({ expanded = false, onClose, onToggleHisto
             <div className={styles.messageBody}>
               <div className={styles.bubble}><p>{message.content}</p></div>
               <div className={styles.messageMeta}>
-                <time>{formatRelativeTime(message.createdAt)}</time>
+                <time>{message.id === "ai-1" ? "بداية المحادثة" : formatRelativeTime(message.createdAt)}</time>
                 {message.role === "assistant" && (
                   <button type="button" onClick={() => copyMessage(message.id, message.content)} aria-label="نسخ الرد">
                     {copiedId === message.id ? <Check size={13} /> : <Copy size={13} />}

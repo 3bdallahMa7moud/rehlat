@@ -33,6 +33,7 @@ export interface Participant {
   name: string;
   initials: string;
   avatarColor: "navy" | "teal" | "mint" | "amber";
+  avatarUrl?: string;
   role: UserRole;
   presence: PresenceStatus;
   currentStatus: string;
@@ -130,6 +131,7 @@ export interface RankingEntry {
   name: string;
   initials: string;
   avatarColor: Participant["avatarColor"];
+  avatarUrl?: string;
   score: number;
   progress: number;
   streak: number;

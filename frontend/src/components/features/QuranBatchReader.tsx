@@ -5,7 +5,9 @@ import Link from "next/link";
 import { BookOpen, Bookmark, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, LoaderCircle, MoreHorizontal, Volume2 } from "lucide-react";
 import { Button, Card, ProgressBar } from "@/components/ui";
 import { cn } from "@/lib/cn";
-import { reciterLabel } from "@/lib/quran-recitation";
+import { quranReadingText } from "@/lib/quran-text";
+import { quranAudioUrl, quranReciters } from "@/lib/quran-recitation";
+import { useQuranReciter } from "@/lib/use-quran-reciter";
 import { useDemo } from "@/state/DemoContext";
 import type { Task } from "@/types/models";
 
@@ -31,7 +33,7 @@ export function QuranBatchReader({ task, onProgress, onDetails: saveDetails, ini
   const quranConfig = task.config?.type === "quran" ? task.config : null;
   const quranAyahsPerPage = quranConfig?.batchSize ?? globalSettings.quranAyahsPerPage;
   const quranReadingMode = quranConfig?.readingMode ?? globalSettings.quranReadingMode;
-  const quranReciter = quranConfig?.reciter ?? globalSettings.quranReciter;
+  const { reciter: quranReciter, chooseReciter } = useQuranReciter(globalSettings.activeParticipant.id, quranConfig?.reciter ?? globalSettings.quranReciter);
   // A reader position changes while navigating. A saved bookmark must keep its
   // own coordinates so moving to another page cannot overwrite it.
   const onDetails = (details: Record<string, string | number | boolean | string[]>) => {
@@ -71,6 +73,7 @@ export function QuranBatchReader({ task, onProgress, onDetails: saveDetails, ini
     return ayahs.slice(safeStart, safeStart + quranAyahsPerPage);
   }, [activeAyah?.page, ayahs, quranAyahsPerPage, quranReadingMode, safeStart]);
   const firstAyah = visibleAyahs[0];
+  const openingBasmala = firstAyah ? quranReadingText(surah, firstAyah.number, firstAyah.text).openingBasmala : null;
   const lastAyah = visibleAyahs.at(-1);
   const activePage = firstAyah?.page;
   const pageOptions = useMemo(() => [...new Set(ayahs.map((ayah) => ayah.page).filter((value): value is number => typeof value === "number"))], [ayahs]);
@@ -151,7 +154,7 @@ export function QuranBatchReader({ task, onProgress, onDetails: saveDetails, ini
   const copyAyah = async () => {
     if (!activeAyah) return;
     try {
-      await navigator.clipboard.writeText(activeAyah.text);
+      await navigator.clipboard.writeText(quranReadingText(surah, activeAyah.number, activeAyah.text).verse);
       setCopied(true);
       setMoreOpen(false);
     } catch {
@@ -172,7 +175,7 @@ export function QuranBatchReader({ task, onProgress, onDetails: saveDetails, ini
           <span>الآية {activeAyah?.number ?? "—"} من {ayahs.length || "—"}</span>
           <button type="button" aria-label="الآية التالية" onClick={() => selectAyah(selectedAyahNumber + 1)} disabled={loading || selectedAyahNumber >= ayahs.length}><ChevronLeft size={18} /></button>
         </div>
-        <div className="quran-toolbar-actions"><span className="quran-reciter-label" title={"\u0627\u0644\u0642\u0627\u0631\u0626: " + reciterLabel(quranReciter)}>{reciterLabel(quranReciter)}</span>
+        <div className="quran-toolbar-actions"><label className="quran-toolbar-select quran-reciter-select"><span className="sr-only">اختر صوت القارئ</span><select aria-label="اختر صوت القارئ" value={quranReciter} onChange={(event) => chooseReciter(event.target.value)}>{quranReciters.map((reciter) => <option key={reciter.id} value={reciter.id}>{reciter.label}</option>)}</select><ChevronDown size={14} /></label>
           <button type="button" aria-label="استمع للآية" title="استمع للآية" onClick={() => { void audioRef.current?.play(); }} disabled={!activeAyah}><Volume2 size={18} /></button>
           <button type="button" className={cn(bookmarked && "is-active")} aria-label="حفظ موضع الآية" aria-pressed={bookmarked} title="حفظ الموضع" onClick={() => onDetails({ quranBookmarked: !bookmarked, quranSurah: surah, quranAyahStart: activeAyah?.number ?? 1 })}><Bookmark size={18} /></button>
           <div className="quran-more-wrap"><button type="button" aria-label="خيارات الآية" aria-expanded={moreOpen} title="خيارات الآية" onClick={() => setMoreOpen((value) => !value)}><MoreHorizontal size={19} /></button>{moreOpen && <div className="quran-more-menu"><button type="button" onClick={() => { void copyAyah(); }}>نسخ الآية</button><Link href="/tasks" onClick={() => setMoreOpen(false)}>كل المهام</Link></div>}</div>
@@ -189,7 +192,8 @@ export function QuranBatchReader({ task, onProgress, onDetails: saveDetails, ini
           <div className="quran-mushaf-corner quran-mushaf-corner-bl" aria-hidden="true">✦</div>
           <div className="quran-mushaf-title"><span className="quran-mushaf-ornament" aria-hidden="true">۞</span><div><h2>{payload.surah.name}</h2><p>{payload.surah.revelationType === "Meccan" ? "مكية" : payload.surah.revelationType === "Medinan" ? "مدنية" : "سورة من القرآن الكريم"} · {ayahs.length} آية</p></div><span className="quran-mushaf-ornament" aria-hidden="true">۞</span></div>
           <div className="quran-verse-flow" style={{ fontSize: (31 * fontScale) + "px" }}>
-            {visibleAyahs.map((ayah) => <button type="button" key={ayah.number} className={cn("quran-flow-verse", ayah.number === activeAyah?.number && "quran-flow-verse-active")} aria-pressed={ayah.number === activeAyah?.number} onClick={() => selectAyah(ayah.number)}><span>{ayah.text}</span><span className="quran-verse-number" aria-hidden="true">{arabicNumber(ayah.number)}</span></button>)}
+            {openingBasmala && <div className="quran-opening-basmala">{openingBasmala}</div>}
+            {visibleAyahs.map((ayah) => <button type="button" key={ayah.number} className={cn("quran-flow-verse", ayah.number === activeAyah?.number && "quran-flow-verse-active")} aria-pressed={ayah.number === activeAyah?.number} onClick={() => selectAyah(ayah.number)}><span>{quranReadingText(surah, ayah.number, ayah.text).verse}</span><span className="quran-verse-number" aria-hidden="true">{arabicNumber(ayah.number)}</span></button>)}
           </div>
           {visibleAyahs.length > 0 && (quranReadingMode === "pages" ? pageOptions.length > 1 : ayahs.length > quranAyahsPerPage) && <div className="quran-mushaf-pager"><button type="button" onClick={() => moveBatch(-1)} disabled={quranReadingMode === "pages" ? pageOptions.indexOf(activePage ?? 0) <= 0 : safeStart === 0}><ChevronRight size={16} />{quranReadingMode === "pages" ? "\u0627\u0644\u0635\u0641\u062d\u0629 \u0627\u0644\u0633\u0627\u0628\u0642\u0629" : "الدفعة \u0627\u0644\u0633\u0627\u0628\u0642\u0629"}</button><span>{quranReadingMode === "pages" ? "\u0635\u0641\u062d\u0629 " + (activePage ?? "?") : arabicNumber(Math.floor(safeStart / quranAyahsPerPage) + 1) + " / " + arabicNumber(Math.ceil(ayahs.length / quranAyahsPerPage))}</span><button type="button" onClick={() => moveBatch(1)} disabled={quranReadingMode === "pages" ? pageOptions.indexOf(activePage ?? 0) >= pageOptions.length - 1 : safeStart + quranAyahsPerPage >= ayahs.length}>{quranReadingMode === "pages" ? "\u0627\u0644\u0635\u0641\u062d\u0629 \u0627\u0644\u062a\u0627\u0644\u064a\u0629" : "الدفعة \u0627\u0644\u062a\u0627\u0644\u064a\u0629"}<ChevronLeft size={16} /></button></div>}
         </div>
@@ -207,10 +211,10 @@ export function QuranBatchReader({ task, onProgress, onDetails: saveDetails, ini
         <button type="button" role="tab" aria-selected={activeTab === "tafsir"} className={cn(activeTab === "tafsir" && "is-active")} onClick={() => setActiveTab("tafsir")}>التفسير الميسر</button>
         <button type="button" role="tab" aria-selected={activeTab === "progress"} className={cn(activeTab === "progress" && "is-active")} onClick={() => setActiveTab("progress")}>تقدم القراءة</button>
       </div>
-      <div className="quran-tafsir-verse"><span className="quran-verse-number">{arabicNumber(activeAyah.number)}</span><p>{activeAyah.text}</p><span className="quran-ayah-label">الآية {activeAyah.number}</span></div>
+      <div className="quran-tafsir-verse"><span className="quran-verse-number">{arabicNumber(activeAyah.number)}</span><p>{quranReadingText(surah, activeAyah.number, activeAyah.text).verse}</p><span className="quran-ayah-label">الآية {activeAyah.number}</span></div>
       {activeTab === "tafsir" && <div className="quran-tafsir-copy"><p>{activeAyah.tafsir || "التفسير غير متاح لهذه الآية الآن."}</p></div>}
       {activeTab === "progress" && <div className="quran-progress-panel"><strong>{task.current} من {task.target} {task.unit} مقروءة اليوم</strong><ProgressBar value={(task.current / Math.max(1, task.target)) * 100} tone="teal" /></div>}
-      <div className="quran-tafsir-footer"><audio ref={audioRef} key={activeAyah.audioNumber ?? activeAyah.number} preload="none" src={"https://cdn.islamic.network/quran/audio/128/" + quranReciter + "/" + (activeAyah.audioNumber ?? activeAyah.number) + ".mp3"} /><button type="button" className={cn("quran-batch-complete", batchCompleted && "is-read")} onClick={completeBatch} disabled={batchCompleted}>{batchCompleted ? <><Check size={16} />تم تسجيل هذه الدفعة</> : <><Check size={16} />تمت قراءة الآيات كلها</>}</button>{copied && <span className="quran-copied" role="status">تم نسخ الآية</span>}</div>
+      <div className="quran-tafsir-footer"><audio ref={audioRef} key={`${quranReciter}-${activeAyah.audioNumber ?? activeAyah.number}`} preload="none" src={quranAudioUrl(quranReciter, activeAyah.audioNumber ?? activeAyah.number)} /><button type="button" className={cn("quran-batch-complete", batchCompleted && "is-read")} onClick={completeBatch} disabled={batchCompleted}>{batchCompleted ? <><Check size={16} />تم تسجيل هذه الدفعة</> : <><Check size={16} />تمت قراءة الآيات كلها</>}</button>{copied && <span className="quran-copied" role="status">تم نسخ الآية</span>}</div>
     </Card>}
   </div>;
 }

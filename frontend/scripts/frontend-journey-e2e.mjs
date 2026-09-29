@@ -70,6 +70,14 @@ try {
   })()`);
   await waitFor(`document.querySelector('#task-editor-error')?.textContent?.includes('اسم المهمة')`, "required task title validation");
 
+  await evaluate(`document.querySelector('button[aria-label="إسناد المهمة"]')?.click(); true`);
+  await waitFor(` [...document.querySelectorAll('[role="option"]')].some((option) => option.textContent.includes('مشاركون محددون'))`, "assignment options");
+  await evaluate(`[...document.querySelectorAll('[role="option"]')].find((option) => option.textContent.includes('مشاركون محددون'))?.click(); true`);
+  await waitFor(` [...document.querySelectorAll('#task-schedule label')].some((label) => label.textContent.includes('رازي') && label.querySelector('input[type="checkbox"]'))`, "participant checkboxes");
+  const adminExcluded = await evaluate(`![...document.querySelectorAll('#task-schedule label')].some((label) => label.textContent.includes('المشرف'))`);
+  if (!adminExcluded) throw new Error("Admin account appeared in task assignees");
+  await evaluate(`[...document.querySelectorAll('#task-schedule label')].find((label) => label.textContent.includes('رازي'))?.querySelector('input')?.click(); true`);
+
   const titleEntered = await evaluate(`(() => {
     const input = [...document.querySelectorAll('label')].find((label) => label.textContent.includes('اسم المهمة *'))?.querySelector('input');
     if (!input) return false;
@@ -114,6 +122,9 @@ try {
     return card?.textContent?.includes('نشطة');
   })()`, "restored task");
 
+  await evaluate('localStorage.setItem("joc-session-participant", "noura"); true');
+  await navigate("/tasks", "مهامي");
+  if (await evaluate(`document.body.innerText.includes(${JSON.stringify(taskTitle)})`)) throw new Error("Assigned task appeared for an unrelated participant");
   await evaluate('localStorage.setItem("joc-session-participant", "razi"); true');
   await navigate("/tasks", "مهامي");
   await waitFor(`document.body.innerText.includes(${JSON.stringify(taskTitle)})`, "participant task visibility");
@@ -143,7 +154,7 @@ try {
   await evaluate(`document.querySelector('.report-saved-item button:last-child')?.click(); true`);
   await waitFor(`document.querySelectorAll('.report-saved-item').length === 0`, "removed report entry");
 
-  console.log(JSON.stringify({ ok: true, width, createdId, checks: ["validation", "create", "duplicate", "archive", "restore", "participant visibility", "progress persistence", "assistant starter", "report save", "report persistence", "report delete"] }));
+  console.log(JSON.stringify({ ok: true, width, createdId, checks: ["validation", "assignment", "create", "duplicate", "archive", "restore", "participant visibility", "progress persistence", "assistant starter", "report save", "report persistence", "report delete"] }));
 } finally {
   socket.close();
 }

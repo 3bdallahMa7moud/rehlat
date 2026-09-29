@@ -133,6 +133,7 @@ interface DemoContextValue {
   resetParticipantPin: (id: string) => void;
   setParticipantPin: (id: string, pin: string) => boolean;
   changeOwnPin: (currentPin: string, nextPin: string) => { ok: boolean; error?: string };
+  updateOwnAvatar: (avatarUrl?: string) => void;
   saveTaskDefinition: (taskId: string | null, input: TaskDefinitionInput) => void;
   archiveTask: (taskId: string, archived: boolean) => void;
   duplicateTask: (taskId: string) => void;
@@ -1020,6 +1021,11 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     setParticipantPin(activeParticipantId, nextPin);
     return { ok: true };
   };
+  const updateOwnAvatar = (avatarUrl?: string) => {
+    setParticipants((items) => items.map((participant) => participant.id === activeParticipantId
+      ? { ...participant, avatarUrl }
+      : participant));
+  };
   const sendEncouragement = (recipientId: string, message: string) => {
     const clean = message.trim();
     const recipient = participants.find((participant) => participant.id === recipientId);
@@ -1232,6 +1238,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     },
     setParticipantPin,
     changeOwnPin,
+    updateOwnAvatar,
     saveTaskDefinition,
     archiveTask,
     duplicateTask,

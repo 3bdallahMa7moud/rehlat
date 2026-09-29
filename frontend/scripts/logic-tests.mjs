@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { getProjectDateKey, getProjectDayStart, formatRelativeTime } from "../src/lib/date-time.ts";
+import { quranReadingText } from "../src/lib/quran-text.ts";
 import { calculateProgress, PARTIAL_COMPLETION_WEIGHT } from "../src/lib/progress.ts";
 import { getTaskEarnedPoints, getTaskPartialPoints } from "../src/lib/points.ts";
 import { getTaskDetailElapsedSeconds, getTaskElapsedSeconds, normalizeTask } from "../src/lib/task-details.ts";
@@ -24,6 +25,15 @@ import { queryReport } from "../src/lib/report-query.ts";
 import { createReportExportModel, reportExportSheets } from "../src/lib/report-export.ts";
 
 const task = (status, overrides = {}) => ({ id: status, status, target: 10, current: 3, actualMinutes: 0, type: "general", fullPoints: 10, ...overrides });
+
+const firstKahfAyah = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ٱلْحَمْدُ لِلَّهِ";
+assert.deepEqual(quranReadingText(18, 1, firstKahfAyah), {
+  openingBasmala: "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
+  verse: "ٱلْحَمْدُ لِلَّهِ",
+});
+assert.deepEqual(quranReadingText(1, 1, firstKahfAyah), { openingBasmala: null, verse: firstKahfAyah });
+assert.deepEqual(quranReadingText(9, 1, "بَرَآءَةٌ مِّنَ ٱللَّهِ"), { openingBasmala: null, verse: "بَرَآءَةٌ مِّنَ ٱللَّهِ" });
+assert.deepEqual(quranReadingText(27, 30, "إِنَّهُۥ مِن سُلَيْمَٰنَ وَإِنَّهُۥ بِسْمِ ٱللَّهِ"), { openingBasmala: null, verse: "إِنَّهُۥ مِن سُلَيْمَٰنَ وَإِنَّهُۥ بِسْمِ ٱللَّهِ" });
 
 const scheduledTask = task("not_started", { assigneeIds: ["participant-a"], schedule: { mode: "weekdays", weekdays: [1] } });
 assert.equal(taskVisibleFor(scheduledTask, "participant-a", "2026-09-28"), true);

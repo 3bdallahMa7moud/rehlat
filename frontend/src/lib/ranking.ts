@@ -40,7 +40,7 @@ export interface CalculatedRankingEntry extends RankingEntry {
   rankScore: number;
 }
 
-type ParticipantLike = Pick<Participant, "id" | "name" | "initials" | "avatarColor" | "role" | "progress" | "streak"> & Partial<Pick<Participant, "score" | "pin" | "presence" | "currentStatus" | "currentTask">> & {
+type ParticipantLike = Pick<Participant, "id" | "name" | "initials" | "avatarColor" | "role" | "progress" | "streak"> & Partial<Pick<Participant, "avatarUrl" | "score" | "pin" | "presence" | "currentStatus" | "currentTask">> & {
   actualMinutes?: number;
 };
 
@@ -96,6 +96,7 @@ export function calculateRankings(
         name: participant.name,
         initials: participant.initials,
         avatarColor: participant.avatarColor,
+        avatarUrl: participant.avatarUrl,
         score,
       progress: clamp(finite(metrics.progress)),
         streak: Math.max(0, Math.round(metrics.streak ?? 0)),

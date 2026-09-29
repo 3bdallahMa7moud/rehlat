@@ -23,7 +23,8 @@ import { formatDashboardDate, formatRelativeTime, getProjectDateKey } from "@/li
 import { getDailyReflection } from "@/lib/daily-reflection";
 import { Badge, Button, Card, Dialog, EmptyState, Input, PageHeader, ProgressBar, SectionHeader, StatusBadge, Tabs, UserAvatar } from "@/components/ui";
 import { cn } from "@/lib/cn";
-import { formatMinutes, formatPercentage } from "@/lib/format";
+import { formatDurationClock, formatMinutes, formatPercentage } from "@/lib/format";
+import { getTaskElapsedSeconds } from "@/lib/task-details";
 import { exportReport } from "@/lib/export";
 import { PARTIAL_COMPLETION_WEIGHT } from "@/lib/progress";
 import { getEarnedTitleCards, getHonorHighlights, getPersonalHonorSummary } from "@/lib/honors";
@@ -109,6 +110,17 @@ export function DashboardView() {
   const [finishAllOpen, setFinishAllOpen] = useState(false);
   const [showAllMorning, setShowAllMorning] = useState(false);
   const [progressExplanationOpen, setProgressExplanationOpen] = useState(false);
+  const [clockNow, setClockNow] = useState<number | null>(null);
+  const hasRunningTaskTimer = tasks.some((task) => task.detailItems?.some((detail) => detail.status === "running"));
+  useEffect(() => {
+    if (!hasRunningTaskTimer) return;
+    const timer = window.setInterval(() => setClockNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [hasRunningTaskTimer]);
+  const actualSeconds = tasks.reduce((total, task) => total + Math.max(
+    Math.round(Math.max(0, task.actualMinutes) * 60),
+    getTaskElapsedSeconds(task, clockNow ?? 0),
+  ), 0);
   const dayCompletion = getDayCompletionPresentation(dayStatus, progress.percent);
 
   const dayCopy =
@@ -199,7 +211,7 @@ export function DashboardView() {
         <button type="button" className="progress-explainer" onClick={() => setProgressExplanationOpen(true)}>كيف تُحسب النسبة؟</button>
       </div>
       <div className="journey-facts">
-        <div><Timer size={20} /><span>الوقت الفعلي</span><strong>{formatMinutes(progress.actualMinutes)}</strong></div>
+        <div><Timer size={20} /><span>الوقت الفعلي</span><strong className="journey-time-value" dir="ltr" title="ساعات:دقائق:ثوانٍ">{formatDurationClock(actualSeconds)}</strong></div>
         <div><Flame size={20} /><span>السلسلة الحالية</span><strong>{streakData.current} يومًا</strong></div>
       </div>
     </section>

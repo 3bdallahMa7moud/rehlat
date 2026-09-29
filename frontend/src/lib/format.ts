@@ -1,4 +1,13 @@
 export const arabicNumber = new Intl.NumberFormat("ar-EG");
+const twoDigitArabicNumber = new Intl.NumberFormat("ar-EG", { minimumIntegerDigits: 2, maximumFractionDigits: 0, useGrouping: false });
+
+export function formatDurationClock(seconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const remainder = safeSeconds % 60;
+  return `${twoDigitArabicNumber.format(hours)}:${twoDigitArabicNumber.format(minutes)}:${twoDigitArabicNumber.format(remainder)}`;
+}
 
 export function formatMinutes(minutes: number) {
   if (minutes < 60) return `${arabicNumber.format(minutes)} دقيقة`;

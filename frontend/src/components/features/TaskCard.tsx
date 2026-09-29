@@ -77,7 +77,7 @@ export function TaskCard({ task, compact = false, openOnClick = false }: { task:
   };
   const statusAction = () => {
     const variant = task.status === "partial" ? "secondary" : task.status === "running" || task.status === "not_completed" || task.status === "completed" || task.status === "closed" ? "outline" : "primary";
-    const nextStatus = ["not_started", "paused", "partial", "not_completed"].includes(task.status) ? "running" : undefined;
+    const nextStatus = task.type !== "prayer" && ["not_started", "paused", "partial", "not_completed"].includes(task.status) ? "running" : undefined;
     return <Button size="sm" variant={variant} onClick={(event) => { event.stopPropagation(); openTask(nextStatus); }}><Play size={16} />{getTaskPrimaryAction(task.status)}</Button>;
   };
   const canFinish = ["running", "paused", "not_started", "partial"].includes(task.status);
@@ -98,8 +98,8 @@ export function TaskCard({ task, compact = false, openOnClick = false }: { task:
       <ProgressBar value={progress} tone={tone === "warning" ? "warning" : tone === "success" ? "success" : tone === "teal" ? "teal" : "primary"} />
       {!compact && <div className="task-meta"><span><Timer size={15} />الوقت الفعلي: {formatMinutes(task.actualMinutes)}</span>{task.durationMinutes && <span><Clock3 size={15} />الهدف الزمني: {formatMinutes(task.durationMinutes)}</span>}</div>}
       <div className="task-card-footer">
-        {isPrayerAggregate ? <span className="task-finished-copy">تُحدّث من الصلوات المسجّل وقتها.</span> : <>
-          {statusAction()}
+        {statusAction()}
+        {!isPrayerAggregate && <>
           {canFinish && <IconButton label="فتح خيارات إنهاء المهمة" onClick={(event) => { event.stopPropagation(); setSelectedOutcome(null); setCompletionOpen(true); }} className="task-finish-button"><CircleCheck size={20} /></IconButton>}
           {["completed", "partial", "not_completed", "closed"].includes(task.status) && <span className="task-finished-copy"><StatusGlyph status={task.status} />{task.status === "completed" ? "سُجلت في رحلة اليوم" : "حالة المهمة محفوظة"}</span>}
         </>}

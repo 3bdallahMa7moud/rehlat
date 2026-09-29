@@ -134,7 +134,7 @@
 .bubble p { margin: 0; font-size: 11px; line-height: 1.9; white-space: pre-wrap; }
 .messageMeta { min-height: 18px; display: flex; align-items: center; gap: 9px; color: var(--muted-soft); padding-inline: 3px; font-size: 11px; }
 .userMessage .messageMeta { justify-content: flex-end; }
-.messageMeta button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--muted); padding: 1px 0; font-size: 11px; }
+.messageMeta button { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; gap: 4px; border: 0; background: transparent; color: var(--muted); padding: 1px 0; font-size: 11px; }
 .messageMeta button:hover { color: var(--primary); }
 .typingBubble { width: fit-content; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; }
 .typingDots { display: flex; align-items: center; gap: 3px; }
@@ -178,6 +178,7 @@
 
 @media (max-width: 900px) {
   .page { height: calc(100dvh - 182px); min-height: 0; }
+  :global(body:has(.offline-banner-install)) .page { height: calc(100dvh - 235px); }
   .workspace { grid-template-columns: minmax(0, 1fr); border-radius: 15px; }
   .historyToggle { display: inline-flex; }
   .historyBackdrop { position: fixed; z-index: 91; inset: 0; display: block; border: 0; background: rgba(6, 20, 27, .42); opacity: 0; pointer-events: none; transition: opacity 180ms ease; }

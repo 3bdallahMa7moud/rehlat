@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Bell, Check, CircleCheck, Info, LockKeyhole, LogOut, MessageCircle, Moon, Palette, Send, SlidersHorizontal, Sparkles, Sun, TriangleAlert, Volume2, VolumeX, X } from "lucide-react";
+import { useMemo, useRef, useState, type ChangeEvent } from "react";
+import { Bell, Camera, Check, CircleCheck, Info, LockKeyhole, LogOut, MessageCircle, Moon, Palette, Send, SlidersHorizontal, Sparkles, Sun, Trash2, TriangleAlert, Volume2, VolumeX, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge, Button, EmptyState, IconButton, Input, PageHeader, Tabs, UserAvatar } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -11,6 +11,39 @@ import { useTheme } from "@/state/ThemeContext";
 import type { AppNotification } from "@/types/models";
 
 type NotificationFilter = "all" | "unread" | "important";
+
+const MAX_PROFILE_IMAGE_BYTES = 8 * 1024 * 1024;
+
+async function prepareProfileImage(file: File) {
+  if (!file.type.startsWith("image/")) throw new Error("اختر ملف صورة صالحًا.");
+  if (file.size > MAX_PROFILE_IMAGE_BYTES) throw new Error("حجم الصورة يجب ألا يتجاوز 8 ميجابايت.");
+
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = new window.Image();
+    image.decoding = "async";
+    image.src = objectUrl;
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error("تعذر قراءة الصورة. جرّب صورة أخرى."));
+    });
+
+    const sourceSize = Math.min(image.naturalWidth, image.naturalHeight);
+    if (!sourceSize) throw new Error("تعذر قراءة أبعاد الصورة.");
+    const outputSize = Math.min(512, sourceSize);
+    const canvas = document.createElement("canvas");
+    canvas.width = outputSize;
+    canvas.height = outputSize;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("تعذر تجهيز الصورة على هذا المتصفح.");
+    const sourceX = (image.naturalWidth - sourceSize) / 2;
+    const sourceY = (image.naturalHeight - sourceSize) / 2;
+    context.drawImage(image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, outputSize, outputSize);
+    return canvas.toDataURL("image/webp", 0.84);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
 
 function NotificationGlyph({ kind }: { kind: AppNotification["kind"] }) {
   if (kind === "success") return <CircleCheck size={21} />;
@@ -85,7 +118,7 @@ export function MessagesView() {
 }
 
 export function SettingsView() {
-  const { activeParticipant, changeOwnPin, logout, pushToast, soundEnabled, toggleSound } = useDemo();
+  const { activeParticipant, changeOwnPin, logout, pushToast, soundEnabled, toggleSound, updateOwnAvatar } = useDemo();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
   const [fullMotion, setFullMotion] = useState(true);
@@ -93,6 +126,9 @@ export function SettingsView() {
   const [nextPin, setNextPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [pinError, setPinError] = useState("");
+  const [avatarError, setAvatarError] = useState("");
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const toggleMotion = () => {
     const next = !fullMotion;
     setFullMotion(next);
@@ -107,10 +143,39 @@ export function SettingsView() {
     pushToast({ tone: "success", title: "تم تحديث PIN", body: "سيُستخدم الرمز الجديد في تسجيل الدخول القادم." });
   };
   const signOut = () => { logout(); router.replace("/login"); };
+  const chooseAvatar = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setAvatarError("");
+    setAvatarLoading(true);
+    try {
+      const avatarUrl = await prepareProfileImage(file);
+      updateOwnAvatar(avatarUrl);
+      pushToast({ tone: "success", title: "تم تحديث الصورة الشخصية", body: "ستظهر صورتك الآن في حسابك وباقي أجزاء التطبيق." });
+    } catch (error) {
+      setAvatarError(error instanceof Error ? error.message : "تعذر تحديث الصورة الشخصية.");
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+  const removeAvatar = () => {
+    updateOwnAvatar(undefined);
+    setAvatarError("");
+    pushToast({ tone: "success", title: "تم حذف الصورة الشخصية", body: "عادت الأحرف المختصرة كصورة افتراضية للحساب." });
+  };
 
   return <>
     <PageHeader eyebrow="تفضيلاتك" title="الإعدادات" description="تحكم في مظهر التجربة وصوتها وحركتها من مكان واحد." />
-    <section className="settings-profile"><UserAvatar initials={activeParticipant.initials} color={activeParticipant.avatarColor} size="xl" /><div><span>الحساب الحالي</span><h2>{activeParticipant.name}</h2><p>تُحفظ التفضيلات والرمز لهذا الحساب على هذا الجهاز.</p></div><Button variant="outline" onClick={signOut}><LogOut size={17} />تسجيل الخروج</Button></section>
+    <section className="settings-profile">
+      <div className="settings-avatar-editor">
+        <UserAvatar initials={activeParticipant.initials} color={activeParticipant.avatarColor} size="xl" src={activeParticipant.avatarUrl} />
+        <button type="button" className="settings-avatar-trigger" aria-label="اختيار صورة شخصية" onClick={() => avatarInputRef.current?.click()} disabled={avatarLoading}><Camera size={16} /></button>
+        <input ref={avatarInputRef} className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" onChange={chooseAvatar} />
+      </div>
+      <div className="settings-profile-copy"><span>الحساب الحالي</span><h2>{activeParticipant.name}</h2><p>تُحفظ الصورة والتفضيلات والرمز لهذا الحساب على هذا الجهاز.</p><div className="settings-avatar-actions"><Button size="sm" variant="secondary" loading={avatarLoading} onClick={() => avatarInputRef.current?.click()}><Camera size={16} />{activeParticipant.avatarUrl ? "تغيير الصورة" : "إضافة صورة"}</Button>{activeParticipant.avatarUrl && <Button size="sm" variant="ghost" onClick={removeAvatar}><Trash2 size={16} />حذف الصورة</Button>}</div>{avatarError && <p className="field-error" role="alert">{avatarError}</p>}</div>
+      <Button variant="outline" onClick={signOut}><LogOut size={17} />تسجيل الخروج</Button>
+    </section>
     <section className="settings-list">
       <article><span className="setting-symbol setting-primary"><Palette size={22} /></span><div><strong>المظهر</strong><p>ألوان متوازنة مشتقة من هوية الشعار.</p></div><button type="button" className="setting-control" onClick={toggleTheme}>{theme === "light" ? <Moon size={18} /> : <Sun size={18} />}<span>{theme === "light" ? "الوضع الداكن" : "الوضع الفاتح"}</span></button></article>
       <article><span className="setting-symbol setting-teal">{soundEnabled ? <Volume2 size={22} /> : <VolumeX size={22} />}</span><div><strong>أصوات التفاعل</strong><p>مؤثرات اختيارية للأحداث المهمة فقط.</p></div><button type="button" role="switch" aria-label={soundEnabled ? "إيقاف أصوات التفاعل" : "تشغيل أصوات التفاعل"} aria-checked={soundEnabled} className={cn("toggle-control", soundEnabled && "toggle-control-active")} onClick={toggleSound}><span /></button></article>
